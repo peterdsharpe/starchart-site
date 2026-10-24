@@ -53,7 +53,7 @@
  "sources": {
   "chart": {
    "type": "vector",
-   "url": "pmtiles:///data/tiles/greater-boston-v14.pmtiles",
+   "url": "pmtiles:///data/tiles/greater-boston-v15.pmtiles",
    "attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>"
   },
   "lore": {
@@ -1049,7 +1049,7 @@
    ],
    "minzoom": 15,
    "paint": {
-    "fill-color": "#230000",
+    "fill-color": "#3e0000",
     "fill-opacity": 0.8
    }
   },
@@ -1322,6 +1322,9 @@
     ]
    ],
    "minzoom": 9,
+   "layout": {
+    "line-join": "round"
+   },
    "paint": {
     "line-color": [
      "match",
@@ -1352,17 +1355,110 @@
       "zoom"
      ],
      9,
-     0.32,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.34,
+      "Mattapan",
+      0.34,
+      "Orange",
+      0.26,
+      "Blue",
+      0.39,
+      "Green",
+      0.32,
+      "Commuter Rail",
+      0.38,
+      0.175
+     ],
      10,
-     0.5,
-     12,
-     0.5,
-     13,
-     0.45,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.67,
+      "Mattapan",
+      0.67,
+      "Orange",
+      0.52,
+      "Blue",
+      0.78,
+      "Green",
+      0.64,
+      "Commuter Rail",
+      0.76,
+      0.35
+     ],
      14,
-     0.3,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.67,
+      "Mattapan",
+      0.67,
+      "Orange",
+      0.52,
+      "Blue",
+      0.78,
+      "Green",
+      0.64,
+      "Commuter Rail",
+      0.76,
+      0.35
+     ],
      15,
-     0.28
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.57,
+      "Mattapan",
+      0.57,
+      "Orange",
+      0.44,
+      "Blue",
+      0.66,
+      "Green",
+      0.54,
+      "Commuter Rail",
+      0.65,
+      0.2975
+     ],
+     17,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.47,
+      "Mattapan",
+      0.47,
+      "Orange",
+      0.36,
+      "Blue",
+      0.55,
+      "Green",
+      0.45,
+      "Commuter Rail",
+      0.53,
+      0.24499999999999997
+     ]
     ],
     "line-width": [
      "interpolate",
@@ -1374,18 +1470,13 @@
       "zoom"
      ],
      9,
-     1.1,
+     0.65,
      12,
-     1.4,
+     1.1,
+     14,
+     1.5,
      17,
-     2.2
-    ],
-    "line-dasharray": [
-     "literal",
-     [
-      3,
-      2
-     ]
+     2
     ]
    }
   },
@@ -1439,14 +1530,111 @@
      [
       "zoom"
      ],
+     9,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.34,
+      "Mattapan",
+      0.34,
+      "Orange",
+      0.26,
+      "Blue",
+      0.39,
+      "Green",
+      0.32,
+      "Commuter Rail",
+      0.38,
+      0.175
+     ],
      10,
-     0.35,
-     12,
-     0.35,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.67,
+      "Mattapan",
+      0.67,
+      "Orange",
+      0.52,
+      "Blue",
+      0.78,
+      "Green",
+      0.64,
+      "Commuter Rail",
+      0.76,
+      0.35
+     ],
      14,
-     0.24,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.67,
+      "Mattapan",
+      0.67,
+      "Orange",
+      0.52,
+      "Blue",
+      0.78,
+      "Green",
+      0.64,
+      "Commuter Rail",
+      0.76,
+      0.35
+     ],
      15,
-     0.2
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.57,
+      "Mattapan",
+      0.57,
+      "Orange",
+      0.44,
+      "Blue",
+      0.66,
+      "Green",
+      0.54,
+      "Commuter Rail",
+      0.65,
+      0.2975
+     ],
+     17,
+     [
+      "match",
+      [
+       "get",
+       "line"
+      ],
+      "Red",
+      0.47,
+      "Mattapan",
+      0.47,
+      "Orange",
+      0.36,
+      "Blue",
+      0.55,
+      "Green",
+      0.45,
+      "Commuter Rail",
+      0.53,
+      0.24499999999999997
+     ]
     ],
     "line-width": [
      "interpolate",
@@ -1457,18 +1645,20 @@
      [
       "zoom"
      ],
-     10,
-     1.1,
+     9,
+     0.65,
      12,
-     1.3,
+     1.1,
+     14,
+     1.5,
      17,
      2
     ],
     "line-dasharray": [
      "literal",
      [
-      1,
-      3
+      4,
+      2
      ]
     ]
    }
@@ -7264,12 +7454,42 @@
    "filter": [
     "!",
     [
-     "==",
+     "any",
      [
-      "get",
-      "group"
+      "==",
+      [
+       "get",
+       "group"
+      ],
+      "building"
      ],
-     "building"
+     [
+      "match",
+      [
+       "get",
+       "class"
+      ],
+      [
+       "restaurant",
+       "food_court",
+       "fast_food",
+       "bank",
+       "bureau_de_change",
+       "pharmacy",
+       "chemist",
+       "cafe",
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery",
+       "ice_cream"
+      ],
+      true,
+      false
+     ]
     ]
    ],
    "minzoom": 16,
@@ -7492,6 +7712,138 @@
    }
   },
   {
+   "id": "pulsar-beat",
+   "type": "circle",
+   "source": "chart",
+   "source-layer": "pois",
+   "filter": [
+    "match",
+    [
+     "get",
+     "kind"
+    ],
+    [
+     "pulsar"
+    ],
+    true,
+    false
+   ],
+   "minzoom": 14,
+   "paint": {
+    "circle-color": "#e00000",
+    "circle-radius": 9,
+    "circle-opacity": 0,
+    "circle-blur": 0.6,
+    "circle-pitch-alignment": "map"
+   },
+   "metadata": {
+    "starchart:animate": {
+     "kind": "pulsar_beat",
+     "period_s": 1.6
+    }
+   }
+  },
+  {
+   "id": "comet-line-label",
+   "type": "symbol",
+   "source": "chart",
+   "source-layer": "transit",
+   "filter": [
+    "all",
+    [
+     "==",
+     [
+      "get",
+      "kind"
+     ],
+     "comet_trail"
+    ],
+    [
+     "match",
+     [
+      "get",
+      "line"
+     ],
+     [
+      "Red",
+      "Mattapan",
+      "Orange",
+      "Blue",
+      "Green"
+     ],
+     true,
+     false
+    ]
+   ],
+   "minzoom": 13,
+   "maxzoom": 17,
+   "layout": {
+    "text-field": [
+     "match",
+     [
+      "get",
+      "line"
+     ],
+     "Red",
+     "Red Line",
+     "Mattapan",
+     "Mattapan Line",
+     "Orange",
+     "Orange Line",
+     "Blue",
+     "Blue Line",
+     "Green",
+     "Green Line",
+     ""
+    ],
+    "text-font": [
+     "Atkinson Hyperlegible Next Bold",
+     "Noto Sans Bold"
+    ],
+    "text-size": [
+     "interpolate",
+     [
+      "exponential",
+      1.6
+     ],
+     [
+      "zoom"
+     ],
+     13,
+     10,
+     16,
+     11.5
+    ],
+    "symbol-placement": "line",
+    "symbol-spacing": 600,
+    "text-max-angle": 30,
+    "text-padding": 6,
+    "text-pitch-alignment": "viewport"
+   },
+   "paint": {
+    "text-color": [
+     "match",
+     [
+      "get",
+      "line"
+     ],
+     "Red",
+     "#c00000",
+     "Mattapan",
+     "#c00000",
+     "Orange",
+     "#c80000",
+     "Blue",
+     "#c20000",
+     "Green",
+     "#c70000",
+     "#ec0000"
+    ],
+    "text-halo-color": "#0a0000",
+    "text-halo-width": 1.6
+   }
+  },
+  {
    "id": "spot-hull-label",
    "type": "symbol",
    "source": "chart",
@@ -7661,12 +8013,42 @@
     [
      "!",
      [
-      "==",
+      "any",
       [
-       "get",
-       "group"
+       "==",
+       [
+        "get",
+        "group"
+       ],
+       "building"
       ],
-      "building"
+      [
+       "match",
+       [
+        "get",
+        "class"
+       ],
+       [
+        "restaurant",
+        "food_court",
+        "fast_food",
+        "bank",
+        "bureau_de_change",
+        "pharmacy",
+        "chemist",
+        "cafe",
+        "bar",
+        "pub",
+        "biergarten",
+        "nightclub",
+        "brewery",
+        "winery",
+        "distillery",
+        "ice_cream"
+       ],
+       true,
+       false
+      ]
      ]
     ]
    ],
@@ -7885,27 +8267,223 @@
    }
   },
   {
-   "id": "pulsar-dot",
-   "type": "circle",
+   "id": "spot-biz",
+   "type": "symbol",
    "source": "chart",
-   "source-layer": "pois",
+   "source-layer": "spots",
    "filter": [
-    "match",
+    "all",
     [
-     "get",
-     "kind"
+     "within",
+     {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         -70.36,
+         42.4712
+        ],
+        [
+         -70.4354,
+         42.527
+        ],
+        [
+         -71.6021,
+         42.527
+        ],
+        [
+         -71.675,
+         42.4731
+        ],
+        [
+         -71.675,
+         42.1279
+        ],
+        [
+         -71.5967,
+         42.07
+        ],
+        [
+         -70.4408,
+         42.07
+        ],
+        [
+         -70.36,
+         42.1298
+        ],
+        [
+         -70.36,
+         42.4712
+        ]
+       ]
+      ]
+     }
     ],
     [
-     "pulsar"
-    ],
-    true,
-    false
+     "all",
+     [
+      "!",
+      [
+       "==",
+       [
+        "get",
+        "group"
+       ],
+       "building"
+      ]
+     ],
+     [
+      "match",
+      [
+       "get",
+       "class"
+      ],
+      [
+       "restaurant",
+       "food_court",
+       "fast_food",
+       "bank",
+       "bureau_de_change",
+       "pharmacy",
+       "chemist",
+       "cafe",
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery",
+       "ice_cream"
+      ],
+      true,
+      false
+     ]
+    ]
    ],
-   "minzoom": 13,
-   "maxzoom": 16,
-   "paint": {
-    "circle-color": "#e00000",
-    "circle-radius": [
+   "minzoom": 16,
+   "layout": {
+    "text-field": [
+     "format",
+     [
+      "upcase",
+      [
+       "get",
+       "name"
+      ]
+     ],
+     {}
+    ],
+    "text-font": [
+     "Antonio SemiBold",
+     "Noto Sans Condensed SemiBold"
+    ],
+    "text-size": [
+     "interpolate",
+     [
+      "linear"
+     ],
+     [
+      "zoom"
+     ],
+     17,
+     16.75,
+     18,
+     17.5
+    ],
+    "text-letter-spacing": 0.06,
+    "symbol-placement": "point",
+    "text-max-width": 9,
+    "text-line-height": 1.05,
+    "icon-image": [
+     "match",
+     [
+      "get",
+      "class"
+     ],
+     [
+      "restaurant",
+      "food_court"
+     ],
+     "restaurant",
+     [
+      "fast_food"
+     ],
+     "fast_food",
+     [
+      "bakery",
+      "pastry"
+     ],
+     "bakery",
+     [
+      "supermarket",
+      "greengrocer",
+      "grocery",
+      "deli",
+      "butcher",
+      "seafood",
+      "health_food",
+      "farm",
+      "frozen_food"
+     ],
+     "grocery",
+     [
+      "pharmacy",
+      "chemist"
+     ],
+     "pharmacy",
+     [
+      "bank",
+      "bureau_de_change"
+     ],
+     "bank",
+     [
+      "hairdresser",
+      "barber",
+      "beauty"
+     ],
+     "hair",
+     [
+      "hardware",
+      "doityourself",
+      "paint",
+      "trade"
+     ],
+     "hardware",
+     [
+      "books"
+     ],
+     "books",
+     [
+      "clothes",
+      "shoes",
+      "boutique",
+      "fashion",
+      "second_hand",
+      "tailor"
+     ],
+     "clothes",
+     [
+      "cafe"
+     ],
+     "fuel_depot",
+     [
+      "bar",
+      "pub",
+      "biergarten",
+      "nightclub",
+      "brewery",
+      "winery",
+      "distillery"
+     ],
+     "steering_dampener",
+     [
+      "ice_cream"
+     ],
+     "ice_cream",
+     "luna"
+    ],
+    "icon-size": [
      "interpolate",
      [
       "exponential",
@@ -7914,44 +8492,46 @@
      [
       "zoom"
      ],
-     13,
-     1.4,
      15,
-     2.4
+     0.42,
+     18,
+     0.66
     ],
-    "circle-opacity": 0.9,
-    "circle-blur": 0.3
-   }
-  },
-  {
-   "id": "pulsar-beat",
-   "type": "circle",
-   "source": "chart",
-   "source-layer": "pois",
-   "filter": [
-    "match",
-    [
+    "text-anchor": "top",
+    "text-offset": [
+     "literal",
+     [
+      0,
+      1.1
+     ]
+    ],
+    "text-optional": true,
+    "symbol-sort-key": [
      "get",
-     "kind"
-    ],
-    [
-     "pulsar"
-    ],
-    true,
-    false
-   ],
-   "minzoom": 16,
+     "rank"
+    ]
+   },
    "paint": {
-    "circle-color": "#e00000",
-    "circle-radius": 9,
-    "circle-opacity": 0,
-    "circle-blur": 0.6,
-    "circle-pitch-alignment": "map"
+    "text-color": "#c40000",
+    "text-halo-color": "#0a0000",
+    "text-halo-width": 1.6,
+    "text-halo-blur": 0,
+    "text-opacity": [
+     "step",
+     [
+      "zoom"
+     ],
+     0,
+     17,
+     1
+    ],
+    "icon-opacity": 1
    },
    "metadata": {
-    "starchart:animate": {
-     "kind": "pulsar_beat",
-     "period_s": 1.6
+    "starchart:letter-spacing": {
+     "scul": 0.06,
+     "cadet": 0.04,
+     "meatspace": 0.06
     }
    }
   },
@@ -8023,32 +8603,19 @@
    ],
    "minzoom": 16,
    "layout": {
-    "icon-image": [
-     "case",
-     [
-      "==",
-      [
-       "get",
-       "covered"
-      ],
-      1
-     ],
-     "anchorage_covered",
-     "anchorage"
-    ],
+    "icon-image": "rack",
     "icon-size": [
      "interpolate",
      [
-      "exponential",
-      1.6
+      "linear"
      ],
      [
       "zoom"
      ],
+     14,
+     0.26,
      17,
-     0.42,
-     19,
-     0.55
+     0.5
     ],
     "icon-padding": 4,
     "icon-ignore-placement": true
@@ -8867,33 +9434,129 @@
     "text-max-width": 9,
     "text-line-height": 1.05,
     "icon-image": [
-     "case",
+     "match",
      [
-      "==",
-      [
-       "get",
-       "pump"
-      ],
-      1
+      "get",
+      "kind"
      ],
+     "luna",
      [
       "match",
       [
        "get",
-       "kind"
+       "class"
       ],
-      "gantry",
-      "gantry_plasma",
-      "space_dock",
-      "space_dock_plasma",
+      [
+       "restaurant",
+       "food_court"
+      ],
+      "restaurant",
+      [
+       "fast_food"
+      ],
+      "fast_food",
+      [
+       "bakery",
+       "pastry"
+      ],
+      "bakery",
+      [
+       "supermarket",
+       "greengrocer",
+       "grocery",
+       "deli",
+       "butcher",
+       "seafood",
+       "health_food",
+       "farm",
+       "frozen_food"
+      ],
+      "grocery",
+      [
+       "pharmacy",
+       "chemist"
+      ],
+      "pharmacy",
+      [
+       "bank",
+       "bureau_de_change"
+      ],
+      "bank",
+      [
+       "hairdresser",
+       "barber",
+       "beauty"
+      ],
+      "hair",
+      [
+       "hardware",
+       "doityourself",
+       "paint",
+       "trade"
+      ],
+      "hardware",
+      [
+       "books"
+      ],
+      "books",
+      [
+       "clothes",
+       "shoes",
+       "boutique",
+       "fashion",
+       "second_hand",
+       "tailor"
+      ],
+      "clothes",
+      [
+       "cafe"
+      ],
+      "fuel_depot",
+      [
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery"
+      ],
+      "steering_dampener",
+      [
+       "ice_cream"
+      ],
+      "ice_cream",
+      "luna"
+     ],
+     [
+      "case",
+      [
+       "==",
+       [
+        "get",
+        "pump"
+       ],
+       1
+      ],
+      [
+       "match",
+       [
+        "get",
+        "kind"
+       ],
+       "gantry",
+       "gantry_plasma",
+       "space_dock",
+       "space_dock_plasma",
+       [
+        "get",
+        "kind"
+       ]
+      ],
       [
        "get",
        "kind"
       ]
-     ],
-     [
-      "get",
-      "kind"
      ]
     ],
     "icon-size": [
@@ -8952,15 +9615,21 @@
      "meat_repair",
      "#ff0404",
      "hamburger_helper",
-     "#ff0404",
+     "#ff3939",
      "aed",
      "#ff0404",
      "shore_leave",
-     "#ee0000",
+     "#ff3939",
      "buoy_field",
      "#ff1f1f",
-     "coolant",
+     "space_dock",
      "#c40000",
+     "tardis",
+     "#ff3939",
+     "derby_arena",
+     "#cc0000",
+     "coolant",
+     "#ff3939",
      "plasma",
      "#ff3939",
      "#ec0000"
@@ -9279,13 +9948,7 @@
       "fuel_depot",
       "grenade_depot",
       "steering_dampener",
-      "ice_cream",
-      "tardis",
-      "shore_leave",
-      "derby_arena",
-      "space_dock",
-      "coolant",
-      "plasma"
+      "ice_cream"
      ],
      true,
      false
@@ -9443,150 +10106,6 @@
        {}
       ]
      ],
-     "tardis",
-     [
-      "case",
-      [
-       "has",
-       "name"
-      ],
-      [
-       "format",
-       [
-        "upcase",
-        [
-         "get",
-         "name"
-        ]
-       ],
-       {}
-      ],
-      [
-       "format",
-       "",
-       {}
-      ]
-     ],
-     "shore_leave",
-     [
-      "case",
-      [
-       "has",
-       "name"
-      ],
-      [
-       "format",
-       [
-        "upcase",
-        [
-         "get",
-         "name"
-        ]
-       ],
-       {}
-      ],
-      [
-       "format",
-       "",
-       {}
-      ]
-     ],
-     "derby_arena",
-     [
-      "case",
-      [
-       "has",
-       "name"
-      ],
-      [
-       "format",
-       [
-        "upcase",
-        [
-         "get",
-         "name"
-        ]
-       ],
-       {}
-      ],
-      [
-       "format",
-       "",
-       {}
-      ]
-     ],
-     "space_dock",
-     [
-      "case",
-      [
-       "has",
-       "name"
-      ],
-      [
-       "format",
-       [
-        "upcase",
-        [
-         "get",
-         "name"
-        ]
-       ],
-       {}
-      ],
-      [
-       "format",
-       "",
-       {}
-      ]
-     ],
-     "coolant",
-     [
-      "case",
-      [
-       "has",
-       "name"
-      ],
-      [
-       "format",
-       [
-        "upcase",
-        [
-         "get",
-         "name"
-        ]
-       ],
-       {}
-      ],
-      [
-       "format",
-       "",
-       {}
-      ]
-     ],
-     "plasma",
-     [
-      "case",
-      [
-       "has",
-       "name"
-      ],
-      [
-       "format",
-       [
-        "upcase",
-        [
-         "get",
-         "name"
-        ]
-       ],
-       {}
-      ],
-      [
-       "format",
-       "",
-       {}
-      ]
-     ],
      [
       "format",
       [
@@ -9625,33 +10144,129 @@
     "text-max-width": 9,
     "text-line-height": 1.05,
     "icon-image": [
-     "case",
+     "match",
      [
-      "==",
-      [
-       "get",
-       "pump"
-      ],
-      1
+      "get",
+      "kind"
      ],
+     "luna",
      [
       "match",
       [
        "get",
-       "kind"
+       "class"
       ],
-      "gantry",
-      "gantry_plasma",
-      "space_dock",
-      "space_dock_plasma",
+      [
+       "restaurant",
+       "food_court"
+      ],
+      "restaurant",
+      [
+       "fast_food"
+      ],
+      "fast_food",
+      [
+       "bakery",
+       "pastry"
+      ],
+      "bakery",
+      [
+       "supermarket",
+       "greengrocer",
+       "grocery",
+       "deli",
+       "butcher",
+       "seafood",
+       "health_food",
+       "farm",
+       "frozen_food"
+      ],
+      "grocery",
+      [
+       "pharmacy",
+       "chemist"
+      ],
+      "pharmacy",
+      [
+       "bank",
+       "bureau_de_change"
+      ],
+      "bank",
+      [
+       "hairdresser",
+       "barber",
+       "beauty"
+      ],
+      "hair",
+      [
+       "hardware",
+       "doityourself",
+       "paint",
+       "trade"
+      ],
+      "hardware",
+      [
+       "books"
+      ],
+      "books",
+      [
+       "clothes",
+       "shoes",
+       "boutique",
+       "fashion",
+       "second_hand",
+       "tailor"
+      ],
+      "clothes",
+      [
+       "cafe"
+      ],
+      "fuel_depot",
+      [
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery"
+      ],
+      "steering_dampener",
+      [
+       "ice_cream"
+      ],
+      "ice_cream",
+      "luna"
+     ],
+     [
+      "case",
+      [
+       "==",
+       [
+        "get",
+        "pump"
+       ],
+       1
+      ],
+      [
+       "match",
+       [
+        "get",
+        "kind"
+       ],
+       "gantry",
+       "gantry_plasma",
+       "space_dock",
+       "space_dock_plasma",
+       [
+        "get",
+        "kind"
+       ]
+      ],
       [
        "get",
        "kind"
       ]
-     ],
-     [
-      "get",
-      "kind"
      ]
     ],
     "icon-size": [
@@ -9710,15 +10325,21 @@
      "meat_repair",
      "#ff0404",
      "hamburger_helper",
-     "#ff0404",
+     "#ff3939",
      "aed",
      "#ff0404",
      "shore_leave",
-     "#ee0000",
+     "#ff3939",
      "buoy_field",
      "#ff1f1f",
-     "coolant",
+     "space_dock",
      "#c40000",
+     "tardis",
+     "#ff3939",
+     "derby_arena",
+     "#cc0000",
+     "coolant",
+     "#ff3939",
      "plasma",
      "#ff3939",
      "#ec0000"
@@ -9866,150 +10487,6 @@
        ]
       ],
       "ice_cream",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {}
-       ],
-       [
-        "format",
-        "",
-        {}
-       ]
-      ],
-      "tardis",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {}
-       ],
-       [
-        "format",
-        "",
-        {}
-       ]
-      ],
-      "shore_leave",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {}
-       ],
-       [
-        "format",
-        "",
-        {}
-       ]
-      ],
-      "derby_arena",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {}
-       ],
-       [
-        "format",
-        "",
-        {}
-       ]
-      ],
-      "space_dock",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {}
-       ],
-       [
-        "format",
-        "",
-        {}
-       ]
-      ],
-      "coolant",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {}
-       ],
-       [
-        "format",
-        "",
-        {}
-       ]
-      ],
-      "plasma",
       [
        "case",
        [
@@ -10331,282 +10808,6 @@
         }
        ]
       ],
-      "tardis",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {},
-        "\n",
-        {},
-        "toilet",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ],
-       [
-        "format",
-        "toilet",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ]
-      ],
-      "shore_leave",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {},
-        "\n",
-        {},
-        "playground",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ],
-       [
-        "format",
-        "playground",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ]
-      ],
-      "derby_arena",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {},
-        "\n",
-        {},
-        "parking lot",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ],
-       [
-        "format",
-        "parking lot",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ]
-      ],
-      "space_dock",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {},
-        "\n",
-        {},
-        "bike shop",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ],
-       [
-        "format",
-        "bike shop",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ]
-      ],
-      "coolant",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {},
-        "\n",
-        {},
-        "drinking water",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ],
-       [
-        "format",
-        "drinking water",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ]
-      ],
-      "plasma",
-      [
-       "case",
-       [
-        "has",
-        "name"
-       ],
-       [
-        "format",
-        [
-         "upcase",
-         [
-          "get",
-          "name"
-         ]
-        ],
-        {},
-        "\n",
-        {},
-        "air pump",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ],
-       [
-        "format",
-        "air pump",
-        {
-         "font-scale": 0.74,
-         "text-font": [
-          "literal",
-          [
-           "Atkinson Hyperlegible Next Regular",
-           "Noto Sans Regular"
-          ]
-         ]
-        }
-       ]
-      ],
       [
        "format",
        [
@@ -10839,6 +11040,985 @@
         {}
        ]
       ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "coalesce",
+         [
+          "get",
+          "name"
+         ],
+         ""
+        ]
+       ],
+       {}
+      ]
+     ]
+    },
+    "starchart:kinds": [
+     "luna",
+     "refueling_station",
+     "fuel_depot",
+     "grenade_depot",
+     "steering_dampener",
+     "ice_cream"
+    ],
+    "starchart:letter-spacing": {
+     "scul": 0.06,
+     "cadet": 0.04,
+     "meatspace": 0.06
+    }
+   }
+  },
+  {
+   "id": "stop-label-free",
+   "type": "symbol",
+   "source": "chart",
+   "source-layer": "pois",
+   "filter": [
+    "all",
+    [
+     "within",
+     {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         -70.36,
+         42.4712
+        ],
+        [
+         -70.4354,
+         42.527
+        ],
+        [
+         -71.6021,
+         42.527
+        ],
+        [
+         -71.675,
+         42.4731
+        ],
+        [
+         -71.675,
+         42.1279
+        ],
+        [
+         -71.5967,
+         42.07
+        ],
+        [
+         -70.4408,
+         42.07
+        ],
+        [
+         -70.36,
+         42.1298
+        ],
+        [
+         -70.36,
+         42.4712
+        ]
+       ]
+      ]
+     }
+    ],
+    [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     [
+      "tardis",
+      "shore_leave",
+      "derby_arena",
+      "coolant",
+      "plasma",
+      "space_dock"
+     ],
+     true,
+     false
+    ]
+   ],
+   "minzoom": 16,
+   "layout": {
+    "text-field": [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     "tardis",
+     [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     "shore_leave",
+     [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     "derby_arena",
+     [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     "coolant",
+     [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     "plasma",
+     [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     "space_dock",
+     [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     [
+      "format",
+      [
+       "upcase",
+       [
+        "coalesce",
+        [
+         "get",
+         "name"
+        ],
+        ""
+       ]
+      ],
+      {}
+     ]
+    ],
+    "text-font": [
+     "Antonio SemiBold",
+     "Noto Sans Condensed SemiBold"
+    ],
+    "text-size": [
+     "interpolate",
+     [
+      "linear"
+     ],
+     [
+      "zoom"
+     ],
+     17,
+     16.75,
+     18,
+     17.5
+    ],
+    "text-letter-spacing": 0.06,
+    "symbol-placement": "point",
+    "text-max-width": 9,
+    "text-line-height": 1.05,
+    "icon-image": [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     "luna",
+     [
+      "match",
+      [
+       "get",
+       "class"
+      ],
+      [
+       "restaurant",
+       "food_court"
+      ],
+      "restaurant",
+      [
+       "fast_food"
+      ],
+      "fast_food",
+      [
+       "bakery",
+       "pastry"
+      ],
+      "bakery",
+      [
+       "supermarket",
+       "greengrocer",
+       "grocery",
+       "deli",
+       "butcher",
+       "seafood",
+       "health_food",
+       "farm",
+       "frozen_food"
+      ],
+      "grocery",
+      [
+       "pharmacy",
+       "chemist"
+      ],
+      "pharmacy",
+      [
+       "bank",
+       "bureau_de_change"
+      ],
+      "bank",
+      [
+       "hairdresser",
+       "barber",
+       "beauty"
+      ],
+      "hair",
+      [
+       "hardware",
+       "doityourself",
+       "paint",
+       "trade"
+      ],
+      "hardware",
+      [
+       "books"
+      ],
+      "books",
+      [
+       "clothes",
+       "shoes",
+       "boutique",
+       "fashion",
+       "second_hand",
+       "tailor"
+      ],
+      "clothes",
+      [
+       "cafe"
+      ],
+      "fuel_depot",
+      [
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery"
+      ],
+      "steering_dampener",
+      [
+       "ice_cream"
+      ],
+      "ice_cream",
+      "luna"
+     ],
+     [
+      "case",
+      [
+       "==",
+       [
+        "get",
+        "pump"
+       ],
+       1
+      ],
+      [
+       "match",
+       [
+        "get",
+        "kind"
+       ],
+       "gantry",
+       "gantry_plasma",
+       "space_dock",
+       "space_dock_plasma",
+       [
+        "get",
+        "kind"
+       ]
+      ],
+      [
+       "get",
+       "kind"
+      ]
+     ]
+    ],
+    "icon-size": [
+     "interpolate",
+     [
+      "exponential",
+      1.6
+     ],
+     [
+      "zoom"
+     ],
+     15,
+     0.42,
+     18,
+     0.66
+    ],
+    "text-anchor": "top",
+    "text-offset": [
+     "literal",
+     [
+      0,
+      1.1
+     ]
+    ],
+    "text-optional": true,
+    "symbol-sort-key": [
+     "get",
+     "rank"
+    ]
+   },
+   "paint": {
+    "text-color": [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     "luna",
+     "#c40000",
+     "refueling_station",
+     "#c40000",
+     "fuel_depot",
+     "#c40000",
+     "grenade_depot",
+     "#c40000",
+     "steering_dampener",
+     "#c40000",
+     "ice_cream",
+     "#c40000",
+     "gantry",
+     "#ff3939",
+     "anchorage",
+     "#ff3939",
+     "klingon_dock",
+     "#ff3939",
+     "meat_repair",
+     "#ff0404",
+     "hamburger_helper",
+     "#ff3939",
+     "aed",
+     "#ff0404",
+     "shore_leave",
+     "#ff3939",
+     "buoy_field",
+     "#ff1f1f",
+     "space_dock",
+     "#c40000",
+     "tardis",
+     "#ff3939",
+     "derby_arena",
+     "#cc0000",
+     "coolant",
+     "#ff3939",
+     "plasma",
+     "#ff3939",
+     "#ec0000"
+    ],
+    "text-halo-color": "#0a0000",
+    "text-halo-width": 1.6,
+    "text-halo-blur": 0,
+    "text-opacity": [
+     "step",
+     [
+      "zoom"
+     ],
+     0,
+     17,
+     1
+    ],
+    "icon-opacity": 1
+   },
+   "metadata": {
+    "starchart:lingo": {
+     "scul": [
+      "match",
+      [
+       "get",
+       "kind"
+      ],
+      "tardis",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {}
+       ],
+       [
+        "format",
+        "",
+        {}
+       ]
+      ],
+      "shore_leave",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {}
+       ],
+       [
+        "format",
+        "",
+        {}
+       ]
+      ],
+      "derby_arena",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {}
+       ],
+       [
+        "format",
+        "",
+        {}
+       ]
+      ],
+      "coolant",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {}
+       ],
+       [
+        "format",
+        "",
+        {}
+       ]
+      ],
+      "plasma",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {}
+       ],
+       [
+        "format",
+        "",
+        {}
+       ]
+      ],
+      "space_dock",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {}
+       ],
+       [
+        "format",
+        "",
+        {}
+       ]
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "coalesce",
+         [
+          "get",
+          "name"
+         ],
+         ""
+        ]
+       ],
+       {}
+      ]
+     ],
+     "cadet": [
+      "match",
+      [
+       "get",
+       "kind"
+      ],
+      "tardis",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {},
+        "\n",
+        {},
+        "toilet",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ],
+       [
+        "format",
+        "toilet",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ]
+      ],
+      "shore_leave",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {},
+        "\n",
+        {},
+        "playground",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ],
+       [
+        "format",
+        "playground",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ]
+      ],
+      "derby_arena",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {},
+        "\n",
+        {},
+        "parking lot",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ],
+       [
+        "format",
+        "parking lot",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ]
+      ],
+      "coolant",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {},
+        "\n",
+        {},
+        "drinking water",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ],
+       [
+        "format",
+        "drinking water",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ]
+      ],
+      "plasma",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {},
+        "\n",
+        {},
+        "air pump",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ],
+       [
+        "format",
+        "air pump",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ]
+      ],
+      "space_dock",
+      [
+       "case",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "format",
+        [
+         "upcase",
+         [
+          "get",
+          "name"
+         ]
+        ],
+        {},
+        "\n",
+        {},
+        "bike shop",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ],
+       [
+        "format",
+        "bike shop",
+        {
+         "font-scale": 0.74,
+         "text-font": [
+          "literal",
+          [
+           "Atkinson Hyperlegible Next Regular",
+           "Noto Sans Regular"
+          ]
+         ]
+        }
+       ]
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "coalesce",
+         [
+          "get",
+          "name"
+         ],
+         ""
+        ]
+       ],
+       {}
+      ]
+     ],
+     "meatspace": [
+      "match",
+      [
+       "get",
+       "kind"
+      ],
       "tardis",
       [
        "format",
@@ -10855,6 +12035,18 @@
       [
        "format",
        "PARKING",
+       {}
+      ],
+      "coolant",
+      [
+       "format",
+       "WATER",
+       {}
+      ],
+      "plasma",
+      [
+       "format",
+       "AIR",
        {}
       ],
       "space_dock",
@@ -10892,18 +12084,6 @@
         {}
        ]
       ],
-      "coolant",
-      [
-       "format",
-       "WATER",
-       {}
-      ],
-      "plasma",
-      [
-       "format",
-       "AIR",
-       {}
-      ],
       [
        "format",
        [
@@ -10922,18 +12102,12 @@
      ]
     },
     "starchart:kinds": [
-     "luna",
-     "refueling_station",
-     "fuel_depot",
-     "grenade_depot",
-     "steering_dampener",
-     "ice_cream",
      "tardis",
      "shore_leave",
      "derby_arena",
-     "space_dock",
      "coolant",
-     "plasma"
+     "plasma",
+     "space_dock"
     ],
     "starchart:letter-spacing": {
      "scul": 0.06,
@@ -11067,9 +12241,9 @@
         "tardis",
         "shore_leave",
         "derby_arena",
-        "space_dock",
         "coolant",
         "plasma",
+        "space_dock",
         "klingon_dock"
        ],
        true,
@@ -11632,33 +12806,129 @@
     "text-max-width": 9,
     "text-line-height": 1.05,
     "icon-image": [
-     "case",
+     "match",
      [
-      "==",
-      [
-       "get",
-       "pump"
-      ],
-      1
+      "get",
+      "kind"
      ],
+     "luna",
      [
       "match",
       [
        "get",
-       "kind"
+       "class"
       ],
-      "gantry",
-      "gantry_plasma",
-      "space_dock",
-      "space_dock_plasma",
+      [
+       "restaurant",
+       "food_court"
+      ],
+      "restaurant",
+      [
+       "fast_food"
+      ],
+      "fast_food",
+      [
+       "bakery",
+       "pastry"
+      ],
+      "bakery",
+      [
+       "supermarket",
+       "greengrocer",
+       "grocery",
+       "deli",
+       "butcher",
+       "seafood",
+       "health_food",
+       "farm",
+       "frozen_food"
+      ],
+      "grocery",
+      [
+       "pharmacy",
+       "chemist"
+      ],
+      "pharmacy",
+      [
+       "bank",
+       "bureau_de_change"
+      ],
+      "bank",
+      [
+       "hairdresser",
+       "barber",
+       "beauty"
+      ],
+      "hair",
+      [
+       "hardware",
+       "doityourself",
+       "paint",
+       "trade"
+      ],
+      "hardware",
+      [
+       "books"
+      ],
+      "books",
+      [
+       "clothes",
+       "shoes",
+       "boutique",
+       "fashion",
+       "second_hand",
+       "tailor"
+      ],
+      "clothes",
+      [
+       "cafe"
+      ],
+      "fuel_depot",
+      [
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery"
+      ],
+      "steering_dampener",
+      [
+       "ice_cream"
+      ],
+      "ice_cream",
+      "luna"
+     ],
+     [
+      "case",
+      [
+       "==",
+       [
+        "get",
+        "pump"
+       ],
+       1
+      ],
+      [
+       "match",
+       [
+        "get",
+        "kind"
+       ],
+       "gantry",
+       "gantry_plasma",
+       "space_dock",
+       "space_dock_plasma",
+       [
+        "get",
+        "kind"
+       ]
+      ],
       [
        "get",
        "kind"
       ]
-     ],
-     [
-      "get",
-      "kind"
      ]
     ],
     "icon-size": [
@@ -11717,15 +12987,21 @@
      "meat_repair",
      "#ff0404",
      "hamburger_helper",
-     "#ff0404",
+     "#ff3939",
      "aed",
      "#ff0404",
      "shore_leave",
-     "#ee0000",
+     "#ff3939",
      "buoy_field",
      "#ff1f1f",
-     "coolant",
+     "space_dock",
      "#c40000",
+     "tardis",
+     "#ff3939",
+     "derby_arena",
+     "#cc0000",
+     "coolant",
+     "#ff3939",
      "plasma",
      "#ff3939",
      "#ec0000"
@@ -14132,33 +15408,129 @@
     "text-max-width": 9,
     "text-line-height": 1.05,
     "icon-image": [
-     "case",
+     "match",
      [
-      "==",
-      [
-       "get",
-       "pump"
-      ],
-      1
+      "get",
+      "kind"
      ],
+     "luna",
      [
       "match",
       [
        "get",
-       "kind"
+       "class"
       ],
-      "gantry",
-      "gantry_plasma",
-      "space_dock",
-      "space_dock_plasma",
+      [
+       "restaurant",
+       "food_court"
+      ],
+      "restaurant",
+      [
+       "fast_food"
+      ],
+      "fast_food",
+      [
+       "bakery",
+       "pastry"
+      ],
+      "bakery",
+      [
+       "supermarket",
+       "greengrocer",
+       "grocery",
+       "deli",
+       "butcher",
+       "seafood",
+       "health_food",
+       "farm",
+       "frozen_food"
+      ],
+      "grocery",
+      [
+       "pharmacy",
+       "chemist"
+      ],
+      "pharmacy",
+      [
+       "bank",
+       "bureau_de_change"
+      ],
+      "bank",
+      [
+       "hairdresser",
+       "barber",
+       "beauty"
+      ],
+      "hair",
+      [
+       "hardware",
+       "doityourself",
+       "paint",
+       "trade"
+      ],
+      "hardware",
+      [
+       "books"
+      ],
+      "books",
+      [
+       "clothes",
+       "shoes",
+       "boutique",
+       "fashion",
+       "second_hand",
+       "tailor"
+      ],
+      "clothes",
+      [
+       "cafe"
+      ],
+      "fuel_depot",
+      [
+       "bar",
+       "pub",
+       "biergarten",
+       "nightclub",
+       "brewery",
+       "winery",
+       "distillery"
+      ],
+      "steering_dampener",
+      [
+       "ice_cream"
+      ],
+      "ice_cream",
+      "luna"
+     ],
+     [
+      "case",
+      [
+       "==",
+       [
+        "get",
+        "pump"
+       ],
+       1
+      ],
+      [
+       "match",
+       [
+        "get",
+        "kind"
+       ],
+       "gantry",
+       "gantry_plasma",
+       "space_dock",
+       "space_dock_plasma",
+       [
+        "get",
+        "kind"
+       ]
+      ],
       [
        "get",
        "kind"
       ]
-     ],
-     [
-      "get",
-      "kind"
      ]
     ],
     "icon-size": [
@@ -14217,15 +15589,21 @@
      "meat_repair",
      "#ff0404",
      "hamburger_helper",
-     "#ff0404",
+     "#ff3939",
      "aed",
      "#ff0404",
      "shore_leave",
-     "#ee0000",
+     "#ff3939",
      "buoy_field",
      "#ff1f1f",
-     "coolant",
+     "space_dock",
      "#c40000",
+     "tardis",
+     "#ff3939",
+     "derby_arena",
+     "#cc0000",
+     "coolant",
+     "#ff3939",
      "plasma",
      "#ff3939",
      "#ec0000"
@@ -15073,6 +16451,188 @@
      "meatspace": 0.06
     }
    }
+  },
+  {
+   "id": "stop-sign",
+   "type": "symbol",
+   "source": "chart",
+   "source-layer": "pois",
+   "filter": [
+    "all",
+    [
+     "within",
+     {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         -70.36,
+         42.4712
+        ],
+        [
+         -70.4354,
+         42.527
+        ],
+        [
+         -71.6021,
+         42.527
+        ],
+        [
+         -71.675,
+         42.4731
+        ],
+        [
+         -71.675,
+         42.1279
+        ],
+        [
+         -71.5967,
+         42.07
+        ],
+        [
+         -70.4408,
+         42.07
+        ],
+        [
+         -70.36,
+         42.1298
+        ],
+        [
+         -70.36,
+         42.4712
+        ]
+       ]
+      ]
+     }
+    ],
+    [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     [
+      "stop"
+     ],
+     true,
+     false
+    ]
+   ],
+   "minzoom": 14,
+   "layout": {
+    "icon-image": "stop",
+    "icon-size": [
+     "interpolate",
+     [
+      "linear"
+     ],
+     [
+      "zoom"
+     ],
+     14,
+     0.28,
+     18,
+     0.5
+    ],
+    "icon-allow-overlap": false,
+    "icon-padding": 1
+   }
+  },
+  {
+   "id": "pulsar-far",
+   "type": "symbol",
+   "source": "chart",
+   "source-layer": "pois",
+   "filter": [
+    "all",
+    [
+     "within",
+     {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         -70.36,
+         42.4712
+        ],
+        [
+         -70.4354,
+         42.527
+        ],
+        [
+         -71.6021,
+         42.527
+        ],
+        [
+         -71.675,
+         42.4731
+        ],
+        [
+         -71.675,
+         42.1279
+        ],
+        [
+         -71.5967,
+         42.07
+        ],
+        [
+         -70.4408,
+         42.07
+        ],
+        [
+         -70.36,
+         42.1298
+        ],
+        [
+         -70.36,
+         42.4712
+        ]
+       ]
+      ]
+     }
+    ],
+    [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     [
+      "pulsar"
+     ],
+     true,
+     false
+    ]
+   ],
+   "minzoom": 14,
+   "layout": {
+    "icon-image": "pulsar",
+    "icon-size": [
+     "interpolate",
+     [
+      "exponential",
+      1.6
+     ],
+     [
+      "zoom"
+     ],
+     14,
+     0.42,
+     16,
+     0.5,
+     18,
+     0.62
+    ],
+    "icon-allow-overlap": false,
+    "icon-padding": 2
+   },
+   "metadata": {
+    "starchart:animate": {
+     "kind": "pulsar",
+     "period_s": 1.6
+    }
+   },
+   "maxzoom": 16
   },
   {
    "id": "starpath-label",
@@ -17595,6 +19155,8 @@
      [
       "zoom"
      ],
+     14,
+     0.42,
      16,
      0.5,
      18,
@@ -17801,58 +19363,11 @@
     "symbol-placement": "point",
     "text-max-width": 9,
     "text-line-height": 1.05,
-    "icon-image": "constellation",
-    "icon-size": [
-     "interpolate",
-     [
-      "linear"
-     ],
-     [
-      "zoom"
-     ],
-     12,
-     [
-      "case",
-      [
-       "<=",
-       [
-        "get",
-        "rank"
-       ],
-       1
-      ],
-      0.45,
-      0.42
-     ],
-     17,
-     [
-      "case",
-      [
-       "<=",
-       [
-        "get",
-        "rank"
-       ],
-       1
-      ],
-      0.8,
-      0.55
-     ]
-    ],
-    "text-anchor": "top",
-    "text-offset": [
-     "literal",
-     [
-      0,
-      1.1
-     ]
-    ],
-    "text-optional": true,
+    "text-anchor": "center",
     "symbol-sort-key": [
      "get",
      "rank"
     ],
-    "icon-ignore-placement": true,
     "text-ignore-placement": true
    },
    "paint": {
@@ -17860,15 +19375,6 @@
     "text-halo-color": "#0a0000",
     "text-halo-width": 1.6,
     "text-halo-blur": 0,
-    "icon-opacity": [
-     "step",
-     [
-      "zoom"
-     ],
-     0,
-     17,
-     1
-    ],
     "text-opacity": [
      "step",
      [
@@ -19603,6 +21109,366 @@
    }
   },
   {
+   "id": "comet-station-landmark",
+   "type": "symbol",
+   "source": "chart",
+   "source-layer": "pois",
+   "filter": [
+    "all",
+    [
+     "within",
+     {
+      "type": "Polygon",
+      "coordinates": [
+       [
+        [
+         -70.36,
+         42.4712
+        ],
+        [
+         -70.4354,
+         42.527
+        ],
+        [
+         -71.6021,
+         42.527
+        ],
+        [
+         -71.675,
+         42.4731
+        ],
+        [
+         -71.675,
+         42.1279
+        ],
+        [
+         -71.5967,
+         42.07
+        ],
+        [
+         -70.4408,
+         42.07
+        ],
+        [
+         -70.36,
+         42.1298
+        ],
+        [
+         -70.36,
+         42.4712
+        ]
+       ]
+      ]
+     }
+    ],
+    [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     [
+      "comet_station"
+     ],
+     true,
+     false
+    ]
+   ],
+   "minzoom": 16,
+   "layout": {
+    "text-field": [
+     "case",
+     [
+      "has",
+      "name"
+     ],
+     [
+      "format",
+      [
+       "upcase",
+       [
+        "get",
+        "name"
+       ]
+      ],
+      {}
+     ],
+     [
+      "format",
+      "",
+      {}
+     ]
+    ],
+    "text-font": [
+     "Antonio SemiBold",
+     "Noto Sans Condensed SemiBold"
+    ],
+    "text-size": [
+     "interpolate",
+     [
+      "linear"
+     ],
+     [
+      "zoom"
+     ],
+     16,
+     15.5,
+     16.9,
+     16.6,
+     17,
+     16.75,
+     18,
+     17.5
+    ],
+    "text-letter-spacing": 0.06,
+    "symbol-placement": "point",
+    "text-max-width": 9,
+    "text-line-height": 1.05,
+    "icon-image": "comet_station",
+    "icon-size": [
+     "interpolate",
+     [
+      "exponential",
+      1.6
+     ],
+     [
+      "zoom"
+     ],
+     15,
+     0.42,
+     18,
+     0.66
+    ],
+    "text-anchor": "top",
+    "text-offset": [
+     "literal",
+     [
+      0,
+      1.1
+     ]
+    ],
+    "text-optional": true,
+    "visibility": "none"
+   },
+   "paint": {
+    "text-color": [
+     "match",
+     [
+      "get",
+      "kind"
+     ],
+     "luna",
+     "#c40000",
+     "refueling_station",
+     "#c40000",
+     "fuel_depot",
+     "#c40000",
+     "grenade_depot",
+     "#c40000",
+     "steering_dampener",
+     "#c40000",
+     "ice_cream",
+     "#c40000",
+     "gantry",
+     "#ff3939",
+     "anchorage",
+     "#ff3939",
+     "klingon_dock",
+     "#ff3939",
+     "meat_repair",
+     "#ff0404",
+     "hamburger_helper",
+     "#ff3939",
+     "aed",
+     "#ff0404",
+     "shore_leave",
+     "#ff3939",
+     "buoy_field",
+     "#ff1f1f",
+     "space_dock",
+     "#c40000",
+     "tardis",
+     "#ff3939",
+     "derby_arena",
+     "#cc0000",
+     "coolant",
+     "#ff3939",
+     "plasma",
+     "#ff3939",
+     "#ec0000"
+    ],
+    "text-halo-color": "#0a0000",
+    "text-halo-width": 1.6,
+    "text-halo-blur": 0
+   },
+   "metadata": {
+    "starchart:lingo": {
+     "scul": [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ],
+     "cadet": [
+      "case",
+      [
+       "has",
+       "name"
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "get",
+         "name"
+        ]
+       ],
+       {},
+       "\n",
+       {},
+       [
+        "case",
+        [
+         "any",
+         [
+          "has",
+          "name"
+         ],
+         [
+          "has",
+          "base"
+         ]
+        ],
+        [
+         "concat",
+         [
+          "coalesce",
+          [
+           "get",
+           "name"
+          ],
+          ""
+         ],
+         " station"
+        ],
+        "Train station"
+       ],
+       {
+        "font-scale": 0.74,
+        "text-font": [
+         "literal",
+         [
+          "Atkinson Hyperlegible Next Regular",
+          "Noto Sans Regular"
+         ]
+        ]
+       }
+      ],
+      [
+       "format",
+       [
+        "case",
+        [
+         "any",
+         [
+          "has",
+          "name"
+         ],
+         [
+          "has",
+          "base"
+         ]
+        ],
+        [
+         "concat",
+         [
+          "coalesce",
+          [
+           "get",
+           "name"
+          ],
+          ""
+         ],
+         " station"
+        ],
+        "Train station"
+       ],
+       {
+        "font-scale": 0.74,
+        "text-font": [
+         "literal",
+         [
+          "Atkinson Hyperlegible Next Regular",
+          "Noto Sans Regular"
+         ]
+        ]
+       }
+      ]
+     ],
+     "meatspace": [
+      "case",
+      [
+       "any",
+       [
+        "has",
+        "name"
+       ],
+       [
+        "has",
+        "base"
+       ]
+      ],
+      [
+       "format",
+       [
+        "upcase",
+        [
+         "coalesce",
+         [
+          "get",
+          "name"
+         ],
+         ""
+        ]
+       ],
+       {}
+      ],
+      [
+       "format",
+       "",
+       {}
+      ]
+     ]
+    },
+    "starchart:kinds": [
+     "comet_station"
+    ],
+    "starchart:letter-spacing": {
+     "scul": 0.06,
+     "cadet": 0.04,
+     "meatspace": 0.06
+    }
+   }
+  },
+  {
    "id": "comet-station-label",
    "type": "symbol",
    "source": "chart",
@@ -19757,7 +21623,26 @@
     "symbol-placement": "point",
     "text-max-width": 9,
     "text-line-height": 1.05,
-    "icon-image": "comet_station",
+    "icon-image": [
+     "match",
+     [
+      "get",
+      "line"
+     ],
+     "Red",
+     "comet_station_red",
+     "Mattapan",
+     "comet_station_mattapan",
+     "Orange",
+     "comet_station_orange",
+     "Blue",
+     "comet_station_blue",
+     "Green",
+     "comet_station_green",
+     "Commuter Rail",
+     "comet_station_commuter_rail",
+     "comet_station"
+    ],
     "icon-size": [
      "interpolate",
      [
@@ -22734,53 +24619,7 @@
     "symbol-placement": "point",
     "text-max-width": 9,
     "text-line-height": 1.05,
-    "icon-image": "constellation",
-    "icon-size": [
-     "interpolate",
-     [
-      "linear"
-     ],
-     [
-      "zoom"
-     ],
-     12,
-     [
-      "case",
-      [
-       "<=",
-       [
-        "get",
-        "rank"
-       ],
-       1
-      ],
-      0.45,
-      0.42
-     ],
-     17,
-     [
-      "case",
-      [
-       "<=",
-       [
-        "get",
-        "rank"
-       ],
-       1
-      ],
-      0.8,
-      0.55
-     ]
-    ],
-    "text-anchor": "top",
-    "text-offset": [
-     "literal",
-     [
-      0,
-      1.1
-     ]
-    ],
-    "text-optional": true,
+    "text-anchor": "center",
     "symbol-sort-key": [
      "get",
      "rank"

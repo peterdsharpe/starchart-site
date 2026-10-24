@@ -120,6 +120,7 @@ const mercY = (lat) => {
 };
 const W = 2 ** 26; // a grid of about a metre on the mercator square, for the de-duplication keys
 const key = (x, y) => Math.round(x * W) * W + Math.round(y * W); // exact in a double
+const P = 2 ** 22, cell = (x, y) => Math.round(x * P) * P + Math.round(y * P); // W108 glyphs: a grid of about 10 m, to match a placed icon to its pulsar
 const hash = (x, y) => {
   const h = Math.sin(x * 12.9898e3 + y * 78.233e3) * 43758.5453;
   return h - Math.floor(h);
@@ -333,9 +334,14 @@ export class ChartMotion {
     const inView = (c) => c[0] > w - dx && c[0] < e + dx && c[1] > s - dy && c[1] < nn + dy;
     let pulsars = 0, holes = 0, particles = 0;
     // Pulsars and black holes in one pass over the points: each query decodes every feature of its layer.
-    const pl = map.getLayer("pulsar"), wantPulsars = pl && z >= (pl.minzoom ?? 15); // W21 lingo: from the style, z16
+    const pl = map.getLayer("pulsar-far") || map.getLayer("pulsar"), wantPulsars = pl && z >= (pl.minzoom ?? 15); // W21 lingo: from the style, z16; W91 icons: pulsar-far, z14
     const hole = ["all", ["==", ["get", "kind"], "black_hole"], ["!=", ["get", "class"], "mini_roundabout"]];
     const bl = map.getLayer("black-hole"), wantHoles = !bl || z >= (bl.minzoom ?? 12); // W51 ladder: from the style, z14
+    // W108 glyphs: a beat only for a pulsar whose icon was placed (pulsar-far yields to the street names below z16, pulsar to the
+    // squares' centred names from z16, and a bare ring was "tiny yellow dots"): one query of that one layer per rebuild, never per frame.
+    const icons = wantPulsars && map.getLayer("pulsar-far") ? (z < (map.getLayer("pulsar")?.minzoom ?? 0) ? "pulsar-far" : "pulsar") : null; // W108 glyphs
+    const placed = icons ? new Set(map.queryRenderedFeatures({ layers: [icons] }).map((f) => cell(mercX(f.geometry.coordinates[0]), mercY(f.geometry.coordinates[1])))) : null; // W108 glyphs
+    const shown = (x, y) => { const i = Math.round(x * P), j = Math.round(y * P); for (const a of [-1, 0, 1]) for (const b of [-1, 0, 1]) if (placed.has((i + a) * P + j + b)) return true; return false; }; // W108 glyphs
     if (!this.off && z >= 12 && (wantHoles || wantPulsars)) { // W65 plainlook: !this.off
       const seen = new Set();
       const filter = wantPulsars && wantHoles ? ["any", ["==", ["get", "kind"], "pulsar"], hole] : wantPulsars ? ["==", ["get", "kind"], "pulsar"] : hole;
@@ -347,6 +353,7 @@ export class ChartMotion {
         seen.add(k);
         za = ze = ground(c);
         if (f.properties.kind === "pulsar") {
+          if (placed && !shown(x, y)) continue; // W108 glyphs
           push(x, y, x, y, 0, 26 * Math.min(1.6, 1.15 ** (z - 16)), hash(x, y), 0);
           pulsars++;
         } else {

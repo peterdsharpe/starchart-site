@@ -2,6 +2,33 @@
   "next": [],
   "versions": [
     {
+      "version": "0.1.55",
+      "release": "Indus",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Stop signs are small red octagons, from the zoom where pulsars appear. Comet stations wear the MBTA's T, and pulsars lose their gold ring.",
+          "plain": "Stop signs are small red octagons, from the zoom where traffic lights appear. T stations wear the MBTA's T, and the lights lose their gold ring."
+        },
+        {
+          "scul": "One icon per kind of place: pink where you pay, blue where it's free. Icons come in by zoom, street names first, and anchorages keep one icon.",
+          "plain": "One icon per kind of place: pink where you pay, blue where it's free. Icons come in by zoom, street names first, and bike racks keep one icon."
+        },
+        {
+          "scul": "Comets are easier to see in Dark and Daystar: brighter tracks, longer tails, and each line's name on the chart.",
+          "plain": "Live T trains are easier to see in Dark and Light: brighter tracks, longer tails, and each line's name on the map."
+        },
+        {
+          "scul": "Settings › Pilot: pick your pilot, not a colour. The ship, a rider with a basket, a racer, a cargo bike with a dog, or an arrow.",
+          "plain": "Settings › Avatar: pick your avatar, not a colour. A rider with a basket, a yellow bike, a racer, a cargo bike with a dog, or an arrow."
+        },
+        {
+          "scul": "After sunset, courses lean toward lit streets and paths. Weekend Commuter Rail trains that take bikes now count too.",
+          "plain": "After sunset, routes lean toward lit streets and paths. Weekend Commuter Rail trains that take bikes now count too."
+        }
+      ]
+    },
+    {
       "version": "0.1.54",
       "release": "Fornax",
       "date": "2026-10-24",

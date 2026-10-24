@@ -1,7 +1,7 @@
 // W56 parking (design/app-ui/SPEC.md §73): the anchorages (bike parking), from chart/anchorages/anchorages-v1.json:
 // OSM's, with their capacity and a rank (0 a dedicated public rack, 1 lockers, sheds, bike rooms and customers' racks),
 // and the City of Cambridge's racks that OSM lacks, as a source of their own (chart/anchorages/build.py).
-//   - The Anchorages tile in Layers (starchart.layer.anchorages, off by default) draws every one from z14: the rack mark
+//   - The Anchorages tile in Layers (starchart.layer.anchorages, off by default) draws every one from z15 (W91 icons; was z14): the rack mark
 //     (W86 map: a ring with a bar through it, a bike lock; no capacity, "just location"). While it is on, the tiles' own up-close `anchorage` layer draws nothing, so none is doubled.
 //   - near(ll, m): the ones within m metres of ll, dedicated racks first, then by distance (app/course.js, at the pad).
 //   - W102 trim (SPEC §202): the file (125 KB) is fetched only when asked, need(): the tile on, or a landing pad (a preview
@@ -69,8 +69,8 @@ export function mountAnchorages({ map, at = (p) => p, tilesFilter = null }) { //
     if (!ok || added) return;
     added = true;
     map.addSource(SOURCE, { type: "geojson", data: geojson(rows) }); // credited in About, so the chart's own credit stays short
-    map.addLayer({ id: SOURCE, type: "symbol", source: SOURCE, minzoom: 14, // W86 map: the rack mark (design/glyphs/build.py), no number: "just location" (her note)
-      layout: { visibility: "none", "icon-image": "rack", "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.26, 17, 0.5], // W86 map: 12.5 px at z14, where they crowd, 24 at z17
+    map.addLayer({ id: SOURCE, type: "symbol", source: SOURCE, minzoom: 15, // W91 icons: from z15, a step after the junctions (her note: "Bike racks need more zoom"); W86 map: the rack mark (design/glyphs/build.py), no number: "just location" (her note)
+      layout: { visibility: "none", "icon-image": "rack", "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.26, 17, 0.5], // W86 map: 12.5 px at z14, where they crowd, 24 at z17 (W91 icons: 16 px at z15, its first)
         "icon-allow-overlap": true, "icon-ignore-placement": true, "symbol-sort-key": ["get", "rank"] },
       paint: { "icon-opacity": ["case", [">", ["get", "rank"], 0], 0.7, 1] } },
     map.getLayer("anchorage") ? "anchorage" : undefined);

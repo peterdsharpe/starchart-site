@@ -9,11 +9,12 @@
 //             (the comet-trail layers) together. Either key off from before, it starts off, and writes both.
 //             app/comets.js hears its key; off, it asks the MBTA nothing
 //   Terrain   starchart.layer.terrain: app/terrain.js hears the event; off, no tint, no steep ground and no 3D
-//   Places    starchart.layer.places: the named spots up close, the spot-* layers
+//   Places    starchart.layer.places: the named spots up close, the spot-* layers; W94 bizicons: and the paid stops (the pink
+//             icons: shops, food and drink, banks), so it hides every place one pays at; the free stops (blue) and parking stay
 //   Lanes     starchart.layer.lanes (W59 routes): the streets' bike lanes, sharrows and protected lanes, in cyan by their
 //             comfort (W23); off, the streets are plain starpaths. W88 paths: and the wormholes, plain footpath lines when off
 //   Weather   starchart.layer.weather (W52 weather, SPEC §66), off by default: app/weather.js hears the event; off, it asks IEM nothing
-//   Anchorages starchart.layer.anchorages (W56 parking, SPEC §73), off by default: every bike rack from z14 (app/anchorages.js) // W56 parking
+//   Anchorages starchart.layer.anchorages (W56 parking, SPEC §73), off by default: every bike rack from z15 (app/anchorages.js) // W56 parking; W91 icons: z15
 //   Systems   starchart.layer.systems (W56 parking): the towns' glow, the system-nebula layer // W56 parking
 // The card drops from the button at the top right, small, over the chart, under the turn card. W92 panels (SPEC §188): it
 // opens whole, over the ship if it must (his note: "the layers panel should always open in full and not be scrollable"). A tap on the button or a tile never moves the camera. Its ×, a tap outside it, Escape and Android's back gesture close it.
@@ -27,9 +28,9 @@ export const TRACKS = ["cycle-track-glow", "cycle-track", "cycle-track-core", "c
 export const WORMS = ["wormhole-glow", "wormhole", "wormhole-core", "wormhole-core-dust", "wormhole-label"]; // W88 paths
 /** The tiles: the button's id, its keys (on when all are), and the style layers it hides itself (the comets and the hills do their own); W88 paths: and `plain`, the ones it shows when off. */
 export const LAYERS = [
-  { id: "layer-comets", keys: ["starchart.comets", "starchart.layer.tlines"], layers: ["comet-trail", "comet-trail-tunnel", "deep"] }, // W55 layers2: the trains and their tracks, one layer; W70 deep: and their tunnels at depth (app/deep.js)
+  { id: "layer-comets", keys: ["starchart.comets", "starchart.layer.tlines"], layers: ["comet-trail", "comet-trail-tunnel", "comet-line-label", "deep", "comet-station-label"], plain: ["comet-station-landmark"] }, // W55 layers2: the trains and their tracks, one layer; W70 deep: and their tunnels at depth (app/deep.js); W91 icons: and the stations, off an ordinary landmark from z16; W95 cometlook: and the lines' names
   { id: "layer-terrain", keys: ["starchart.layer.terrain"] },
-  { id: "layer-places", keys: ["starchart.layer.places"], layers: ["spot-dot", "spot-label", "spot-hull-label"] },
+  { id: "layer-places", keys: ["starchart.layer.places"], layers: ["spot-dot", "spot-label", "spot-hull-label", "spot-biz", "stop-label-pink"] }, // W94 bizicons: spot-biz, stop-label-pink
   { id: "layer-weather", keys: ["starchart.layer.weather"] }, // W52 weather: off by default (its key's default); app/weather.js hears the event
   { id: "layer-anchorages", keys: ["starchart.layer.anchorages"], layers: ["anchorages"] }, // W56 parking: off by default; app/anchorages.js adds its layer
   { id: "layer-systems", keys: ["starchart.layer.systems"], layers: ["system-nebula"] }, // W56 parking: the towns' glow, on by default
@@ -38,7 +39,9 @@ export const LAYERS = [
 /** W59 routes: the words this lane added, for W60's plain versions; the Lanes tile's name (for his veto) and its long press. */
 export const WORDS = { lanes: ["Lanes", "Bike lanes"], // W86 map: Plain names what they are (her note: "add a layer for it", for the light blue lines)
   lanesMore: ["The bike lanes and sharrows on the starpaths, and the wormholes, brighter where the flying is better. Off, the wormholes stay as plain thin lines.", // W59 routes; W88 paths
-  "The bike lanes and sharrows on the streets, and the bike paths, brighter where the riding is better. Off, the bike paths stay as plain thin lines."] }; // W60 c: [SCUL, Plain]; W88 paths: the paths go plain with the lanes
+  "The bike lanes and sharrows on the streets, and the bike paths, brighter where the riding is better. Off, the bike paths stay as plain thin lines."], // W60 c: [SCUL, Plain]; W88 paths: the paths go plain with the lanes
+  placesMore: ["Lunas, Fuel Depots, Steering Dampeners and every pink place you pay at, and the other places' grey dots and names, up close. Space Docks, free stops (blue) and Derby Arenas stay.", // W94 bizicons
+  "Shops, cafés, restaurants, bars and every pink place you pay at, and the other places' grey dots and names, up close. Bike shops, free things (blue) and parking stay."] }; // W94 bizicons: [SCUL, Plain], the Places tile's long press
 export const isOn = (key) => get(key) !== "off";
 /** W55 layers2: a tile is on when all its keys are. */
 export const rowOn = (row) => row.keys.every(isOn);
@@ -70,6 +73,8 @@ export function mountLayers({ map, $ = (id) => document.getElementById(id) }) { 
   const lanes = $("layer-lanes"); // W59 routes: its words from WORDS
   const lanesWords = () => { if (lanes) { lanes.lastElementChild.textContent = pick(WORDS.lanes); lanes.dataset.more = pick(WORDS.lanesMore); } }; // W59 routes; W60 c: pick
   lanesWords(); onLingo(lanesWords); // W60 c
+  const places = $("layer-places"), placesWords = () => { if (places) places.dataset.more = pick(WORDS.placesMore); }; // W94 bizicons
+  placesWords(); onLingo(placesWords); // W94 bizicons
   for (const row of LAYERS) showLayers(map, row.keys[0]);
   map.triggerRepaint();
   const show = () => { for (const row of LAYERS) $(row.id)?.setAttribute("aria-pressed", String(rowOn(row))); }; // W55 layers2: tiles

@@ -35,7 +35,7 @@ import { mountCourse } from "./course.js"; // W17 course
 import { onShare, takeShared, shareWaiting } from "./share-in.js"; // W67 routefile: what another app shared to Starchart
 import { mainName, placeName, restOf, allInside, etaOf } from "./course-logic.js"; // W27 friction: a flight is named for its course; W60 b: placeName; W75 chrome: restOf, allInside
 import { ShipModel3D } from "./ship-model-layer.js"; // W21 shipin
-import { KEY as AVATAR, avatarHex, mountAvatar } from "./avatar.js"; // W86 avatar
+import { KEY as AVATAR, avatarHex, avatarOf, mountAvatar } from "./avatar.js"; // W86 avatar; W101 avatars: avatarOf
 import { mountVoices } from "./voices.js"; // W97 voices
 import { mountLog } from "./log.js"; import { Logbook } from "./logbook.js"; // W17 log
 import { mountGhosts } from "./ghosts.js"; // W73 ghosts
@@ -350,7 +350,7 @@ const C = TOK.color;
 const motion = new ChartMotion({ pulsar: C.pulsar, hole: C["black-hole"], star: C.starlight, worm: C.wormhole }, { calm, off: plain(), motion: TOK.motion }); // W65 plainlook: off in Plain
 onLingo(() => { motion.off = plain(); motion.rebuild(); }); // W65 plainlook: no pulse, swirl or flow in Plain, live; the course flow stays
 addEventListener("starchart:settings", (e) => { if (e.detail?.key === "starchart.layer.lanes") motion.schedule(); }); // W88 mapfix: the cycle tracks' flow goes and comes with the Bike lanes layer
-const glKept = keepLayer(map, motion, "pulsar-dot"); // W39 ship: every custom layer comes back after a lost WebGL context, in its place
+const glKept = keepLayer(map, motion, "pulsar-beat"); // W39 ship: every custom layer comes back after a lost WebGL context, in its place; W91 icons: under pulsar-beat, pulsar-dot gone
 window.__motion = motion; // the perf overlay's gpu line (chart/prototype/perf.js)
 const flow = new CourseFlow({ dark: { course: C.course, core: C.starlight }, light: { course: TOK["color-light"].course, core: TOK["color-light"]["space-2"] } }, { calm, theme: starchartTheme.current.theme, flowPxPerS: TOK.motion.wormhole_flow_px_per_s }); // W22 pretty
 keepLayer(map, flow, "course-chevrons"); window.starchartFlow = flow; addEventListener("starchart:theme", (e) => flow.theme(e.detail.theme)); // W22 pretty: the preview's moving dots, above the course
@@ -392,11 +392,12 @@ addEventListener("starchart:theme", (e) => weather.theme(e.detail.theme)); // W5
 // ---- you: the ship (TIG Spark Gap), over its heading beam and accuracy ring (SPEC §7, §17) ----------
 await breathe(); // W77 split: the ship in its own task
 const el = (tag, className) => Object.assign(document.createElement(tag), { className });
-const shipBuild = () => (plain() ? "commuter" : "chibi"); // W63 rider: in Plain, a person on a bike (SPEC §91); SCUL, the ship
-const ship = new ShipModel3D({ color: C, look: "toon", build: shipBuild(), avatar: avatarHex(C) }); // W21 shipin: the meshed ship, variant C (app/ship-model-layer.js); W63 rider: from the first frame; W86 avatar
-onLingo(() => ship.setBuild(shipBuild())); // W63 rider: and live, a new mesh in the same layer
-addEventListener("starchart:settings", (e) => { if (e.detail.key === AVATAR) ship.setAvatar(avatarHex(C)); }); // W86 avatar: Your color, live
-mountAvatar({ group: $("set-avatar"), color: C, build: shipBuild }); // W86 avatar: its swatches in Settings
+const shipBuild = () => avatarOf(setting(AVATAR), plain()).build; // W63 rider: in Plain, a person on a bike (SPEC §91); SCUL, the ship; W101 avatars: or the avatar picked
+const ship = new ShipModel3D({ color: C, look: "toon", build: shipBuild(), avatar: avatarHex(C, plain()) }); // W21 shipin: the meshed ship, variant C (app/ship-model-layer.js); W63 rider: from the first frame; W86 avatar
+const reAvatar = () => ship.setAvatar(avatarHex(C, plain()), shipBuild()); // W101 avatars: the build and an old colour, live; W109 notes: in one go, one mesh
+onLingo(reAvatar); // W63 rider: and live, a new mesh in the same layer
+addEventListener("starchart:settings", (e) => { if (e.detail.key === AVATAR) reAvatar(); }); // W86 avatar: Your color, live; W101 avatars: the avatar
+mountAvatar({ group: $("set-avatar"), color: C, plain }); // W86 avatar: its swatches in Settings; W101 avatars: the avatars' pictures
 ship.motion.still = calm; // W21 shipin
 keepLayer(map, ship); // W17 ship3d: one GL layer, standing up when the chart tilts; W39 ship: kept, as 0.1.10 lost it with the context
 for (const type of ["pointerdown", "wheel"]) addEventListener(type, () => ship.cue("wake"), { passive: true, capture: true }); // W21 shipin: a touch anywhere
@@ -1578,7 +1579,9 @@ const feedbackPage = mountFeedback({ $, version: () => /* W74 flightlog: feedbac
 
 // W98 changelog (SPEC §194): what each version changed, from About's What's new; after an update, a note once, parked, with nothing open
 mountChangelog({ page: $("changelog"), row: $("ab-changes"), version: build.version, // W98 changelog
-  canShow: () => ready && flight.state === "parked" && !document.querySelector("dialog[open]") && !document.body.matches(".has-csearch, .has-csheet, .has-cfromto, .log-page, .log-flight") }); // W98 changelog
+  canShow: () => ready && flight.state === "parked" && !document.querySelector("dialog[open]") && !document.body.matches(".has-csearch, .has-csheet, .has-cfromto, .log-page, .log-flight") // W98 changelog
+    && ![...document.querySelectorAll('[role="dialog"]')].some((n) => n.getClientRects().length) // W107 fixes: nor while a sheet or panel is up (the no-location sheet's, its Try again under the note)
+    && $("nofix").hidden }); // W109 notes: nor while the rough-position line shows, in the corner the note crosses (390 and 320 px wide)
 
 // ---- the debug handle, for tests ------------------------------------------------------------------
 window.starchart = {

@@ -131,8 +131,8 @@ body.has-csheet #bar { visibility: hidden; } /* W21 glass: the see-through cours
 .season b { font-size: 22px; color: var(--starlight); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .season b i, #log-flight .stats b i { font-style: normal; font-size: 0.6em; letter-spacing: 0.02em; text-transform: none; } /* W68 fixes: "1h 20m", its units small, as the cards' " min" */
 .flights { list-style: none; padding: 0; }
-.flights .flight { display: flex; gap: 12px; align-items: center; width: 100%; min-height: 72px; padding: 8px 0; border: 0; background: none; color: var(--starlight); text-align: left;
-  border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+.flights .flight { display: flex; gap: 12px; align-items: center; width: 100%; min-height: 75px; padding: 8px 0; border: 0; background: none; color: var(--starlight); text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); } /* W109 notes: 75 px, as a row is (the thumb's 56 + 2 px of border, the padding, the line), and log.js's ROW_PX */
 .thumb { flex: none; background: var(--space-1); border: 1px solid var(--space-3); border-radius: var(--r-inner); } /* W69 artdir */
 .thumb .route { fill: none; stroke: var(--chalk); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; opacity: 0.9; }
 .thumb .dot { fill: var(--phosphor); }

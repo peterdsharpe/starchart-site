@@ -170,7 +170,12 @@ export function mountWeather({ map, $ = (id) => document.getElementById(id), cha
     const o = onsetOf(track.subarray(PAST_MIN, PAST_MIN + 91)); // the hour and a half ahead, as before W58, from now
     line = chipLine(o); onsetMin = o ? o.start : null;
   }
-  let drawing = null, again = false, drawnLines = 0; // W55 weather2: drawnLines, the contours on the chart
+  let drawing = null, again = false, drawnLines = 0, drawnAge = NaN; // W55 weather2: drawnLines, the contours on the chart; W102 leftovers: the frame's age the picture was drawn at
+  // W102 leftovers (W58's repaint): the picture steps a minute by the clock only with its sheet open, or in flight, where the
+  // chart draws anyway; parked with the sheet shut, every STEP_MIN (a frame's time), so a resting chart sleeps between, and an
+  // old picture still moves on with no new frame (Data Saver, offline, the radar failing), up to the forecast's end (AHEAD_MIN,
+  // ageMin's cap), where it stays: nothing clears it (W109 notes)
+  const stepping = () => !sheet.hidden || !parked();
   const contoured = () => parked() && !scrubbing; // W55 weather2: a picture's contours: parked (W54 flight), and the slider at rest
   async function draw(m) {
     minute = m;
@@ -179,7 +184,8 @@ export function mountWeather({ map, $ = (id) => document.getElementById(id), cha
       do {
         again = false;
         flat = forced === null ? !contoured() : !forced; // W54 flight: in flight, no contours, to keep a new frame's work on the main thread small (SPEC §70); W55 weather2: nor while scrubbing
-        const r = await ask({ type: "draw", m: minute + age(), rgb: colour(theme), gain: theme === "light" ? 1.5 : 1, lines: !flat }); // W54 flight: lines; W58 clean: the frame's minute, + its age
+        drawnAge = age(); // W102 leftovers
+        const r = await ask({ type: "draw", m: minute + drawnAge, rgb: colour(theme), gain: theme === "light" ? 1.5 : 1, lines: !flat }); // W54 flight: lines; W58 clean: the frame's minute, + its age
         stats.worker.draw.push(r.ms); stats.made = r.made; stats.kept = r.kept; // W55 weather2: the pictures made and kept
         const t0 = performance.now(); // W54 flight: the main thread's part, below
         if (r.rgba) ctx.putImageData(new ImageData(new Uint8ClampedArray(r.rgba), W, H), 0, 0);
@@ -267,6 +273,7 @@ export function mountWeather({ map, $ = (id) => document.getElementById(id), cha
     sheet.hidden = false;
     chip.setAttribute("aria-expanded", "true");
     if (conn()?.saveData === true && !Number.isFinite(valid)) { once = true; askWinter(); schedule(0); } // Data Saver: a tap asks once; W102 winter: the alerts too
+    if (added && Number.isFinite(valid) && drawnAge !== age()) draw(minute); // W102 leftovers: the picture of now, as the sheet opens
     show();
     if (window.CloseWatcher && !watch) { try { watch = new CloseWatcher(); watch.onclose = () => { watch = null; close(); }; } catch { /* one per user gesture */ } }
   }
@@ -308,7 +315,7 @@ export function mountWeather({ map, $ = (id) => document.getElementById(id), cha
   const tick = () => { // W58 clean: at each minute of the clock: the chip's minutes, the picture at the slider's minute, its end and marks; "Updated 4 min ago"
     clock = setTimeout(tick, 60000 - (now() % 60000) + 20);
     if (!on) return;
-    if (Number.isFinite(valid) && age() !== lastAge) { relabel(); if (added) draw(minute); }
+    if (Number.isFinite(valid) && age() !== lastAge) { relabel(); if (added && (stepping() || age() - drawnAge >= STEP_MIN)) draw(minute); }
     show();
   };
   tick();

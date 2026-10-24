@@ -55,7 +55,7 @@ void main() {
   vec3 n = normalize(v_n); if (!gl_FrontFacing) n = -n;
   vec3 v = normalize(u_eye - v_p);
   if (v_g == ${G.light} || v_g == ${G.glow}) {
-    float ch = v_k.x, e = mix(1.0, blink(u_time, ch < 1.5 ? ch * 0.5 : (ch - 2.0) * 0.14), u_blinking);
+    float ch = v_k.x, e = ch < -0.5 ? 1.0 : mix(1.0, blink(u_time, ch < 1.5 ? ch * 0.5 : (ch - 2.0) * 0.14), u_blinking); // W91 avatar2: -1, steady
     if (v_g == ${G.light}) { o = vec4(mix(v_col, vec3(1.0), 0.25 * e) * (0.45 + 0.55 * e), 1.0); return; }
     float f = pow(max(dot(n, v), 0.0), 2.5) * 0.55 * e; o = vec4(v_col * f, 0.0); return;
   }

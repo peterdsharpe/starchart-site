@@ -100,12 +100,13 @@
 #avoid-list .row.avoid-how { color: var(--stardust); font-size: 15px; } /* W86 settings: "Tap a street on the map, then ⊘." */
 #avoid-list .row.avoid-how .i { display: inline-block; width: 20px; height: 20px; margin: 0 1px 0 2px; vertical-align: -4px; } /* W86 settings: the peek's ⊘, in the line */
 #avoid-list > button.clear { display: block; min-height: 44px; margin: 4px 0 4px auto; padding: 0 14px; border: 0; background: none; color: var(--starlight); font: 600 16px var(--font-body); text-decoration: underline dotted var(--stardust); text-underline-offset: 4px; } /* W80 avoidmap: Clear all, at the list's end, away from the rows' × */
-/* W86 avatar: Your color, a row of swatches under Theme (app/avatar.js); each a 44 px target, the disc ringed in the marker's ink */
-.row.stack .swatches { flex: 1 0 calc(100% - 38px); margin-left: 38px; display: flex; justify-content: space-between; }
-.swatches button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; }
-.swatches i { width: 30px; height: 30px; border-radius: 50%; box-shadow: 0 0 0 2px var(--ink); }
-.swatches button[aria-checked="true"] i { box-shadow: 0 0 0 2px var(--ink), 0 0 0 5px var(--phosphor); }
-@media (max-width: 359px) { .row.stack .swatches { margin: 0 -6px; flex-basis: calc(100% + 12px); } } /* W86 avatar: six 44 px targets at 320 px, under the icon too */
+/* W101 avatars (SPEC §197): the avatars, a row of pictures with their names under Theme (app/avatar.js); each at least a 44 px target, the pick ringed in --phosphor */
+.row.stack .avatars { flex: 1 0 calc(100% - 38px); margin-left: 38px; display: flex; justify-content: space-between; gap: 2px; } /* W101 avatars */
+.avatars button { flex: 0 1 66px; min-width: 44px; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 0 2px; border: 0; border-radius: var(--r-s); background: none; color: var(--stardust); font: 600 12px/14px var(--font-body); } /* W101 avatars */
+.avatars button[hidden] { display: none; } /* W101 avatars: the ship, SCUL's alone */
+.avatars canvas { width: 100%; max-width: 56px; aspect-ratio: 7 / 6; } /* W101 avatars: drawn at the screen's px; narrower at 320 px */
+.avatars button[aria-checked="true"] { color: var(--starlight); box-shadow: inset 0 0 0 2px var(--phosphor); } /* W101 avatars */
+@media (max-width: 359px) { .row.stack .avatars { margin: 0 -6px; flex-basis: calc(100% + 12px); } } /* W86 avatar: the row under the icon too at 320 px */
 /* W88 settings3 (SPEC §175): a row's (i), after its name: a 44 px target round an 18 px circled i, in the line's height */
 #about-sheet .row button.info { display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -12px -12px -12px -6px; padding: 0; border: 0; background: none; color: var(--stardust); vertical-align: middle; -webkit-tap-highlight-color: transparent; } /* W88 settings3 */
 #about-sheet .row button.info .i { width: 18px; height: 18px; } /* W88 settings3 */

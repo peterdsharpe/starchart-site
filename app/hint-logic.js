@@ -36,7 +36,7 @@ export function hintOf(pack, f, mode = lingo()) { // W60 b: mode
   const kind = pack.kinds[p.kind] ? p.kind : f.layer?.["source-layer"] === "water" ? "heavy_nebula" : null;
   if (!kind) return null;
   const name = labelFor(pack, kind, p.name || !p.route ? p : { ...p, name: p.route }, mode), plain = mode === "meatspace"; // W60 b: mode
-  const said = plain ? says(name, plainKind(pack, kind)) : nameParts(pack, kind, name, mode).some((t) => t.generic); // W26 peek: no kind the name already says ("Starpath Broadway", not "· a street"); W60 b: Plain's "Beacon Street"
+  const said = plain || name === labelFor(pack, kind, p, "meatspace") ? says(name, plainKind(pack, kind)) : nameParts(pack, kind, name, mode).some((t) => t.generic); // W26 peek: no kind the name already says ("Starpath Broadway", not "· a street"); W60 b: Plain's "Beacon Street"; W91 stopsigns: a SCUL name in plain words is judged as Plain's ("Stop sign", not "Stop sign · a stop sign")
   const what = said ? "" : plainKind(pack, kind);
   if (kind === "sandworm_nest" && p.name && !plain) return { name, what: p.name }; // W33 peeks: which nest, by its stop's name; its sandworms say they are buses; W60 b: not in Plain, where the name is the stop's
   return name || what ? { name: name === what ? "" : name, what } : null;
@@ -96,7 +96,9 @@ const unseen = (f) => {
  * else the top named area. W33 peeks: never a pulsar or a black hole, and a rotary's ring is named as its street.
  * `fs` are queryRenderedFeatures' results, top layer first; `project` gives a [lon, lat]'s [x, y].
  */
-export function pickHint(pack, fs, pt, project, r = 16) {
+export function pickHint(pack, fs, pt, project, r = 16, under = []) { // W108 glyphs: under, the text-only names whose box is under the finger
+  const own = under.find((f) => f.geometry?.type === "Point" && !unseen(f) && hintOf(pack, f)); // W108 glyphs: a tap on a square's name (no icon) is the square,
+  if (own) return own; // W108 glyphs: however far from its point; one beside the name is the street's, as before
   let best = null, bd = Infinity;
   for (const f of fs) {
     if (f.geometry?.type !== "Point" || (f.layer.type !== "symbol" && f.layer.type !== "circle") || SKIP.test(f.layer.id || "") || unseen(f)) continue; // W33 peeks: SKIP, unseen

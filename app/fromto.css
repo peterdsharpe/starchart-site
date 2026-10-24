@@ -65,7 +65,7 @@ body.has-pvbar .csearch { visibility: hidden; }
     border-bottom: 0; border-right: 1px solid color-mix(in srgb, var(--course) 70%, transparent); box-shadow: none; }
   body.has-pvbar .cpreview { top: var(--pvbar-h, 0px); max-height: calc(100% - var(--pvbar-h, 0px)); padding-top: 4px; } /* the column under the bar (course.js sideSheet) */
 }
-@media (min-width: 900px) and (min-height: 561px) { .pvbar { width: 420px; } }
+@media (min-width: 900px) and (min-height: 561px) { .pvbar { width: 420px; } .cfromto, .cfromto.idle { right: auto; bottom: 0; width: 440px; overflow-y: auto; background: var(--void); border: 0; border-right: var(--hairline) solid var(--glass-edge); border-radius: 0; box-shadow: var(--lift); } } /* W102 leftovers: the editor a 440 px column, full height on the ground colour, as the search (W77 desktop), so the preview's column under it never shows through */
 /* From's mark on the chart, when From isn't the ship: a ring, as in the editor */
 .cpreview { container-type: inline-size; }
 .cpreview .cards[hidden], .cpreview .pv-go .row[hidden], .cpreview .plan[hidden] { display: none; }

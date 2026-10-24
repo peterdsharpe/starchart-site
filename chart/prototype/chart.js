@@ -6,6 +6,8 @@ maplibregl.setWorkerUrl(new URL("../vendor/maplibre-gl-worker.mjs", import.meta.
 export const protocol = new pmtiles.Protocol({ errorOnMissingTile: true }); // exported so the app can add a stored tile file (app/main.js)
 maplibregl.addProtocol("pmtiles", tileHandler(protocol)); // W21 tiles: past the archive's detail, its parents (tiles.js)
 
+const STALE_TILE = "Should not be trying to reload a tile that was never loaded or has been removed"; // W107 fixes: MapLibre's worker's words
+
 export const STYLE_URL = new URL("../style/saturnight.json", import.meta.url).href;
 
 /** Fetch the style and make its root-relative URLs absolute for this page. */
@@ -74,6 +76,10 @@ export async function makeMap(container, opts = {}) {
     // and asks for the next one up when it next updates its tiles, so ask for that update now (tiles.js).
     // _update is MapLibre's own (private): nothing public updates the tiles without moving the camera.
     if (e.tile && e.error?.message === MISSING) { map._update(); return; }
+    // W107 fixes: now and then, as the camera reframes twice in quick succession (a preview closed, the next one planned),
+    // MapLibre asks its worker to parse again a tile the worker has already dropped, and the tile stays blank, "errored".
+    // Load it afresh, as a new tile loads (no actor: "LT", not "RT"). _reloadTile and tileManagers are MapLibre's own (private).
+    if (e.tile && e.error?.message === STALE_TILE) { e.tile.actor = null; map.style?.tileManagers?.[e.sourceId]?._reloadTile(e.tile.tileID.key, "loading"); return; }
     console.error("map error:", e.error && (e.error.message || e.error));
   });
   window.__map = map;

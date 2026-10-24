@@ -24,8 +24,9 @@ import { keepLayer } from "../chart/prototype/gl-layer.js"; // W39 ship
 
 export const SETTING = "starchart.comets"; // "off" or "on" (the default)
 const SHAPES = "starchart:comets-shapes", WEEK = 7 * 864e5;
-const TAIL = 8; // dots behind the head, overlapping, so the tail reads as one streak
+const TAIL = 16; // dots behind the head, overlapping, so the tail reads as one streak; W95 cometlook: 16, was 8, for a tail eight radii long
 const PER = TAIL + 2; // instances a comet: its glow, its head, its tail
+const TAIL_R = 8; // W95 cometlook: the tail's length in head radii, so it is over three times the head's width behind it (her note: "the tail is really short")
 const STRIDE = 9; // floats an instance: a_pos (3), a_look (size px, alpha, core), a_color (3); W40 maplayout: a_pos's z, the ground's height
 const HIT_PX = 14;
 const LIVE_MS = 60000; // a live peek stays this long at most, refreshing
@@ -59,7 +60,7 @@ out vec4 o;
 void main() {
   float r = length(v_uv);
   if (r > 1.0) discard;
-  float a = smoothstep(1.0, 0.25, r) * v_look.y;
+  float a = smoothstep(1.0, v_look.y >= 1.0 ? 0.6 : 0.25, r) * v_look.y; // W95 cometlook: the head (alpha 1) a crisp bright disc, the glow and tail soft
   vec3 col = mix(v_color, vec3(1.0), v_look.z * smoothstep(0.7, 0.0, r));
   o = vec4(col * a, a);
 }`;
@@ -268,7 +269,7 @@ export function mountComets({ map, chart = () => true, theme = "dark", calm = fa
   function tick(t = performance.now()) {
     const show = on && comets.size > 0 && performance.now() - lastReply < STALE_MS && map.getZoom() >= 9;
     if (!show) { fps = 0; if (shown) { shown = false; layer.set(buf, 0); return true; } return false; }
-    const z = map.getZoom(), world = 512 * 2 ** z, r = cometRadius(z), len = Math.max(12, Math.min(36, 16 + (z - 12) * 4)) / world; // small at low zoom
+    const z = map.getZoom(), world = 512 * 2 ** z, r = cometRadius(z), len = (TAIL_R * r) / world; // small at low zoom; W95 cometlook: TAIL_R radii, was 12-36 px
     const b = map.getBounds(), x0 = mercX(b.getWest()), x1 = mercX(b.getEast()), y0 = mercY(b.getNorth()), y1 = mercY(b.getSouth()), pad = 40 / world;
     if (buf.length < comets.size * PER * STRIDE) buf = new Float32Array(comets.size * PER * STRIDE * 2);
     let moved = !shown, speed = 0;
@@ -283,8 +284,8 @@ export function mountComets({ map, chart = () => true, theme = "dark", calm = fa
       if (c.dur && t - c.t0 < c.dur) { const e = c.g?.end || c.to, d = c.g?.line ? Math.abs(c.g.s1 - c.g.s0) : Math.hypot(e[0] - c.from[0], e[1] - c.from[1]); speed = Math.max(speed, (d * world * 1000) / c.dur); } // W92 cometsnap: e
       const big = open?.comet === c ? 1.5 : 1; // W88 settings3: no alpha, since the bikes-only view that faded them went
       rgb = c.color;
-      for (let k = TAIL - 1; k >= 0; k--) { const f = (k + 1) / (TAIL + 1); put(tail[2 * k], tail[2 * k + 1], Math.max(1.6, r * big * (1 - 0.45 * f)), LOOK.tail * (1 - f) ** 0.8, 0.25 * (1 - f)); } // tapering and fading
-      put(c.hx, c.hy, r * 2.2 * big, c.glow, 0); // the glow
+      for (let k = TAIL - 1; k >= 0; k--) { const f = (k + 1) / (TAIL + 1); put(tail[2 * k], tail[2 * k + 1], 0.6 + 0.8 * r * big * (1 - f) ** 0.6, LOOK.tail * (1 - f) ** 0.3, 0.25 * (1 - f)); } // tapering and fading; W95 cometlook: narrower than the head, to a point (was max(1.6, r (1 - 0.45 f)))
+      put(c.hx, c.hy, r * 1.8 * big, c.glow, 0); // the glow; W95 cometlook: 1.8 r, was 2.2 r, so the head reads as one bright point
       put(c.hx, c.hy, r * big, 1, c.core); // the head
     }
     shown = true;

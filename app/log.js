@@ -163,7 +163,7 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
   // each, under its fade-in, and no rows (they come as the tails near the view); a re-render while open, at once, with the rows
   // built down to a screen past the view, and at least EAGER (a screen). W106 gatefix: and any tail above the view, so one a fast
   // scroll passed (or jumped) still grows, a task a part, and at the foot every row is there.
-  const EAGER = 12, ROWS = 6, ROW_PX = 72; // ROW_PX: a row's min-height (log.css)
+  const EAGER = 12, ROWS = 6, ROW_PX = 75; // ROW_PX: a row's min-height (log.css); W109 notes: 75, a real row's height, so a tail sized before its rows are in the page is as tall as they will be
   const tails = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) e.target.grow(); }, { root: page, rootMargin: "1000000px 0px 100% 0px" });
   let staging = null; // an open's build, until its last part
   function render() {
@@ -235,7 +235,7 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
         i = Math.min(fs.length, i + ROWS);
         tails.unobserve(tail);
         if (i === fs.length) return tail.remove();
-        tail.style.height = `${(fs.length - i) * (tail.previousElementSibling?.getBoundingClientRect().height || ROW_PX)}px`; // W106 gatefix: a built row's real height (75 px, where log.css's min-height is 72), so the list's foot lands where it will be and nothing above the view shifts by 18 px a batch
+        tail.style.height = `${(fs.length - i) * (tail.previousElementSibling?.getBoundingClientRect().height || ROW_PX)}px`; // W106 gatefix: a built row's real height (W109 notes: 75 px, as log.css's min-height now is; more with larger text), so the list's foot lands where it will be and nothing above the view shifts by 18 px a batch
         tails.observe(tail); // again: still in reach, it grows again, in a task of its own
       };
       ul.append(tail);

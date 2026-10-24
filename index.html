@@ -97,19 +97,21 @@
   <button class="tile" id="layer-lanes" aria-pressed="true"><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W59 routes: the streets' bike lanes, bright and dim by their comfort; name and long press from app/layers.js WORDS -->
     <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
     <path class="ln" d="M-2 20H66"/><path class="ln dim" d="M47-2V66"/><path class="lp" d="M19.2-2V66M22.8-2V66"/></svg></span><span></span></button>
-  <button class="tile" id="layer-comets" aria-pressed="true" data-more="The live T trains, from the MBTA, and the T's lines: the comet tracks." data-plain-more="The live T trains, from the MBTA, and the T's lines."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true">
+  <button class="tile" id="layer-comets" aria-pressed="true" data-more="The live T trains from the MBTA, each a comet with its tail behind it, and the T's lines: the comet tracks, dashed in tunnels." data-plain-more="The live T trains from the MBTA, each with its tail behind it, and the T's lines, dashed in tunnels."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W95 cometlook: as the map draws them: thin solid tracks, a tunnel dashed, and a comet with a long tail narrowing behind it -->
+    <defs><linearGradient id="comet-tail" gradientUnits="userSpaceOnUse" x1="42" y1="20.5" x2="22" y2="44"><stop class="ts" offset="0"/><stop class="ts" offset="1" stop-opacity="0"/></linearGradient></defs><!-- W95 cometlook -->
     <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
-    <path class="tr gn" d="M-2 36C18 37 40 41 66 50"/><path class="tr o" d="M13-2C17 18 21 36 26 66"/><path class="tr r" d="M-2 59C14 51 24 41 32 31S50 11 66 6"/>
-    <circle class="ct" cx="30.5" cy="33" r="1.4"/><circle class="ct" cx="34" cy="29" r="1.9"/><circle class="ct" cx="37.5" cy="25" r="2.4"/>
-    <circle class="cg" cx="42" cy="20.5" r="8"/><circle class="ch" cx="42" cy="20.5" r="4.2"/><circle class="cc" cx="41.2" cy="19.7" r="1.8"/></svg></span><span data-plain="Trains">Comets</span></button>
+    <path class="tr gn" d="M-2 36C18 37 40 41 66 50"/><path class="tr o tun" d="M13-2C17 18 21 36 26 66"/><path class="tr r" d="M-2 59C14 51 24 41 32 31S50 11 66 6"/><!-- W95 cometlook: the Orange Line in a tunnel -->
+    <path class="tl" d="M39.6 18.4C33 25 27 33 22 44C29 35 36 28 44.4 22.6Z"/><!-- W95 cometlook: the tail, narrowing to a point down the line -->
+    <circle class="cg" cx="42" cy="20.5" r="5.4"/><circle class="ch" cx="42" cy="20.5" r="3.4"/><circle class="cc" cx="41.6" cy="20.1" r="1.5"/></svg></span><span data-plain="Trains">Comets</span></button>
   <button class="tile" id="layer-terrain" aria-pressed="true" data-more="Hill tint, steep ground, and 3D when tilted."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true">
     <rect class="g" width="64" height="64"/><path class="st" d="M0 45H64M21 0V64"/>
     <path class="h1" d="M-2 66V38C10 30 22 22 34 23S54 32 66 29V66Z"/><path class="h2" d="M4 66V50C14 40 24 33 35 34S52 42 62 44V66Z"/><path class="h3" d="M16 66C21 55 29 46 37 46S48 56 51 66Z"/>
     <path class="hc" d="M16 30l-2 4.4M22 27l-1.3 4.6M28 25.2l-.6 4.8M34 24.6v4.8M40 25.2l.6 4.8M46 27l1.3 4.6M24 39.5l-1.8 4.2M30 36.4l-.8 4.6M36 35.6l.4 4.6M42 37.2l1.4 4.4"/></svg></span><span>Terrain</span></button>
-  <button class="tile" id="layer-places" aria-pressed="true" data-more="Named spots, up close."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true">
-    <rect class="g" width="64" height="64"/><path class="st" d="M0 34H64M30 0V64"/>
-    <path class="lh" d="M20 16H42M46 30.5H58M26 49H48"/><path class="lb" d="M20 16H42M46 30.5H58M26 49H48"/>
-    <circle class="pd" cx="12" cy="16" r="4.8"/><circle class="pd" cx="38" cy="30.5" r="4.8"/><circle class="pd" cx="18" cy="49" r="4.8"/></svg></span><span>Places</span></button>
+  <button class="tile" id="layer-places" aria-pressed="true" data-more="Lunas, Fuel Depots, Steering Dampeners and every pink place you pay at, and the other places' grey dots and names, up close. Space Docks, free stops (blue) and Derby Arenas stay."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect class="g" width="64" height="64"/><path class="st" d="M0 34H64M30 0V64"/><!-- W94 bizicons: what the tile hides, drawn as the map draws it: two shops (a pink rounded square, a dark core, a pink glyph: a bag, a coin; a pink name) and a place (a grey dot and name) -->
+    <rect class="pd" x="3" y="5" width="18" height="18" rx="4.8"/><path class="lh" d="M9.5 11.5H14.5V16.5H9.5Z"/><path class="pd" d="M7.6 10.8H16.4L15.9 19.2H8.1Z"/><rect class="pd" x="23" y="11.5" width="22" height="5" rx="2"/>
+    <rect class="pd" x="34" y="25" width="18" height="18" rx="4.8"/><path class="lh" d="M40.5 31.5H45.5V36.5H40.5Z"/><circle class="pd" cx="43" cy="34" r="4.6"/><rect class="pd" x="40" y="44.5" width="20" height="5" rx="2"/>
+    <path class="lh" d="M10 54H10.1M18 54H44"/><path class="lb" d="M10 54H10.1M18 54H44"/></svg></span><span>Places</span></button><!-- W94 bizicons -->
   <button class="tile" id="layer-weather" aria-pressed="false" data-more="Rain radar and the next two hours."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W52 weather: off by default -->
     <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
     <path class="w1" d="M4 41C0 27 14 11 31 12S62 21 60 37 45 59 28 57 7 53 4 41Z"/><path class="w2" d="M17 38C15 29 23 22 32 23S48 29 47 38 37 49 28 48 18 45 17 38Z"/><path class="w3" d="M25 36C24 32 28 29 32 29.5S39 33 38 37 33 42 30 41.5 25.5 39 25 36Z"/></svg></span><span>Weather</span></button>
@@ -205,8 +207,8 @@
     </div></div>
   <label class="row" data-more="Stills the pulsars, black holes, wormholes and course flow; comets jump, panels fade, turns glide. On if your droid asks for less motion." data-plain-more="Stills traffic lights, rotaries, bike paths and route flow; trains jump, panels fade, turns glide. On if your phone asks for less motion."><i class="i i-calm"></i><span class="txt">Calm motion<small id="motion-t"></small></span><!-- W100 motion: one switch, on by default when the phone asks for reduced motion (app/settings.js); beside Theme, out of Developer -->
     <input type="checkbox" id="motion" role="switch"></label>
-  <div class="row stack"><i class="i i-pilot"></i><div class="txt" data-plain="Avatar color">Pilot color</div><!-- W88 settings3: her "avatar color"; no long press, the name says it --><!-- W86 avatar: the marker's colour, app/avatar.js (SPEC §173) -->
-    <div id="set-avatar" class="swatches" role="radiogroup" aria-label="Pilot color"></div></div>
+  <div class="row stack"><i class="i i-pilot"></i><div class="txt" data-plain="Avatar">Pilot</div><!-- W88 settings3: no long press, the name says it --><!-- W86 avatar: the marker's colour, app/avatar.js (SPEC §173); W101 avatars: the avatar itself (SPEC §197) -->
+    <div id="set-avatar" class="avatars" role="radiogroup" aria-label="Pilot"></div></div>
   </div>
   <h3 id="sound-h">Sound and vibration</h3><!-- W88 settings3: "Sound" where nothing can buzz (app/settings.js) -->
   <div class="group">

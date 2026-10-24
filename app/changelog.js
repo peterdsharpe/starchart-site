@@ -5,7 +5,8 @@
 // - The list: a full-screen page (BRIEF §7.8), #changelog, from About's What's new row and from the note below.
 // - The note: the first time a new version runs, "Updated to 0.1.53" with What's new, once, above Launch. Never on a first
 //   install, and never in flight or on a course: it waits until the ride ends (`canShow`). It is a transient note, with no ×:
-//   the next tap elsewhere, or Escape, closes it, and that tap still does what it hits.
+//   the next tap elsewhere, or Escape, closes it, and that tap still does what it hits. W107 fixes: nor over a sheet or panel
+//   (main.js's canShow): it waits for them to close, and one that opens while it is up sends it away until it closes.
 import { pick, onLingo } from "./lingo-mode.js";
 import { say } from "./tip.js";
 
@@ -55,20 +56,25 @@ export function mountChangelog({ page, row, version, canShow }) {
   const note = el("div", "nsnack"), t = el("span", "t", `Updated to ${version}`), b = el("button", "", "What's new");
   note.id = "updated";
   note.append(t, b);
-  const close = () => {
+  let timer = 0;
+  const hide = () => { // W107 fixes: off the screen, for a sheet or panel, or for good (close)
     note.remove();
     removeEventListener("pointerdown", away, true);
     removeEventListener("keydown", esc, true);
   };
+  const close = () => { clearInterval(timer); hide(); }; // W107 fixes
   const away = (e) => { if (!note.contains(e.target)) close(); }; // the tap goes on to what it hits
   const esc = (e) => { if (e.key === "Escape") close(); };
   b.onclick = () => { close(); open(); };
-  const timer = setInterval(() => {
-    if (!canShow()) return;
-    clearInterval(timer);
+  let said = false; // W107 fixes
+  timer = setInterval(() => {
+    const up = note.isConnected, can = canShow(); // W107 fixes
+    if (up && !can) return hide(); // W107 fixes: a sheet or panel opened: the note steps aside, and comes back when it closes
+    if (up || !can) return; // W107 fixes
     try { s?.setItem(SEEN, version); } catch { /* storage off */ }
     document.body.append(note);
-    say(`${t.textContent}. What's new`);
+    if (!said) say(`${t.textContent}. What's new`); // W107 fixes: said once
+    said = true; // W107 fixes
     addEventListener("pointerdown", away, true);
     addEventListener("keydown", esc, true);
   }, 1000);

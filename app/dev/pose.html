@@ -77,7 +77,7 @@ const empty = { type: "FeatureCollection", features: [] };
 async function chart() {
   const { makeMap } = await import("../../chart/prototype/chart.js");
   const style = await (await fetch(at("chart/style/saturnight.json"))).json();
-  let tiles = at("data/tiles/greater-boston-v14.pmtiles"); // the repository, with data/ linked in
+  let tiles = at("data/tiles/greater-boston-v15.pmtiles"); // the repository, with data/ linked in
   try { // the built site: its manifest names the tile file
     const m = await fetch(at("data/manifest.json"));
     if (m.ok) tiles = at((await m.json()).files.find((f) => f.kind === "tiles").path);

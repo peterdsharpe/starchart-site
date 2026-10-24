@@ -13,7 +13,7 @@
 //   1, 2         the rear and the front wheel, which turn about their axles
 //   3 streamer   the helm comets: the position is the grip end plus the ribbon's half width in x; normal =
 //                (length, phase, 0); k1 = s, 0 at the grip to 1 at the tip. The shader hangs or streams them
-//   4 light      unlit, blinking; k1 = channel (0 front, 1 rear, 2 + i the top tube's LEDs, a chase)
+//   4 light      unlit, blinking; k1 = channel (0 front, 1 rear, 2 + i the top tube's LEDs, a chase, -1 steady: W91 avatar2, the rider's rear)
 //   5 thruster   additive, its length and flicker from the speed; k1 = 0 at the nozzle to 1 at the tip; in the
 //                funk spectrum, as it starts the warp trail
 //   6 glow       additive halos round the lights; k1 = channel as 4
@@ -155,6 +155,7 @@ export const BUILDS = {
  * (vertex counts, in that order in data), axles: [rear y, z, front y, z], box: [x0, y0, z0, x1, y1, z1] }.
  */
 export function buildShip(color, { build = "standard", detail = 1, gait = "ride", avatar } = {}) {
+  if (build === "arrow") return buildArrow(color); // W101 avatars: an arrow, on foot too
   if (gait === "walk") return buildWalker(color, { build, detail, avatar }); // W79 walker: off the bike, on foot; W86 avatar
   if (RIDERS[build]) return buildRider(color, { build, detail, avatar }); // W63 rider: in Plain, a person on a bike; W86 avatar
   const B = BUILDS[build] || BUILDS.standard, m = new Mesh();
@@ -292,21 +293,25 @@ export const RIDERS = {
   commuter: { frame: "step", paint: "starlight", basket: true, fenders: true, rack: true, bars: "swept", coat: "wormhole", lean: 0 },
   city: { frame: "diamond", paint: "you", fenders: true, rack: true, bars: "swept", coat: "chalk", lean: 0.3 },
   sporty: { frame: "diamond", paint: "luna", bars: "drops", coat: "terraform-glow", lean: 1 },
+  // W101 avatars: two more for the picker, each its own shape from above and its own fixed colours: a racer bent low over
+  // drops on thin tyres, in a long aero helmet; a cargo bike, a long low box ahead of the bars on a small front wheel, a dog in it
+  racer: { frame: "diamond", paint: "starlight", bars: "drops", coat: "pulsar", helmet: "luna", lean: 1, aero: true, thin: true }, // W101 avatars
+  cargo: { frame: "diamond", paint: "starlight", bars: "swept", coat: "chalk", helmet: "black-hole", lean: 0.15, box: "terraform-glow" }, // W101 avatars
 };
 
 /** Build a rider's mesh: buildShip()'s fields, with streamers 0, no thruster, and rolls: true (it stands on the ground). */
 export function buildRider(color, { build = "commuter", detail = 1, avatar } = {}) {
   const B = RIDERS[build] || RIDERS.commuter, m = new Mesh();
   const c = (name) => hex(color[name]), P = RIDER_PAINT;
-  const helmet = avatar ? hex(avatar) : c(P.helmet); // W86 avatar: the helmet and the coat
+  const helmet = avatar ? hex(avatar) : c(B.helmet || P.helmet); // W86 avatar: the helmet and the coat; W101 avatars: each rider's own
   const frame = c(B.paint), metal = c(P.metal), coat = avatar ? hex(avatar) : c(B.coat), legs = c(P.legs), shoe = c(P.shoes);
   const sides = Math.round(6 * detail), seg = Math.round(14 * detail), W = 0.12;
-  const R = [0, -0.15, W], F = [0, 0.28, W];
+  const WF = B.box ? 0.085 : W, R = [0, -0.15, W], F = B.box ? [0, 0.56, WF] : [0, 0.28, W]; // W101 avatars: the cargo bike's small front wheel, well ahead
 
   // the wheels: a tyre, a rim, a hub and six thin spokes (under half a spoke's spacing a frame at MAX_SPIN)
-  for (const [A, g] of [[R, G.rear], [F, G.front]]) {
-    const tt = 0.022, rim = W - tt * 1.8;
-    m.torus(A, W - tt, tt, seg + 2, Math.max(4, Math.round(5 * detail)), c(P.tyre), { g, rx: 0.026 });
+  for (const [A, g, W] of [[R, G.rear, R[2]], [F, G.front, F[2]]]) { // W101 avatars: each its own size
+    const tt = B.thin ? 0.016 : 0.022, rim = W - tt * 1.8; // W101 avatars: the racer's thin tyres
+    m.torus(A, W - tt, tt, seg + 2, Math.max(4, Math.round(5 * detail)), c(P.tyre), { g, rx: B.thin ? 0.017 : 0.026 });
     m.torus(A, rim, tt * 0.32, seg, 4, metal, { g, rx: 0.014 });
     m.tube([add(A, [-0.024, 0, 0]), add(A, [0.024, 0, 0])], 0.016, sides, metal, { g });
     for (let i = 0; i < 6; i++) {
@@ -325,16 +330,36 @@ export function buildRider(color, { build = "commuter", detail = 1, avatar } = {
     const hub = add(R, [x * 0.024, 0, 0]);
     m.tube([hub, add(BB, [x * 0.012, 0, 0])], tube * 0.7, sides, frame);
     m.tube([hub, add(ST, [x * 0.012, -0.01, -0.02])], tube * 0.7, sides, frame);
-    m.tube([add(HB, [x * 0.02, 0, 0]), add(F, [x * 0.026, 0, 0])], tube * 0.8, sides, frame);
+    if (!B.box) m.tube([add(HB, [x * 0.02, 0, 0]), add(F, [x * 0.026, 0, 0])], tube * 0.8, sides, frame);
+    else m.tube([[x * 0.02, 0.5, 0.235], add(F, [x * 0.026, 0, 0])], tube * 0.8, sides, frame); // W101 avatars: the front fork, ahead of the box
+  }
+  if (B.box) { // W101 avatars: the cargo bike's long low beam to the front head tube, and the box on it, a dog in it
+    m.tube([BB, [0, 0.2, 0.105], [0, 0.49, 0.125]], tube * 1.1, sides, frame);
+    m.tube([[0, 0.485, 0.12], [0, 0.505, 0.245]], tube * 1.3, sides, frame);
+    const y0 = 0.26, y1 = 0.47, z0 = 0.135, z1 = 0.29, x = 0.15, t = 0.012, bx = c(B.box); // wider than the rider, so it shows from behind
+    m.fin([[-x, y0, z0], [x, y0, z0], [x, y1, z0], [-x, y1, z0]], t, bx);
+    m.fin([[-x, y1, z0], [x, y1, z0], [x, y1, z1], [-x, y1, z1]], t, bx);
+    m.fin([[-x, y0, z0], [-x, y0, z1], [x, y0, z1], [x, y0, z0]], t, bx);
+    for (const s of [-1, 1]) m.fin([[s * x, y0, z0], [s * x, y1, z0], [s * x, y1, z1], [s * x, y0, z1]], t, bx);
+    m.tube([[-x, y0, z1], [x, y0, z1], [x, y1, z1], [-x, y1, z1], [-x, y0, z1]], 0.009, 4, c("chalk"), { caps: false });
+    const dog = c("pulsar"), hd = [0.04, 0.39, 0.33];
+    m.ellipsoid([0.03, 0.355, 0.23], [0.065, 0.08, 0.075], sides, 3, dog);
+    m.ellipsoid(hd, [0.05, 0.048, 0.045], sides + 2, 4, dog);
+    m.ellipsoid(add(hd, [0, 0.045, -0.012]), [0.027, 0.032, 0.022], sides, 3, dog);
+    m.ellipsoid(add(hd, [0, 0.077, -0.006]), [0.011, 0.008, 0.009], 6, 3, c(P.eyes));
+    for (const s of [-1, 1]) {
+      m.ellipsoid(add(hd, [s * 0.022, 0.04, 0.014]), [0.007, 0.006, 0.009], 6, 3, c(P.eyes));
+      m.ellipsoid(add(hd, [s * 0.047, -0.004, -0.008]), [0.014, 0.022, 0.034], sides, 3, c("course"));
+    }
   }
   // the cranks: a chainring on the right, a pedal forward on the right and back on the left
   m.torus(add(BB, [0.035, 0, 0]), 0.038, 0.007, seg, 4, metal);
   const pedal = [[1, [0.06, 0.075, 0.075]], [-1, [-0.06, -0.035, 0.135]]];
   for (const [, p] of pedal) m.tube([[p[0] * 0.65, BB[1], BB[2]], p], 0.008, 4, metal);
 
-  // the parts: fenders, a rear rack, a front basket
+  // the parts: fenders, a rear rack, a basket on it (W91 avatar2: her note, "a basket in the back of the bike instead of the front")
   if (B.fenders) for (const [A, a0, a1] of [[R, 0.25, 2.7], [F, 0.5, 2.9]]) {
-    const pts = []; for (let i = 0; i <= seg; i++) { const a = a0 + ((a1 - a0) * i) / seg; pts.push(add(A, [0, Math.cos(a) * (W + 0.012), Math.sin(a) * (W + 0.012)])); }
+    const pts = []; for (let i = 0; i <= seg; i++) { const a = a0 + ((a1 - a0) * i) / seg; pts.push(add(A, [0, Math.cos(a) * (A[2] + 0.012), Math.sin(a) * (A[2] + 0.012)])); } // W101 avatars: A[2], the wheel's own size
     m.tube(pts, 0.013, sides, frame);
   }
   if (B.rack) {
@@ -343,15 +368,15 @@ export function buildRider(color, { build = "commuter", detail = 1, avatar } = {
       m.tube([add(R, [x * 0.03, 0, 0]), [x * 0.035, -0.2, 0.255]], 0.007, 4, metal);
     }
   }
-  if (B.basket) { // a chalk basket on the head tube, over the front wheel, open at the top
-    const y0 = 0.25, y1 = 0.37, z0 = 0.27, z1 = 0.35, x = 0.075, t = 0.01;
+  if (B.basket) { // a chalk basket on the rack, behind the saddle, open at the top; W91 avatar2: was on the head tube, over the front wheel
+    const y0 = -0.245, y1 = -0.125, z0 = 0.262, z1 = 0.342, x = 0.07, t = 0.01;
     m.fin([[-x, y0, z0], [x, y0, z0], [x, y1, z0], [-x, y1, z0]], t, c(P.basket));
     m.fin([[-x, y1, z0], [x, y1, z0], [x, y1, z1], [-x, y1, z1]], t, c(P.basket));
     m.fin([[-x, y0, z0], [-x, y0, z1], [x, y0, z1], [x, y0, z0]], t, c(P.basket));
     for (const s of [-1, 1]) m.fin([[s * x, y0, z0], [s * x, y1, z0], [s * x, y1, z1], [s * x, y0, z1]], t, c(P.basket));
     m.tube([[-x, y0, z1], [x, y0, z1], [x, y1, z1], [-x, y1, z1], [-x, y0, z1]], 0.008, 4, c(P.basket), { caps: false });
-    m.ellipsoid([0.025, 0.3, 0.34], [0.03, 0.03, 0.03], sides, 3, c("terraform-glow")); // a lettuce and a lemon
-    m.ellipsoid([-0.03, 0.325, 0.335], [0.026, 0.024, 0.024], sides, 3, c("pulsar"));
+    m.ellipsoid([0.022, -0.2, 0.332], [0.03, 0.03, 0.03], sides, 3, c("terraform-glow")); // a lettuce and a lemon
+    m.ellipsoid([-0.028, -0.165, 0.327], [0.026, 0.024, 0.024], sides, 3, c("pulsar"));
   }
 
   // the saddle on its post, the stem and the bars: swept back to the grips, or road drops
@@ -380,31 +405,48 @@ export function buildRider(color, { build = "commuter", detail = 1, avatar } = {
     m.tube([add(hip, [x * 0.032, 0, 0]), knee, foot], 0.021, sides, legs, { g: gf });
     m.ellipsoid(add(foot, [0, 0.012, 0.008]), [0.018, 0.032, 0.016], sides, 3, shoe, { g: gf });
   }
-  // the head: big and round, a toy's gold face with two dots and pink cheeks, in a helmet with a stripe and a peak
+  riderHead(m, c, chest, B, helmet, detail); // the head: big and round, in its helmet (W101 avatars: shared with the walker)
+  const closed = m.v.length / FLOATS;
+
+  // the lights: white at the front (the head tube's), red at the back (the basket's, the rack's, or the seat post's); W91 avatar2: the basket's at the back
+  const lf = B.box ? [0, 0.478, 0.25] : add(HB, [0, 0.03, 0.03]), lr = B.basket ? [0, -0.258, 0.3] : B.rack ? [0, -0.245, 0.25] : [0, -0.085, 0.3];
+  const lights = [[lf, 0.024, c(P.front), 0], [lr, 0.02, c(P.rear), -1]]; // W91 avatar2: the rear one steady (-1), no breathing
+  for (const [p, r, col, ch] of lights) m.ellipsoid(p, [r, r, r], 6, 3, col, { g: G.light, k1: ch });
+  const opaque = m.v.length / FLOATS, add0 = m.v.length;
+  for (const [p, r, col, ch] of lights) m.ellipsoid(p, [r * 2.6, r * 2.6, r * 2.6], 8, 4, col, { g: G.glow, k1: ch });
+  const additive = (m.v.length - add0) / FLOATS;
+
+  const oy = B.box ? -0.08 : 0; // W101 avatars: the long cargo bike drawn back a little, so the marker's spot stays mid-bike
+  for (let i = 1; i < m.v.length; i += FLOATS) m.v[i] += oy;
+  const data = Float32Array.from(m.v);
+  return { data, closed, lights: opaque - closed, opaque, streamers: 0, additive, count: data.length / FLOATS,
+    axles: [R[1] + oy, R[2], F[1] + oy, F[2]], grip: add(grip, [0, oy, 0]), box: bounds(data, opaque), build, rolls: true, hip: [-0.032, hip[1] + oy, hip[2]] }; // W79 walker: hip, the foot's pivot; W101 avatars: oy
+}
+
+/** The rider's head, on the bike and on foot: big and round, a toy's gold face with two dots and pink cheeks, in a helmet
+ *  with a stripe and a peak; W101 avatars: the racer's (B.aero) a long aero shell with a tail and no peak. */
+function riderHead(m, c, chest, B, helmet, detail) {
+  const P = RIDER_PAINT, sides = Math.round(6 * detail), seg = Math.round(14 * detail);
   const H = 0.094, head = add(chest, [0, 0.012, 0.035 + H]);
   m.ellipsoid(head, [H * 0.95, H * 0.95, H * 0.95], seg + 2, Math.round(6 * detail), c(P.face));
   for (const x of [-1, 1]) {
     m.ellipsoid(add(head, [x * H * 0.38, H * 0.84, -H * 0.1]), [H * 0.13, H * 0.1, H * 0.19], 6, 3, c(P.eyes));
     m.ellipsoid(add(head, [x * H * 0.58, H * 0.7, -H * 0.42]), [H * 0.14, H * 0.08, H * 0.1], 6, 3, c(P.cheeks));
   }
+  if (B.aero) { // W101 avatars: the long shell, swept back to a tail, and a dark visor
+    const hc = add(head, [0, -H * 0.42, H * 0.14]), HR = [H * 1.04, H * 1.5, H * 0.94];
+    m.ellipsoid(hc, HR, seg + 4, Math.round(6 * detail), helmet, { k1: 1, zMin: -0.12 });
+    m.tube([add(hc, [0, -HR[1] * 0.7, 0]), add(hc, [0, -HR[1] * 1.25, -H * 0.3])], [H * 0.62, H * 0.12], sides, helmet, { caps: false });
+    const stripe = []; for (let i = 0; i <= 7; i++) { const a = 0.5 + (2.3 * i) / 7; stripe.push(add(hc, [0, Math.cos(a) * HR[1], Math.sin(a) * HR[2]])); }
+    m.tube(stripe, H * 0.2, sides, c(P.stripe));
+    m.ellipsoid(add(head, [0, H * 0.62, H * 0.24]), [H * 0.86, H * 0.36, H * 0.2], sides, 3, c(P.eyes), { k1: 0.8 });
+    return;
+  }
   const hc = add(head, [0, -H * 0.06, H * 0.12]), HR = [H * 1.08, H * 1.14, H * 0.98];
   m.ellipsoid(hc, HR, seg + 4, Math.round(6 * detail), helmet, { k1: 1, zMin: -0.12 }); // W86 avatar
-  const stripe = []; for (let i = 0; i <= 8; i++) { const a = 0.35 + (2.45 * i) / 8; stripe.push(add(hc, [0, Math.cos(a) * HR[1] * 1.0, Math.sin(a) * HR[2] * 1.0])); }
+  const stripe = []; for (let i = 0; i <= 8; i++) { const a = 0.35 + (2.45 * i) / 8; stripe.push(add(hc, [0, Math.cos(a) * HR[1], Math.sin(a) * HR[2]])); }
   m.tube(stripe, H * 0.24, sides, c(P.stripe));
   m.ellipsoid(add(hc, [0, HR[1] * 0.9, -H * 0.02]), [H * 0.72, H * 0.32, H * 0.1], sides + 2, 3, helmet, { k1: 0.6 }); // the peak
-  const closed = m.v.length / FLOATS;
-
-  // the lights: white at the front (the basket's, or the head tube's), red at the back (the rack's, or the seat post's)
-  const lf = B.basket ? [0, 0.378, 0.3] : add(HB, [0, 0.03, 0.03]), lr = B.rack ? [0, -0.245, 0.25] : [0, -0.085, 0.3];
-  const lights = [[lf, 0.024, c(P.front), 0], [lr, 0.02, c(P.rear), 1]];
-  for (const [p, r, col, ch] of lights) m.ellipsoid(p, [r, r, r], 6, 3, col, { g: G.light, k1: ch });
-  const opaque = m.v.length / FLOATS, add0 = m.v.length;
-  for (const [p, r, col, ch] of lights) m.ellipsoid(p, [r * 2.6, r * 2.6, r * 2.6], 8, 4, col, { g: G.glow, k1: ch });
-  const additive = (m.v.length - add0) / FLOATS;
-
-  const data = Float32Array.from(m.v);
-  return { data, closed, lights: opaque - closed, opaque, streamers: 0, additive, count: data.length / FLOATS,
-    axles: [R[1], R[2], F[1], F[2]], grip, box: bounds(data, opaque), build, rolls: true, hip: [-0.032, hip[1], hip[2]] }; // W79 walker: hip, the foot's pivot
 }
 
 // ---- W79 walker: off the bike, on foot ----------------------------------------------------------------------------
@@ -422,7 +464,7 @@ export const WALKER_SCALE = 1.3;
 export function buildWalker(color, { build = "chibi", detail = 1, avatar } = {}) {
   const plain = !!RIDERS[build], m = new Mesh(), c = (name) => hex(color[name]), P = RIDER_PAINT;
   const sides = Math.round(6 * detail), seg = Math.round(14 * detail);
-  const helmet = avatar ? hex(avatar) : c(P.helmet), suit = avatar ? hex(avatar) : c(PAINT.suit); // W86 avatar: as on the bike
+  const helmet = avatar ? hex(avatar) : c((plain && RIDERS[build].helmet) || P.helmet), suit = avatar ? hex(avatar) : c(PAINT.suit); // W86 avatar: as on the bike
   const coat = plain ? (avatar ? hex(avatar) : c(RIDERS[build].coat)) : suit, legs = plain ? c(P.legs) : suit; // W86 avatar
   const shoe = plain ? c(P.shoes) : c(PAINT.trim), hand = plain ? coat : c(PAINT.trim);
   const limb = (g, k2, draw) => { const i0 = m.v.length; draw(); for (let i = i0; i < m.v.length; i += FLOATS) { m.v[i + 9] = g; m.v[i + 11] = k2; } };
@@ -442,18 +484,8 @@ export function buildWalker(color, { build = "chibi", detail = 1, avatar } = {})
   m.tube([hip, chest], [0.05, 0.058], sides + 4, coat);
   m.ellipsoid(chest, [0.072, 0.048, 0.046], sides + 2, 4, coat);
   const lights = [];
-  if (plain) { // the commuter's head, as on the bike: a toy's gold face, two dots, pink cheeks, the helmet with its stripe and peak
-    const H = 0.094, head = add(chest, [0, 0.012, 0.035 + H]);
-    m.ellipsoid(head, [H * 0.95, H * 0.95, H * 0.95], seg + 2, Math.round(6 * detail), c(P.face));
-    for (const x of [-1, 1]) {
-      m.ellipsoid(add(head, [x * H * 0.38, H * 0.84, -H * 0.1]), [H * 0.13, H * 0.1, H * 0.19], 6, 3, c(P.eyes));
-      m.ellipsoid(add(head, [x * H * 0.58, H * 0.7, -H * 0.42]), [H * 0.14, H * 0.08, H * 0.1], 6, 3, c(P.cheeks));
-    }
-    const hc = add(head, [0, -H * 0.06, H * 0.12]), HR = [H * 1.08, H * 1.14, H * 0.98];
-    m.ellipsoid(hc, HR, seg + 4, Math.round(6 * detail), helmet, { k1: 1, zMin: -0.12 }); // W86 avatar
-    const stripe = []; for (let i = 0; i <= 8; i++) { const a = 0.35 + (2.45 * i) / 8; stripe.push(add(hc, [0, Math.cos(a) * HR[1], Math.sin(a) * HR[2]])); }
-    m.tube(stripe, H * 0.24, sides, c(P.stripe));
-    m.ellipsoid(add(hc, [0, HR[1] * 0.9, -H * 0.02]), [H * 0.72, H * 0.32, H * 0.1], sides + 2, 3, helmet, { k1: 0.6 });
+  if (plain) { // the rider's head, as on the bike (W101 avatars: each rider's own helmet)
+    riderHead(m, c, chest, RIDERS[build], helmet, detail);
   } else { // the pilot's: the glass helmet, the dark visor with its eyes, the antenna; and the pack on the back
     const H = BUILDS.chibi.helmet, head = add(chest, [0, 0.005, 0.03 + H]);
     m.ellipsoid(head, [H, H, H], seg + 4, Math.round(7 * detail), avatar ? suit : c(PAINT.glass), { k1: 1 }); // W86 avatar
@@ -480,6 +512,44 @@ export function buildWalker(color, { build = "chibi", detail = 1, avatar } = {})
   const data = Float32Array.from(m.v);
   return { data, closed, lights: opaque - closed, opaque, streamers: 0, additive, count: data.length / FLOATS,
     axles: [0, 0, 0, 0], grip: null, box: bounds(data, opaque), build, rolls: true, walks: true, hip: [0, 0, hipZ * S] };
+}
+
+// ---- W101 avatars: an arrow ------------------------------------------------------------------------------------------
+// Her note (the feedback form, 2026-10-23): "at least one placeholder with a cleaner outline, like an arrow". A navigation
+// arrow lying on the ground, pointing ahead: an ink edge, a white band and a blue core with a raised spine, so the light
+// parts its two halves. The ink reads on Daystar's pale chart, the white band on Dark's. One body: on foot it stays an arrow.
+/** The arrow's paints, as token names: the edge, the band and the core. */
+export const ARROW_PAINT = { edge: "void", band: "starlight", core: "you" };
+/** Its outline, counter-clockwise from the tip: the tip, the left wing, the notch, the right wing. */
+export const ARROW = [[0, 0.4], [-0.27, -0.25], [0, -0.12], [0.27, -0.25]];
+
+/** The outline moved in by d on every side (mitred). */
+const inset = (pts, d) => pts.map((p, i) => {
+  const a = pts[(i + pts.length - 1) % pts.length], b = pts[(i + 1) % pts.length];
+  const n1 = norm([a[1] - p[1], p[0] - a[0], 0]), n2 = norm([p[1] - b[1], b[0] - p[0], 0]), bi = norm(add(n1, n2)), k = d / dot(bi, n1);
+  return [p[0] + bi[0] * k, p[1] + bi[1] * k];
+});
+
+/** Build the arrow: buildShip()'s fields, with no lights, rolls: true and glides: true (no bike to tip onto a foot). */
+export function buildArrow(color) {
+  const m = new Mesh(), c = (name) => hex(color[name]), P = ARROW_PAINT;
+  const slab = (pts, z0, z1, col, spine = 0) => { // a prism; the tip and the notch raised by spine, which ridges the top
+    const top = pts.map((p, i) => [p[0], p[1], z1 + (i % 2 ? 0 : spine)]), bot = pts.map((p) => [p[0], p[1], z0]);
+    for (const [a, b, d] of [[0, 1, 2], [0, 2, 3]]) {
+      const n = norm(cross(sub(top[b], top[a]), sub(top[d], top[a]))), up = n[2] < 0 ? mul(n, -1) : n, dn = [0, 0, -1];
+      m.tri(top[a], top[b], top[d], up, up, up, col); m.tri(bot[a], bot[b], bot[d], dn, dn, dn, col);
+    }
+    for (let i = 0; i < pts.length; i++) {
+      const j = (i + 1) % pts.length, e = norm([pts[j][1] - pts[i][1], pts[i][0] - pts[j][0], 0]); // the edge's outward normal
+      m.quad(top[i], top[j], bot[j], bot[i], e, e, e, e, col, 0, 0, 0);
+    }
+  };
+  slab(ARROW, 0.01, 0.034, c(P.edge));
+  slab(inset(ARROW, 0.03), 0.02, 0.05, c(P.band));
+  slab(inset(ARROW, 0.075), 0.04, 0.06, c(P.core), 0.035);
+  const data = Float32Array.from(m.v), n = data.length / FLOATS;
+  return { data, closed: n, lights: 0, opaque: n, streamers: 0, additive: 0, count: n, axles: [0, 0, 0, 0], grip: null,
+    box: bounds(data), build: "arrow", rolls: true, glides: true };
 }
 
 /** The box round the first n vertices' positions: [x0, y0, z0, x1, y1, z1]. */
@@ -603,6 +673,7 @@ export class ShipMotion {
     this.on = { hover: true, wheels: true, streamers: true, hopSettle: true, lights: true, thruster: true, lean: true };
     this.still = false; this.flying = false;
     this.rolls = false; // W63 rider: true for a bike on its wheels: no hover or bob, half the hop at Launch, the squashes kept
+    this.glides = false; // W101 avatars: true for the arrow, which rolls but has no bike to tip onto a foot at a stop
     this.t = 0; this.spin = 0; this.phase = 0;
     this.launchAt = -1e9; this.landAt = -1e9;
     this.window = PARKED_S; this.wokeAt = -1e9; this.a = 0; this.resumed = false; this.fromZ = HOVER; // W21 shipin
@@ -610,7 +681,7 @@ export class ShipMotion {
     // W79 walker: the gait asked for and the body shown (the layer swaps the build at the hop's top, .swap); walks, for a
     // walker's mesh; stopped in flight, and k, the held stop's pose, 0 to 1; the step cycle; the foot, the tilt, the twirl, the fade
     Object.assign(this, { gait: "ride", body: "ride", gaitAt: -1e9, gaitOn: false, swap: false, walks: false, stopped: false, stopAt: -1e9, goAt: -1e9 });
-    Object.assign(this, { k: 0, kFrom: 0, kTo: 0, kAt: -1e9, stride: 0, swingA: 0, stepPh: 0, foot: 0, tilt: 0, yaw: 0, fade: 1 }); // W80 marker2d: no stand: the layer stands every body up by one angle
+    Object.assign(this, { k: 0, kFrom: 0, kTo: 0, kAt: -1e9, stride: 0, swingA: 0, stepPh: 0, foot: 0, tilt: 0, yaw: 0, fade: 1, tailFade: 1 }); // W80 marker2d: no stand: the layer stands every body up by one angle; W109 notes: tailFade
   }
   launch(t = this.t) { this.flying = true; this.launchAt = t; this.resumed = false; this.stopped = false; this.ease(0, t); } // W79 walker: stopped, ease
   land(t = this.t) { this.flying = false; this.landAt = t; this.stopped = false; this.ease(0, t); } // W79 walker: the foot back up
@@ -631,6 +702,7 @@ export class ShipMotion {
     const gms = (t - this.gaitAt) * 1000, gaitOn = (this.gaitOn = gms >= 0 && gms < (still ? GAIT_FADE_S : GAIT_S) * 1000);
     if (this.body !== this.gait && gms >= (still ? GAIT_FADE_S / 2 : GAIT_SWAP_S) * 1000) { this.body = this.gait; this.swap = true; }
     this.fade = still ? gaitFade(gms) : 1;
+    this.tailFade = still ? this.fade : gaitFade((gms * GAIT_FADE_S) / GAIT_S); // W109 notes: the rear glow, out to nothing at the hop's top and back over GAIT_S (Calm: the fade)
     if (still) {
       Object.assign(this, { z: this.rolls ? 0 : HOVER, squash: 1, pitch: 0, amp: 0, sweep: 0, time: 0, blinking: 0 }); // W63 rider
       Object.assign(this, { k: 0, stride: 0, swingA: 0, foot: 0, tilt: 0, yaw: 0 }); // W79 walker: Calm, none of it
@@ -670,7 +742,7 @@ export class ShipMotion {
     if (!st.swing && this.swingA < 0.01) this.swingA = 0; // under a degree: together
     if (this.swingA > 0) this.stepPh = (this.stepPh + Math.max(st.hz, 0.8) * dt) % 1;
     const sw = Math.sin(TAU * this.stepPh), bob = STEP.bob * Math.abs(sw) * (this.swingA / STEP.swing);
-    const gh = gaitHop(gms), d = stopDip((t - this.stopAt) * 1000), o = pushOff((t - this.goAt) * 1000), bike = this.rolls && !this.walks;
+    const gh = gaitHop(gms), d = stopDip((t - this.stopAt) * 1000), o = pushOff((t - this.goAt) * 1000), bike = this.rolls && !this.walks && !this.glides; // W101 avatars: glides
     this.stride = this.swingA * sw;
     this.z += gh.z + bob + (this.rolls ? 0 : d.z + o.z - SINK * this.k);
     this.squash *= gh.squash * d.squash * o.squash; this.pitch += o.pitch * (this.walks ? 0.4 : 1);

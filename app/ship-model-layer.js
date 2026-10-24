@@ -33,7 +33,7 @@ ${DEPTH}
 void main() { v_px = a_pos * u_half; gl_Position = pulled(u_m * vec4(v_px, 0.0, 1.0), u_m * vec4(vec3(v_px, 0.0) + u_pull, 1.0)); }`;
 const FS_GROUND = `#version 300 es
 precision highp float;
-uniform float u_size, u_ring, u_spread, u_beam, u_hz, u_glow; uniform vec3 u_you, u_worm; uniform vec2 u_shadow;
+uniform float u_size, u_ring, u_spread, u_beam, u_hz, u_glow, u_tail; uniform vec3 u_you, u_worm, u_rear; uniform vec2 u_shadow; // W91 avatar2: u_tail, u_rear
 in vec2 v_px; out vec4 o;
 vec4 over(vec4 top, vec4 under) { return top + under * (1.0 - top.a); }
 void main() {
@@ -43,6 +43,9 @@ void main() {
   float fan = step(abs(ang), u_spread * 0.5);
   float fade = r < 33.1 ? 1.0 : r < 57.4 ? mix(1.0, 0.5, (r - 33.1) / 24.3) : r < 78.0 ? mix(0.5, 0.0, (r - 57.4) / 20.6) : 0.0;
   vec4 c = vec4(u_you, 1.0) * 0.62 * fan * fade * u_beam;
+  // W91 avatar2: Plain's bike, a small red glow behind it from the rear light, steady, drawn as the beam is
+  float rs = r / u_size, tail = smoothstep(18.0, 13.0, 180.0 - abs(ang)) * smoothstep(0.2, 0.27, rs) * (1.0 - smoothstep(0.3, 0.68, rs));
+  c = over(vec4(u_rear, 1.0) * 0.55 * tail * u_tail, c);
   float edge = 1.0 - smoothstep(0.0, 1.0, abs(r - u_ring) - 0.75);
   float fill = 1.0 - smoothstep(u_ring - 0.5, u_ring + 0.5, r);
   c = over(vec4(u_you, 1.0) * max(0.16 * fill, 0.6 * edge), c);
@@ -79,7 +82,7 @@ export class ShipModel3D extends Ship3D {
    */
   constructor({ color, build = "standard", look = "toon", size = 68, you, avatar = null }) {
     super({ size, you: you || color.you });
-    Object.assign(this, { id: "ship-model", color, build, avatar, look: LOOKS[look] || LOOKS.toon, ink: new Float32Array(hex(color.void)), worm: hex(color.wormhole) });
+    Object.assign(this, { id: "ship-model", color, build, avatar, look: LOOKS[look] || LOOKS.toon, ink: new Float32Array(hex(color.void)), worm: hex(color.wormhole), rear: hex(color.negi), tail: 0 }); // W91 avatar2: rear, tail
     this.motion = new ShipMotion(); this.speed = 0; this.moving = false; this.alpha = 1;
     this.meshes = new Map(); this.Q = new Float32Array(9); this.T = new Float32Array(12); // W79 walker: each build and body's mesh, built once; standUp's
     this.away = false; // W39 ship: true over a flight's page (app/main.js), which shows that flight, not you
@@ -102,14 +105,19 @@ export class ShipModel3D extends Ship3D {
   setLook(look) { this.look = LOOKS[look] || LOOKS.toon; this.map?.triggerRepaint(); }
   setBuild(build) { this.build = build; if (this.mesh) { this.upload(); this.map.triggerRepaint(); } }
   /** W86 avatar: the pilot's colour (a hex, or null for the paints), live: every body's mesh again. */
-  setAvatar(avatar) { if (avatar === this.avatar) return; this.avatar = avatar; this.meshes.clear(); if (this.mesh) { this.upload(); this.map.triggerRepaint(); } }
+  setAvatar(avatar, build = this.build) { // W109 notes: and the build with it, so a new tint and build together make one mesh, not one for the old build first
+    if (avatar === this.avatar && build === this.build) return;
+    if (avatar !== this.avatar) { this.avatar = avatar; this.meshes.clear(); }
+    this.build = build; if (this.mesh) { this.upload(); this.map.triggerRepaint(); }
+  }
   /** W63 rider: the build's mesh into the buffers, and its motion: a rider rolls on its wheels, the ship hovers. W79 walker: the
    *  body the motion shows (on foot or on the bike), each mesh built once and kept, so a swap mid-hop costs no frame. */
   upload() {
     const s = this.motion, key = `${this.build}/${s.body}`; // W79 walker
     let mesh = this.meshes.get(key); // W79 walker
     if (!mesh) this.meshes.set(key, (mesh = buildShip(this.color, { build: this.build, gait: s.body, avatar: this.avatar }))); // W79 walker; W86 avatar
-    this.mesh.upload(mesh); s.rolls = !!mesh.rolls; s.walks = !!mesh.walks; // W79 walker: walks
+    this.mesh.upload(mesh); s.rolls = !!mesh.rolls; s.walks = !!mesh.walks; s.glides = !!mesh.glides; // W79 walker: walks; W101 avatars: glides, the arrow
+    this.tail = s.rolls && !s.walks && !s.glides ? 1 : 0; // W91 avatar2: the rear light's glow, for a bike on its wheels (Plain's), not on foot; W101 avatars: nor the arrow
   }
   /** W79 walker: on foot ("walk") or on the bike ("ride"). Shown, the person hops off or back on (GAIT_S, a fade in Calm),
    *  asking for frames only while it plays; not shown, the build just changes. walkgo calls it at a walk's Launch and Land. */
@@ -250,6 +258,7 @@ export class ShipModel3D extends Ship3D {
     gl.uniform1f(u.u_spread, this.spread); gl.uniform1f(u.u_beam, this.beam);
     gl.uniform1f(u.u_hz, hz); gl.uniform1f(u.u_glow, s.flying ? 0.55 + 0.45 * s.glow : 0.5);
     gl.uniform3fv(u.u_you, this.you); gl.uniform3fv(u.u_worm, this.worm);
+    gl.uniform1f(u.u_tail, this.tail * s.tailFade); gl.uniform3fv(u.u_rear, this.rear); // W91 avatar2: Calm's hop fades it with the person; W109 notes: and the hop outside Calm, to nothing at the swap
     gl.uniform2f(u.u_shadow, -L[0] * hz * size * 1.4, -L[1] * hz * size * 1.4);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     // 2. the ship, pixel for pixel

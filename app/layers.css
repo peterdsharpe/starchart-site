@@ -36,9 +36,15 @@ body:is(.has-csearch, .log-page, .log-flight) > #layers { visibility: hidden; } 
 #layerspick .tile .g { fill: var(--void); }
 #layerspick .tile .st { fill: none; stroke: var(--starpath); stroke-width: 2.2; opacity: 0.3; }
 /* Comets: the MBTA's own colours, as the comets (app/comets-logic.js), a comet's glow, head and white core, and its tail */
-#layerspick .tile .tr { fill: none; stroke-width: 3.4; stroke-linecap: round; opacity: 0.9; }
-#layerspick .tile .r { stroke: #DA291C; } #layerspick .tile .o { stroke: #ED8B00; } #layerspick .tile .gn { stroke: #00843D; }
-#layerspick .tile :is(.ct, .ch, .cg) { fill: #DA291C; } #layerspick .tile .ct { opacity: 0.6; } #layerspick .tile .cg { opacity: 0.35; } #layerspick .tile .cc { fill: #ffffff; }
+/* W95 cometlook: as the map draws them (SPEC §192): thin solid tracks and a dashed tunnel in the lines' colours, lifted a third toward
+   white on Dark as chart/style/build_style.py's TRACK_DARK and the MBTA's own by day (TRACK_DAY); the comet's tail narrows to a point */
+#layerspick .tile { --t-r: #e7746b; --t-o: #f3b459; --t-g: #59af81; } /* W95 cometlook */
+:root[data-theme="light"] #layerspick .tile { --t-r: #DA291C; --t-o: #9a5a00; --t-g: #00843D; } /* W95 cometlook */
+#layerspick .tile .tr { fill: none; stroke-width: 2.2; stroke-linecap: round; opacity: 0.85; } #layerspick .tile .tr.tun { stroke-linecap: butt; stroke-dasharray: 5 2.5; } /* W95 cometlook: was 3.4 wide, all solid */
+#layerspick .tile .r { stroke: var(--t-r); } #layerspick .tile .o { stroke: var(--t-o); } #layerspick .tile .gn { stroke: var(--t-g); } /* W95 cometlook */
+:root:not([data-theme="light"]) #layerspick .tile .tr.o { opacity: 0.55; } /* W95 cometlook: the bright Orange Line as faint as the map's on Dark (0.52) */
+#layerspick .tile :is(.ch, .cg) { fill: var(--t-r); } #layerspick .tile .ts { stop-color: var(--t-r); } #layerspick .tile .tl { fill: url(#comet-tail); } /* W95 cometlook */
+#layerspick .tile .cg { opacity: 0.35; } #layerspick .tile .cc { fill: #ffffff; } :root[data-theme="light"] #layerspick .tile .cc { opacity: 0.4; } /* W95 cometlook: the core as the map's, dimmer by day */
 /* Terrain: the hills' tint, as app/terrain.js (starlight on Dark, stardust on Daystar), and steep ground's hachures in --caution */
 #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--starlight); } #layerspick .tile .h1 { opacity: 0.14; } #layerspick .tile .h2 { opacity: 0.2; } #layerspick .tile .h3 { opacity: 0.28; }
 :root[data-theme="light"] #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--stardust); }

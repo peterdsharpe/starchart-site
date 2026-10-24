@@ -62,7 +62,7 @@ const FORT = { lingo_name: "Fort Antwerp", name: "Artisans Asylum", place: "Alls
 const GLYPH_FILES = new Set(["aed", "anchorage", "asteroids", "black_hole", "buoy_field", "comet_station", "constellation", "derby_arena", "fort",
   "fuel_depot", "gantry", "grenade_depot", "hamburger_helper", "ice_cream", "klingon_dock", "lore", "luna", "meat_repair", "refueling_station",
   "sandworm_nest", "shore_leave", "space_dock", "space_station", "st_outpost", "steering_dampener", "tardis", "temple_of_knowledge",
-  "coolant", "plasma"]); // W67 water
+  "coolant", "plasma", "stop"]); // W67 water; W91 stopsigns: stop
 const GLYPH_OF = { system: "shield_system", quadrant: "shield_system", wormhole: "shield_wormhole", hyper_wormhole: "shield_wormhole",
   hyperspace_byway: "shield_byway", asteroid_belt: "nebula", heavy_nebula: "nebula" };
 const glyphFor = (kind) => GLYPH_OF[kind] || (kind === "black_hole" && lingoMode() === "meatspace" ? "rotary" : GLYPH_FILES.has(kind) ? kind : "waypoint"); // W65 plainlook: Plain's rotary
@@ -1277,7 +1277,6 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     const cards = STYLE_CARDS.map((st) => {
       const b = el("button");
       b.dataset.id = st.id;
-      b.title = st.note;
       b.setAttribute("role", "radio");
       b.setAttribute("aria-checked", "false");
       b.disabled = true; b.className = "wait"; // W83 progressive: its shape fills in as it comes
@@ -1413,7 +1412,6 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
         c.dataset.folds = f && lead ? f.ids.join(" ") : c.dataset.id;
         c.querySelector("b").textContent = (f && lead ? f.name : STYLE_CARDS[i].name).replace("g-w", "g\u2011w");
         c.querySelector("em").textContent = (f && lead && f.note) || ""; // W33 routing2
-        c.title = (f && lead && f.ids.length > 1 ? f.ids.map((id) => STYLE_CARDS.find((st) => st.id === id).note) : [STYLE_CARDS[i].note]).join("; ");
       }
       fillComet(); // W62 cometcard
       grid.dataset.n = [...grid.children].filter((c) => !c.hidden).length; // W49 cards: one card spans the sheet; W62 cometcard: grid's, the comet's too
@@ -1580,9 +1578,9 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
       if (!flight.flying) { nav.flownS = 0; launch(); }
       // W25 course: From elsewhere: ship → From → the stops → To (with no fix yet, From → To, and the first fix re-plots to From)
       let viaStart = false;
-      if (how.lead && ship) { const lr = await route(ship, place.lonlat, pick, how.via).catch(() => null); if (lr) { r = lr; viaStart = true; } }
-      const old = flight.flying && nav.cf ? { route: nav.route, place: nav.place, style: nav.style, via: nav.via, cf: nav.cf, start: nav.start?.place, viaStart: nav.start?.via } : null;
-      engage({ route: r, place, style: pick, via, start: how.lead ? start : null, viaStart, fresh: true });
+      if (how.lead && ship) { const lr = await route(ship, place.lonlat, pick, how.via, null, null, false, link?.file ? false : null).catch(() => null); if (lr) { r = lr; viaStart = true; } } // W107 fixes: a file's course by day's costs, as its preview
+      const old = flight.flying && nav.cf ? { route: nav.route, place: nav.place, style: nav.style, via: nav.via, cf: nav.cf, start: nav.start?.place, viaStart: nav.start?.via, file: nav.file } : null; // W107 fixes: file
+      engage({ route: r, place, style: pick, via, start: how.lead ? start : null, viaStart, fresh: true, file: !!link?.file }); // W107 fixes: file, a course from a route file
       planned(r.time_s); // W59 pace: the plan at launch, before pace, for the Log
       note("course", `set, ${pick}${via.length ? `, ${via.length} stops` : ""}${old ? ", over the last one" : ""}`); // W48 feedback: never the place
       if (old) snack(pickWords("Course changed", "Route changed"), "", "Undo", 5000, () => { if (flight.flying) engage(old); }); // W25 course: Fly it over a course; W60 b
@@ -1963,9 +1961,9 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
   /** A course for this flight: on the chart, the turn card, and the event engine on it. */
   /** W25 course: `start`, a From the course leads to first; `viaStart`, the route goes through it (its first via), else
    *  it begins there. `via`: the stops. */
-  function engage({ route: r, place, style, via = [], cf = null, fresh = false, start = null, viaStart = false }) {
+  function engage({ route: r, place, style, via = [], cf = null, fresh = false, start = null, viaStart = false, file = false }) { // W107 fixes: file, a course from a route file
     if (style === "foot") r = { ...r, stops: [] }; // W86 stops: a stop sign is a rider's, never called on a walk: not its line, its turn's call, nor its row
-    kept = { route: r, place, style, via, start, viaStart }; // W28 resume
+    kept = { route: r, place, style, via, start, viaStart, file }; // W28 resume; W107 fixes: file
     anchoragesNeed(); // W102 trim: the pad's racks, for the approach and the arrival
     const feature = toCourse(lingo, r, { id: "set-course", title: `Course to ${place.lingo_name}` });
     if (style === "foot") feature.properties.lanes = []; // W93 busstop: a walk's course rides no bike lane, so no bus stop is called
@@ -1979,6 +1977,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     nav.style = style;
     nav.route = r;
     nav.via = via; // W21 routes
+    nav.file = file; // W107 fixes: a re-plot keeps a route file's course on day's costs
     const old = courseEngine || freeEngine();
     courseEngine = new EventEngine(nav.cf.course, lingo, world, (e) => fire(e.kind === "touchdown" ? { ...e, text: arrivedText(place) }
       : (e.kind === "pulsar_ahead" && e.voice && turnNear(e.data.lonlat)) || (e.kind === "stop_ahead" && e.voice && stopTurn(e.data.lonlat)) || (e.kind === "bus_stop_ahead" && e.voice && turnNear(e.data.lonlat)) ? { ...e, voice: "", data: { ...e.data, folded: true } } : e), { mode: lingoMode }); // W86 stops: stopTurn; W93 busstop: a bus stop at a turn, its pill only // W31 navvoice: the turn's call says it; W60 b: arrivedText, and the mode, read at every line
@@ -2124,11 +2123,11 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     let timer;
     try {
       const late = new Promise((_, no) => { timer = setTimeout(() => no(new Error("no answer")), REPLOT_WAIT_MS); });
-      const r = await Promise.race([style === "foot" ? walk().route(from, place.lonlat) : route(from, place.lonlat, style, start ? [start.lonlat, ...via] : via, null, heading, about), late]); // W25 course: off on the way to From, to From; W56 reroute: about; W79 walkgo: off a walk, walked again to the plan's stop
+      const r = await Promise.race([style === "foot" ? walk().route(from, place.lonlat) : route(from, place.lonlat, style, start ? [start.lonlat, ...via] : via, null, heading, about, nav.file ? false : null), late]); // W107 fixes: a file's course by day's costs after dark, so it keeps to the file between its vias; W25 course: off on the way to From, to From; W56 reroute: about; W79 walkgo: off a walk, walked again to the plan's stop
       if (nav.cf !== cf) return;
       if (!r) throw new Error("no route");
       replotFailed = false;
-      engage({ route: r, place, style, via, start, viaStart: !!start });
+      engage({ route: r, place, style, via, start, viaStart: !!start, file: nav.file }); // W107 fixes: file
       nav.replots++;
       chime("reroute"); // W73 delight: a re-plot lands
       note("course", "re-plot"); // W48 feedback

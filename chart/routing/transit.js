@@ -14,8 +14,8 @@
 //
 // The rules are app/comet-bikes.js's RULES, the table the peeks use, applied to each ride from boarding to leaving: no
 // minute of it inside a weekday's no-bike hours, the Blue Line's by its direction. No getting on, off or changing at Park
-// Street, Downtown Crossing or Government Center (NO_PLATFORM); riding through is fine. The file holds only the Commuter
-// Rail trains whose bikes_allowed is 1.
+// Street, Downtown Crossing or Government Center (NO_PLATFORM); riding through is fine. The file holds the Commuter Rail
+// trains whose bikes_allowed is 1, and (W102 leftovers) those whose bikes_allowed is 2 on Saturdays and Sundays only.
 import { RULES, NO_PLATFORM, boston } from "../../app/comet-bikes.js";
 
 const V_TOP = 12 * 0.44704; // Quickest's costs are seconds at this speed (router.js)
@@ -79,7 +79,7 @@ function tripsOn(tt, k) {
 /**
  * May a standard bike ride `route` going `dir` from minute m0 to minute m1 of a day (weekday or not)? app/comet-bikes.js's
  * RULES, the peeks' table: true when bikesNow() would say yes (or "some trains", for a Commuter Rail train the file holds
- * because its bikes_allowed is 1) at every minute of the ride.
+ * because its bikes_allowed is 1, or 2 on a weekend's service) at every minute of the ride.
  */
 export function rideOk(route, dir, weekday, m0, m1 = m0) {
   const rule = RULES.find((r) => r.match.test(route));

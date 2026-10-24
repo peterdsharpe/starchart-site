@@ -75,8 +75,9 @@ export function mountHints({ map, lingo, flight, open, ship = () => null, you = 
   const project = (c) => { const q = map.project(c); return [q.x, q.y]; };
   /** The feature to name at a point of the chart, or null. W33 peeks: a rotary's ring is its street, never its black hole. */
   const query = (x, y, r, layers = ids()) => { state.queries++; return map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers }); };
-  const at = (x, y, r) => pick(query(x, y, r), x, y, r);
-  const pick = (fs, x, y, r) => pickHint(lingo, fs, [x, y], project, r);
+  let names = null; // W108 glyphs: the squares' names, text only (no icon), so a tap counts on their box, not by the distance to their point
+  const at = (x, y, r) => pick(query(x, y, r), x, y, r, map.queryRenderedFeatures([x, y], { layers: (names ??= ids().filter((id) => /^constellation/.test(id))) })); // W108 glyphs
+  const pick = (fs, x, y, r, under) => pickHint(lingo, fs, [x, y], project, r, under); // W108 glyphs: under
   /** W27 card: a road's flying conditions: seven bars that rise and brighten as the chart's cyan lines do with comfort, lit
    *  up to its level, and the word; a screen reader hears "Flying conditions: fair, 4 of 7". */
   const flyingLine = (fl) => {

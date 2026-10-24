@@ -219,14 +219,13 @@ export function sideLine(pack, r, mode = lingo()) { // W60 b: mode
   return [same(plain, mainName(pack, r.kind, r.lingo_name)) || same(plain, r.lingo_name) ? "" : plain, r.place].filter(Boolean).join(" · ");
 }
 
-/** The three route styles, in the preview's order, each with a few words on what it does. W21 routes: Scenic (car-free
- *  first) was what Wormholes already does, so it was merged into it. W32 routing: each card shows the route best on its
- *  style's own measure (`foldStyles`). */
+/** The three route styles, in the preview's order. W21 routes: Scenic (car-free first) was what Wormholes already does, so
+ *  it was merged into it. W32 routing: each card shows the route best on its style's own measure (`foldStyles`). W102
+ *  leftovers: no hover note; "Least climb" under Fewest hills only said the name again (his doubled-text rule, W55). */
 export const STYLE_CARDS = [ // W33 routing2: `best`, what a folded card says its route is, for a pilot who hasn't seen the styles
-  { id: "wormhole", get name() { return pick("Wormholes", "Bike paths"); }, get best() { return pick("most transport-free", "most car-free"); }, // W60 b: pick, read each time, so a switch shows at the next preview
-    get note() { return pick("Most transport-free: wormholes and protected lanes", "Most car-free: bike paths and protected lanes"); } }, // W60 b
-  { id: "flat", get name() { return pick("Fewest negi g-wells", "Fewest hills"); }, best: "flattest", note: "Least climb" }, // W60 b
-  { id: "quickest", name: "Quickest", best: "quickest", note: "Shortest time" },
+  { id: "wormhole", get name() { return pick("Wormholes", "Bike paths"); }, get best() { return pick("most transport-free", "most car-free"); } }, // W60 b: pick, read each time, so a switch shows at the next preview
+  { id: "flat", get name() { return pick("Fewest negi g-wells", "Fewest hills"); }, best: "flattest" }, // W60 b
+  { id: "quickest", name: "Quickest", best: "quickest" },
 ];
 /** A style the preview offers: an old or unknown one ("scenic") is Wormholes. */
 export const styleOf = (id) => (STYLE_CARDS.some((st) => st.id === id) ? id : "wormhole");

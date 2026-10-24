@@ -37,7 +37,7 @@ export const KEYS = {
   "starchart.layer.lanes": ["on", "off"], // W59 routes: the streets' bike lanes in cyan, W23 comfort's shading (app/layers.js)
   "starchart.skiptiny": ["on", "off"], // W68 logbulk: Skip tiny flights, a flight under 0.05 LY or 1 minute of moving isn't kept at Land (app/log.js, SPEC §99)
   "starchart.haptics.turns": ["off", "on"], // W69 motion: Turn buzzes, in flight: one long for port, two short for starboard; Android only; W88 settings3: Vibrate on taps (starchart.haptics) went
-  "starchart.avatar": ["default", "yellow", "pink", "purple", "blue", "green"], // W86 avatar: Your color, the marker's (app/avatar.js AVATARS)
+  "starchart.avatar": ["default", "yellow", "pink", "purple", "blue", "green", "ship", "commuter", "sunny", "racer", "cargo", "arrow"], // W86 avatar: Your color, the marker's; W101 avatars: the avatars (app/avatar.js AVATARS), the colours kept for the migration
   "starchart.pace": ["100", ...Array.from({ length: 17 }, (_, i) => String(70 + 5 * i)).filter((v) => v !== "100")], // W59 pace: % of the router's speed, 70 to 150 in 5s (SPEC §81)
   "starchart.voice": ["lodestar", "vega", "rigel", "mira", "burble"], // W97 voices: Settings › Sound › Voice (app/voices.js VOICES); Lodestar by default
   "starchart.pace.by": ["rides", "hand"], // W86 eta: learned from her rides (app/log.js), until she sets Pace by hand (SPEC §172)
