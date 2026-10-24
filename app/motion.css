@@ -1,0 +1,89 @@
+/* W69 motion (design/app-ui/SPEC.md §107; the rules are design/ART.md's Motion): the motion language on every interactive
+   surface. Only transform, translate, scale and opacity move, so the compositor plays it; nothing waits for it, since every
+   change is made at once and the motion plays over it. The tokens are design/tokens.css's: --t-press (120 ms) for a press,
+   --t-small (200 ms) for a change in place, --t-sheet (320 ms) for a sheet or a page; --ease-standard, --ease-enter
+   (decelerate), --ease-exit (accelerate) and --ease-give (one gentle overshoot). Loaded last, so it retimes the older rules.
+   Calm and the phone's reduced motion (at the end, as body.calm) keep the chart's glides, BRIEF §7.8, and turn the rest to quick fades. */
+
+/* ---- presses: a quick press-in on every button (app.css), row and chip, and a spring back ------------------------------ */
+:is(label.row, summary.row, .cresults li > button, .picks button, .chip) { transition: scale var(--t-press) var(--ease-standard); } /* W69 motion */
+:is(label.row, summary.row):active { scale: 0.985; } /* W69 motion: a full-width row moves less than a button */
+:is(.cresults li > button, .picks button, .chip):active { scale: 0.97; } /* W69 motion */
+button:active { transition-duration: var(--t-press); } /* W69 motion: in at the press's beat, back at each button's own */
+
+/* ---- switches: the fill fades in, and the thumb slides with a little give and squashes while held ---------------------- */
+.row input[type="checkbox"]:checked { background: var(--space-3); } /* W69 motion: the fill is the ::before */
+.row input[type="checkbox"]::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--phosphor) 45%, var(--space-3)); opacity: 0; transition: opacity var(--t-small) var(--ease-standard); } /* W69 motion */
+.row input[type="checkbox"]:checked::before { opacity: 1; } /* W69 motion */
+.row input[type="checkbox"]::after { transition: transform var(--t-small) var(--ease-give), scale var(--t-press) var(--ease-standard); } /* W69 motion: the give */
+.row input[type="checkbox"]:active::after, label.row:active input[type="checkbox"]::after { scale: 1.12 0.94; } /* W69 motion: held, it squashes a little */
+
+/* ---- segmented controls: the highlight is each choice's ::before, which glides from the old choice (app/motion.js) ------- */
+.seg { --seg-on: color-mix(in srgb, var(--phosphor) 22%, transparent); } /* W69 motion: app.css's highlight, as a variable */
+:root[data-theme="light"] .seg { --seg-on: color-mix(in srgb, var(--phosphor) 20%, var(--space-2)); } /* W69 motion: theme.css's */
+.seg :is(a, button):not(.pace *) { position: relative; isolation: isolate; } /* W69 motion */
+.seg :is(a, button):not(.pace *)::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--seg-on); opacity: 0; transform-origin: 0 50%; transition: opacity var(--t-press) var(--ease-standard); } /* W69 motion */
+.seg :is(a[aria-current="true"], button[aria-checked="true"])::before { opacity: 1; } /* W69 motion */
+.seg :is(a[aria-current="true"], button[aria-checked="true"]), :root[data-theme] .seg :is(a[aria-current="true"], button[aria-checked="true"]) { background: transparent; } /* W69 motion: on the ::before */
+
+/* ---- a star that fills: one burst, a pop of the star with give and a ring of chalk (app/motion.js adds .burst) -------- */
+.star.burst { position: relative; } /* W69 motion */
+.star.burst svg { animation: star-pop var(--t-sheet) var(--ease-give); } /* W69 motion */
+.star.burst::after { content: ""; position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; border: 2px solid var(--chalk); pointer-events: none; animation: star-ring var(--t-sheet) var(--ease-enter) forwards; } /* W69 motion */
+@keyframes star-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.2); } } /* W69 motion */
+@keyframes star-ring { from { opacity: 0.9; transform: scale(0.4); } to { opacity: 0; transform: scale(1.5); } } /* W69 motion */
+
+/* ---- sheets and pages: in decelerating over --t-sheet, out accelerating over --t-small ---------------------------------- */
+:is(#about-sheet, #feedback, #install-guide, #log-ladder)[open], #nogps, .csheet, #wxsheet, #layerspick { animation-duration: var(--t-sheet); animation-timing-function: var(--ease-enter); } /* W69 motion */
+:is(#welcome, #log-confirm)[open], #soundpick { animation-duration: var(--t-small); animation-timing-function: var(--ease-enter); } /* W69 motion: a card and a pop-up, smaller */
+#log-page { animation-duration: var(--t-small); animation-timing-function: var(--ease-standard); } /* W69 motion */
+/* leaving: the element is already closed (its [open] or [hidden] is set at once, so nothing waits); it only keeps its box,
+   untouchable, while it fades and slides away */
+:is(#about-sheet, #feedback, #install-guide, #log-ladder, #log-confirm, #welcome) { transition: opacity var(--t-small) var(--ease-exit), translate var(--t-small) var(--ease-exit), display var(--t-small) allow-discrete, overlay var(--t-small) allow-discrete; } /* W69 motion */
+:is(#about-sheet, #feedback, #install-guide, #log-ladder, #log-confirm, #welcome):not([open]) { opacity: 0; translate: 0 24px; pointer-events: none; } /* W69 motion */
+:is(#wxsheet, #layerspick, #nogps, #soundpick) { transition: opacity var(--t-small) var(--ease-exit), translate var(--t-small) var(--ease-exit), display var(--t-small) allow-discrete; } /* W69 motion */
+:is(#wxsheet, #layerspick, #nogps, #soundpick)[hidden] { opacity: 0; translate: 0 16px; pointer-events: none; } /* W69 motion */
+/* W73 polish: a full-screen sheet or page (Settings, Send feedback, the install guide, the Log) covers the chart with its
+   opaque backing at once, and only its content fades in over it, never over the bar and Launch; leaving, the backing fades with it */
+:is(#about-sheet, #feedback, #install-guide)::backdrop, :root[data-theme] :is(#about-sheet, #feedback, #install-guide)::backdrop { background: var(--space-2); transition: opacity var(--t-small) var(--ease-exit); } /* W73 polish */
+:is(#about-sheet, #feedback, #install-guide):not([open])::backdrop { opacity: 0; } /* W73 polish */
+body.log-page::after { content: ""; position: fixed; inset: 0; z-index: 3; background: var(--void); pointer-events: none; } /* W73 polish: under the Log (z-index 4), over the chart */
+/* Settings' pages push: a fold's page comes in from the right as it opens */
+#about-sheet details[open] > :not(summary) { animation: page-push var(--t-sheet) var(--ease-enter); } /* W69 motion */
+@keyframes page-push { from { opacity: 0; translate: 32px 0; } } /* W69 motion */
+
+/* ---- changes in place: a tip, a peek and a snack rise and fade; a card selects with a morph ---------------------------- */
+.cpreview .cards [aria-checked="true"] { animation: card-pick var(--t-small) var(--ease-give); } /* W69 motion: the picked card settles into its outline */
+@keyframes card-pick { from { transform: scale(0.97); } } /* W69 motion */
+.cpeek, .cpeek-place, .ftip { animation-duration: var(--t-small); animation-timing-function: var(--ease-enter); } /* W69 motion */
+#layerspick .tile.pick .pic { animation: card-pick var(--t-small) var(--ease-give); } /* W69 motion: its ring is drawn at once, and the tile settles into it (app/motion.js) */
+/* the one bubble (app/tip.js) rises toward its control as it fades in, and sinks back as it fades out */
+#loctip { transition: opacity var(--t-small) var(--ease-enter), translate var(--t-small) var(--ease-enter); translate: 0 6px; } /* W69 motion */
+#loctip[data-side="below"] { translate: 0 -6px; } #loctip[data-side="left"] { translate: 6px 0; } #loctip[data-side="right"] { translate: -6px 0; } /* W69 motion */
+#loctip.on { translate: none; } /* W69 motion */
+/* the Log's select mode checks with a tick: the check pops in with give */
+.flights .flight.on::after { animation: check-in var(--t-small) var(--ease-give); } /* W69 motion */
+.flights .flight.on::before { animation: check-box var(--t-press) var(--ease-standard); } /* W69 motion */
+@keyframes check-in { from { opacity: 0; transform: scale(0.4) rotate(-12deg); } } /* W69 motion */
+@keyframes check-box { from { opacity: 0; } } /* W69 motion */
+
+/* ---- the big moments: Launch's readout and Land's bar each come in with one beat, still within 300 ms (W18) -------------- */
+#readout.enter, #launch.enter { animation: beat-in var(--t-normal) var(--ease-give); } /* W69 motion */
+@keyframes beat-in { from { opacity: 0; transform: translateY(18px) scale(0.96); } } /* W69 motion */
+#gobar #launch:active, #land:active { scale: 0.92; transition: scale var(--t-press) var(--ease-standard); } /* W69 motion: the press, deeper */
+#gobar #launch, #land { transition: scale var(--t-small) var(--ease-give); } /* W69 motion: and the spring back, with give */
+
+/* ---- Calm and reduced motion: the camera still glides (BRIEF §7.8); the rest is a quick fade ---------------------------- */
+@keyframes calm-in { from { opacity: 0; } } /* W69 motion */
+/* W76 look: body.calm alone, not the phone's media query: app/main.js sets it from Settings' Motion (calmWanted: Follow the
+   phone, Full or Calm), and app/boot.js before the modules, so Full reaches the CSS. The snackbars and the first Launch's card fade too */
+body.calm :is(#about-sheet, #feedback, #install-guide, #changelog, #log-ladder, #log-confirm, #welcome)[open], body.calm :is(#nogps, .csheet, #wxsheet, #layerspick, #soundpick, #log-page, .cpeek, .cpeek-place, .ftip, .enter, .nsnack, .fcard, #log-snack, #log-flight .replaybar) { animation-name: calm-in; animation-duration: var(--t-press); animation-timing-function: var(--ease-standard); } /* W69 motion; W98 changelog: #changelog */
+body.calm :is(#about-sheet, #feedback, #install-guide, #log-ladder, #log-confirm, #welcome, #wxsheet, #layerspick, #nogps, #soundpick) { transition-duration: var(--t-press); } /* W69 motion */
+body.calm :is(#about-sheet, #feedback, #install-guide, #log-ladder, #log-confirm, #welcome):not([open]), body.calm :is(#wxsheet, #layerspick, #nogps, #soundpick)[hidden] { translate: none; } /* W69 motion: a fade only */
+body.calm :is(#about-sheet details[open] > :not(summary), .star.burst svg, .cpreview .cards [aria-checked="true"], #layerspick .tile.pick .pic), body.calm .flights .flight.on::after { animation-name: calm-in; animation-duration: var(--t-press); } /* W69 motion */
+body.calm .star.burst::after { display: none; } /* W69 motion */
+body.calm .row input[type="checkbox"]::after { transition: transform 0s, scale 0s; } /* W69 motion */
+body.calm #loctip, body.calm #loctip[data-side] { translate: none; transition-duration: var(--t-press); } /* W69 motion */
+
+/* ---- Haptics' icon, in the 24-unit style of Settings' other drawn icons (settings.css): a phone between two buzzes ------ */
+.i-haptics { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='7.5' y='3' width='9' height='18' rx='2.2'/%3E%3Cpath d='M3.5 9v6M20.5 9v6M11 17.5h2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='7.5' y='3' width='9' height='18' rx='2.2'/%3E%3Cpath d='M3.5 9v6M20.5 9v6M11 17.5h2'/%3E%3C/svg%3E"); } /* W69 motion */

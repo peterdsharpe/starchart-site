@@ -1,0 +1,82 @@
+/* W56 hud (design/app-ui/SPEC.md §77): the flight readout and Land, as the parked bar.
+   Parked, one bar holds "Where to?" and Launch (app/launch.css). In flight the same bar, in the same place, holds the
+   readout and Land: the readout is the glass part, rounded, where the field was, and Land is the green end, where
+   Launch was, in Launch's shape, type and glyph. So the same place starts and ends a ride. The numbers are the theme's
+   text colour, in Antonio's tabular figures: Warp at 44 px, LY and minutes at 34 (32 at 320 px), over 7:1 on its glass in
+   Dark and Daystar (the old phosphor on Daystar's white glass was about 4:1). Their words are the app's body type, under them.
+   Land stays inside #readout, so it shows, hides and lifts over a sheet with it (app/course.css csheet-fly). */
+#readout { right: calc(var(--mr) + 48px + 8px); max-width: 440px; height: 64px; gap: 0; box-sizing: border-box;
+  background: var(--glass-snack); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-pill); box-shadow: var(--lift); overflow: hidden; }
+#readout .warp, #readout .pair > div { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; padding: 0; }
+#readout .warp { padding-left: 10px; }
+#readout .pair { display: contents; }
+#readout .lbl { order: 1; font: 600 13px/1 var(--font-body); letter-spacing: 0.02em; text-transform: none; color: var(--stardust); }
+#readout b { color: var(--starlight); text-shadow: none; line-height: 0.92; letter-spacing: 0.01em; }
+#warp { font-size: 44px; min-width: 0.85em; text-align: center; } /* two digits wide, and the minutes too, and LY "0.00": the cells hold still as the numbers change */
+#readout .pair b { font-size: 34px; min-width: 0.8em; text-align: center; }
+#ly { min-width: 1.7em; }
+#readout .warp .nofix { order: 2; font: 700 12px/1 var(--font-body); letter-spacing: 0.04em; }
+#readout .warp.lost .lbl { display: none; } /* GPS lost: "No fix" under the dash, in the label's place */
+/* Land: Launch's twin, the bar's green end */
+#land { order: 9; flex: none; width: auto; flex-direction: row; gap: 6px; margin-left: 2px; padding: 0 18px 0 12px; border: 0;
+  border-radius: var(--r-xs) var(--r-pill) var(--r-pill) var(--r-xs); background: var(--phosphor); color: var(--void); /* W69 artdir */
+  font: 700 21px var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; }
+#land .i { width: 24px; height: 24px; }
+#land .lbl { order: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+@media (max-width: 359px) {
+  #land { padding: 0 10px 0 8px; gap: 4px; font-size: 19px; } /* 320 px: room for Warp 25, 12.34 LY and 123 min */
+  #land .i { width: 22px; height: 22px; }
+  #readout .pair b { font-size: 32px; }
+  #warp { font-size: 40px; }
+  #readout .warp { padding-left: 8px; }
+}
+/* landscape: the ship rides low in the middle, so the bar stops 64 px short of the middle, and Land with it, left of
+   Launch's spot; on a small phone, in the 320 px sizes */
+@media (orientation: landscape) { #readout { max-width: min(440px, calc(50vw - var(--ml) - 64px)); } }
+@media (orientation: landscape) and (max-width: 740px) {
+  #land { padding: 0 10px 0 8px; gap: 4px; font-size: 19px; }
+  #land .i { width: 22px; height: 22px; }
+  #readout .pair b { font-size: 32px; }
+  #warp { font-size: 40px; }
+  #readout .warp { padding-left: 8px; }
+}
+/* the scale and the full credit: the bar runs to the location button, so in flight they sit just above the bar, at the left,
+   at every width (app.css and scale.css did so under 410 and 380 px); the scale steps aside while the credit shows */
+:root:not(.bar) #scale { right: auto; left: var(--ml); bottom: calc(var(--card) + 64px + 6px); align-items: flex-start; }
+body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { right: auto; left: 0; bottom: calc(var(--card) + 64px + 6px); }
+body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open] { float: left; margin: 0 0 0 var(--ml); }
+/* W86 ride (SPEC §168): on a course the minutes' cell is the arrival clock, "6:07", with the time left under it, "12 min left",
+   in the label's type, on one line */
+#readout .pair > .eta .lbl { white-space: nowrap; }
+#readout .pair > .eta { padding-left: 4px; } /* W86 ride: a little air after LY */
+@media (max-width: 399px), (orientation: landscape) and (max-width: 740px) { /* W86 ride: room for Warp 25, 12.34 LY and 12:07 over "1h 20m left": Land its word alone */
+  #readout .pair > .eta .lbl { font-size: 12px; letter-spacing: 0; }
+  #readout:has(.eta) #land { padding: 0 14px 0 12px; } #readout:has(.eta) #land .i { display: none; } }
+@media (max-width: 359px), (orientation: landscape) and (max-width: 740px) { #readout:has(.eta) #warp { font-size: 36px; } #readout:has(.eta) .warp { padding-left: 4px; } #readout:has(.eta) #land { padding: 0 8px 0 6px; font-size: 17px; } } /* W86 ride: 320 px */
+/* W88 ridemodes (SPEC §174): on a course the readout is the destination's: the arrival clock and the minutes left are the big
+   pair, "6:07 arrive" and "12 min left"; speed and the distance ridden go small, stacked at its start ("14 mph" over "2.31 mi", "14 Warp" over "2.31 LY").
+   A free ride (no destination) keeps the journey's three, as above. */
+#readout .pair > .left { display: none; }
+#readout.to { display: grid; grid-template-columns: auto 1fr 1fr auto; grid-template-rows: 1fr 1fr; }
+#readout.to .warp, #readout.to .pair > div:first-child { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 3px; padding: 0 2px 0 16px; }
+#readout.to .warp { grid-area: 1 / 1; align-self: end; padding-bottom: 2px; }
+#readout.to .pair > div:first-child { grid-area: 2 / 1; align-self: start; padding-top: 2px; }
+#readout.to .pair > .eta { grid-area: 1 / 2 / 3 / 3; }
+#readout.to .pair > .left { display: flex; grid-area: 1 / 3 / 3 / 4; }
+#readout.to #land { grid-area: 1 / 4 / 3 / 5; }
+#readout.to #warp, #readout.to #ly, #readout.to .warp.lost #warp { font-size: 20px; min-width: 0; text-align: left; }
+#readout.to .warp .lbl, #readout.to .pair > div:first-child .lbl { font-size: 12px; letter-spacing: 0; }
+#readout.to .warp .nofix { font-size: 11px; letter-spacing: 0; }
+#readout.to .pair > :is(.eta, .left) b { font-size: 40px; }
+#readout.to .pair > .left b { min-width: 1.1em; }
+#readout.to .pair > .left .lbl { white-space: nowrap; }
+@media (max-width: 359px), (orientation: landscape) and (max-width: 740px) {
+  #readout.to .warp, #readout.to .pair > div:first-child { padding-left: 12px; }
+  #readout.to .pair > :is(.eta, .left) b { font-size: 34px; }
+}
+@media (orientation: landscape) and (max-width: 600px) { /* W88 ridemodes: a small phone on its side, the bar 50vw less 64 px: "12:45" and "125" apart, with their words */
+  #readout.to .pair > :is(.eta, .left) b { font-size: 28px; }
+  #readout.to .pair > .eta { padding: 0 8px 0 0; } /* W88 ridemodes fix: the clock nearer LY, clear of the minutes left (4 px at "12:45" and "125", where 30 px overlapped) */
+  #readout.to .warp, #readout.to .pair > div:first-child { padding-left: 10px; }
+  #readout.to :is(.warp, .pair) .lbl { font-size: 11px; }
+}

@@ -1,0 +1,69 @@
+/* The Ingress picks on the chart (app/fx.js; mock-ups in design/app-ui/ideas/). Colours are the tokens,
+   so each theme brings its own. Only transform and opacity animate, and only for a moment: nothing here
+   loops, and nothing makes the chart draw a frame. */
+
+/* 1. The sonar ping: one ring of --you from the ship, 600 ms, then nothing. In Calm chart, a still ring that fades. */
+.fx-ping { position: absolute; left: 50%; top: 50%; width: 200px; height: 200px; margin: -100px 0 0 -100px; border-radius: 50%; pointer-events: none;
+  box-sizing: border-box; border: 2px solid var(--you); opacity: 0; transform: scale(0.2);
+  background: radial-gradient(circle, transparent 55%, color-mix(in srgb, var(--you) 22%, transparent) 70.7%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--you) 60%, transparent), inset 0 0 8px color-mix(in srgb, var(--you) 45%, transparent);
+  animation: fx-ping 600ms var(--ease-enter) forwards; }
+@keyframes fx-ping { 0% { opacity: 0.95; transform: scale(0.2); } 70% { opacity: 0.5; } 100% { opacity: 0; transform: scale(1); } }
+body.calm .fx-ping { transform: scale(0.6); animation-name: fx-fade; }
+@keyframes fx-fade { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
+/* 3. The charting boot: three plain lines at the ship's spot while the first tiles arrive; gone at the first
+   full render, or by 1.2 s. The fade by 1.2 s is a CSS animation, so a busy main thread cannot hold it up. */
+.fx-boot { position: absolute; left: 50%; top: min(calc(62% + 52px), calc(100% - max(var(--rail), calc(var(--bar-h) + 14px)) - 48px - 8px - 74px)); transform: translateX(-50%); pointer-events: none; /* W69 artdir: its three lines (74 px) end 8 px above the bar, at 320 × 568 too */
+  display: flex; flex-direction: column; align-items: center; gap: 4px; animation: fx-boot-out var(--t-small) ease-in 960ms forwards; }
+.fx-boot.gone { animation: fx-boot-out var(--t-small) ease-in forwards; }
+@keyframes fx-boot-out { to { opacity: 0; } }
+@media (orientation: landscape) and (max-height: 500px) { .fx-boot { top: auto; bottom: calc(50% + 40px); } } /* W69 artdir: above the ship, clear of Launch, as #loadword (app/app.css) */
+.fx-boot div { display: flex; gap: 8px; align-items: baseline; height: 22px; font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 22px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--phosphor); white-space: nowrap; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 3px var(--void), 0 0 3px var(--void), 0 0 8px var(--void);
+  animation: fx-line-in var(--t-press) var(--ease-enter) both; }
+.fx-boot div:nth-child(2) { animation-delay: 260ms; }
+.fx-boot div:nth-child(3) { animation-delay: 560ms; }
+.fx-boot div span { color: var(--console-grey); font-weight: 600; font-size: 15px; }
+.fx-boot div.done::after { content: "✓"; color: var(--phosphor); font-size: 15px; }
+@keyframes fx-line-in { from { opacity: 0; transform: translateY(6px); } }
+body.calm .fx-boot div { animation-name: fx-fade-in; }
+@keyframes fx-fade-in { from { opacity: 0; } }
+
+/* 4. The crossing flash: the pulsar or black hole the ship passes brightens once, 300 ms */
+.fx-flash { --hue: var(--pulsar); width: 0; height: 0; pointer-events: none; }
+.fx-flash.black_hole { --hue: var(--black-hole); }
+.fx-flash i { position: absolute; left: -48px; top: -48px; width: 96px; height: 96px; border-radius: 50%; box-sizing: border-box; opacity: 0;
+  background: radial-gradient(circle, color-mix(in srgb, var(--hue) 75%, transparent) 0 18%, color-mix(in srgb, var(--hue) 30%, transparent) 38%, transparent 70%);
+  animation: fx-flash 300ms ease-out forwards; }
+.fx-flash i + i { background: none; border: 2px solid var(--hue); box-shadow: 0 0 8px var(--hue); animation-name: fx-flash-ring; }
+@keyframes fx-flash { 0% { opacity: 0; transform: scale(0.5); } 30% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.1); } }
+@keyframes fx-flash-ring { 0% { opacity: 0.9; transform: scale(0.35); } 100% { opacity: 0; transform: scale(1); } }
+body.calm .fx-flash i { transform: none; animation-name: fx-fade; }
+body.calm .fx-flash i + i { display: none; }
+
+/* 6. W69 artdir: the banner pills and the snackbar were chamfered here, the console's cut corner, the last angular shape in
+   the chrome; they are rounded glass now, as every card and pill (app/app.css, design/ART.md). */
+
+/* 8. The in-flight tint: a faint phosphor edge round the screen, still, from Launch to Land. The edge is
+   one unbroken border on the frame; the glow is four thin strips inside it, not a layer over the whole
+   chart, and nothing in them moves once shown. The side glows run the full height and fade out over
+   the corners just as the top and bottom glows fade in, so the glow along every edge stays even through
+   the corners. (The side strips used to stop 24 px short of each end, which left their edge line
+   broken at the top and bottom of both sides.) */
+.fx-tint { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity var(--t-normal) var(--ease-enter); /* W18 controls: settled within 300 ms; W73 polish: Launch's and Land's beat */
+  --edge: color-mix(in srgb, var(--phosphor) 30%, transparent); --glow: color-mix(in srgb, var(--phosphor) 14%, transparent);
+  border: 2px solid var(--edge); }
+.fx-tint i { position: absolute; }
+.fx-tint .t, .fx-tint .b { left: 0; right: 0; height: 24px; }
+.fx-tint .l, .fx-tint .r { top: 0; bottom: 0; width: 24px;
+  -webkit-mask: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  mask: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+.fx-tint .t { top: 0; background: linear-gradient(var(--glow), transparent); }
+.fx-tint .b { bottom: 0; background: linear-gradient(0deg, var(--glow), transparent); }
+.fx-tint .l { left: 0; background: linear-gradient(90deg, var(--glow), transparent); }
+.fx-tint .r { right: 0; background: linear-gradient(270deg, var(--glow), transparent); }
+body.fx-flying .fx-tint { opacity: 1; }
+/* W65 plainlook: Plain has no phosphor edge in flight and no flash as you pass a light or a rotary (data-lingo: app/lingo-mode.js) */
+[data-lingo="meatspace"] .fx-tint, [data-lingo="meatspace"] .fx-flash { display: none; }

@@ -1,0 +1,91 @@
+/* W50 layers (app/layers.js, design/app-ui/SPEC.md §62): the Layers button at the top right (W58 clean: in the corner, the compass under it), and
+   its card, which drops from there over the chart: small, whole even over the ship (W92 panels), with an ×. The
+   compass shows only when the chart is turned, so the button keeps its own place under the compass's, and never moves
+   when the compass comes and goes. Colours and type from design/tokens.css. */
+.i-hills { -webkit-mask-image: url("../design/glyphs/ui/hills.svg"); mask-image: url("../design/glyphs/ui/hills.svg"); }
+.i-layers { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5l8.5 4.6L12 12.7 3.5 8.1z' fill='%23000'/%3E%3Cpath d='M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4l8.5 4.6 8.5-4.6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5l8.5 4.6L12 12.7 3.5 8.1z' fill='%23000'/%3E%3Cpath d='M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4l8.5 4.6 8.5-4.6'/%3E%3C/svg%3E"); }
+.i-tlines { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 19.5l15-15'/%3E%3Cpath d='M5.6 13.6l4.8 4.8M9.6 9.6l4.8 4.8M13.6 5.6l4.8 4.8' stroke-width='1.8'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 19.5l15-15'/%3E%3Cpath d='M5.6 13.6l4.8 4.8M9.6 9.6l4.8 4.8M13.6 5.6l4.8 4.8' stroke-width='1.8'/%3E%3C/svg%3E"); }
+.i-places { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5.5' cy='12' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M11 9h9.5M11 15h6.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5.5' cy='12' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M11 9h9.5M11 15h6.5'/%3E%3C/svg%3E"); }
+
+#layers { right: var(--mr); top: calc(var(--top) + var(--card-h, 0px)); z-index: 2; } /* W58 clean: the true top right corner, inside the safe areas */
+#compass { top: calc(var(--top) + var(--card-h, 0px) + 44px + 8px); } /* W58 clean: the compass, when shown, under Layers */
+#layers[aria-expanded="true"] { color: var(--phosphor); border-color: var(--phosphor-dim); }
+body:is(.has-csearch, .log-page, .log-flight) > #layers { visibility: hidden; } /* under the search across the top, and the Log */
+
+#layerspick { position: fixed; z-index: 7; top: calc(var(--top) + var(--card-h, 0px)); right: var(--mr); width: min(340px, calc(100vw - var(--ml) - var(--mr)));
+  max-height: calc(100dvh - var(--top) - var(--card-h, 0px) - var(--m)); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; padding: 8px 12px 2px;
+  background: var(--space-2); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift-sheet); /* W69 artdir */
+  transform-origin: top right; animation: layerspick-in var(--t-small) var(--ease-enter); }
+@keyframes layerspick-in { from { opacity: 0; transform: scale(0.92); } }
+#layerspick h2 { margin: 4px 44px 8px 0; font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--phosphor); }
+#layerspick .x { position: sticky; z-index: 1; top: -6px; float: right; margin: -6px -10px -38px 0; width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: inherit; color: var(--stardust); } /* W92 panels: in the corner as before (a sticky top counts from the padding, so it is the margin's) (2 px in), and there while the card scrolls, if it ever must */
+/* W55 layers2 (SPEC §71): Google Maps' toggle tiles, four a row: a square picture of what the layer shows, drawn in
+   app/index.html in the theme's own colours, and its one-word name; outlined in --course when on, a hairline when off. */
+#layerspick .tiles { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 8px; padding: 2px 2px 10px; } /* W56 parking, W59 routes: seven tiles, four a row */
+#layerspick .tiles .tile { font-size: 12.5px; } /* four a row: "Anchorages" stays whole under its picture (14 px ran 5 px past a 72 px tile) */
+@media (max-width: 340px) { #layerspick .tiles .tile { font-size: 11px; } } /* 320 px: 56 px tiles; 11 px is BRIEF §7.8's floor */
+#layerspick .tile { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 44px; margin: 0; padding: 0 0 2px; border: 0; border-radius: var(--r-s); background: none;
+  color: var(--stardust); font: 600 14px/1.2 var(--font-body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+#layerspick .tile .pic { display: block; width: 100%; max-width: 72px; aspect-ratio: 1; /* W56 parking: max-width, as four a row at 412 px */ border-radius: var(--r-s); overflow: hidden;
+  outline: var(--hairline) solid var(--space-3); outline-offset: 0; } /* W69 motion: no outline-offset transition; the tile settles into its ring (app/motion.css) */
+#layerspick .tile svg { display: block; width: 100%; height: 100%; }
+#layerspick .tile[aria-pressed="true"] { color: var(--starlight); }
+#layerspick .tile[aria-pressed="true"] .pic { outline: 2.5px solid var(--phosphor); outline-offset: 2px; } /* W69 artdir */
+#layerspick .tile:focus-visible { outline: none; }
+#layerspick .tile:focus-visible .pic { box-shadow: 0 0 0 5px color-mix(in srgb, var(--phosphor) 55%, transparent); } /* W69 artdir */
+#layerspick .tile .g { fill: var(--void); }
+#layerspick .tile .st { fill: none; stroke: var(--starpath); stroke-width: 2.2; opacity: 0.3; }
+/* Comets: the MBTA's own colours, as the comets (app/comets-logic.js), a comet's glow, head and white core, and its tail */
+#layerspick .tile .tr { fill: none; stroke-width: 3.4; stroke-linecap: round; opacity: 0.9; }
+#layerspick .tile .r { stroke: #DA291C; } #layerspick .tile .o { stroke: #ED8B00; } #layerspick .tile .gn { stroke: #00843D; }
+#layerspick .tile :is(.ct, .ch, .cg) { fill: #DA291C; } #layerspick .tile .ct { opacity: 0.6; } #layerspick .tile .cg { opacity: 0.35; } #layerspick .tile .cc { fill: #ffffff; }
+/* Terrain: the hills' tint, as app/terrain.js (starlight on Dark, stardust on Daystar), and steep ground's hachures in --caution */
+#layerspick .tile :is(.h1, .h2, .h3) { fill: var(--starlight); } #layerspick .tile .h1 { opacity: 0.14; } #layerspick .tile .h2 { opacity: 0.2; } #layerspick .tile .h3 { opacity: 0.28; }
+:root[data-theme="light"] #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--stardust); }
+#layerspick .tile .hc { fill: none; stroke: var(--caution); stroke-width: 2.2; stroke-linecap: round; }
+/* Places: magenta dots, each with its name's stroke in a dark halo, as spot-dot and spot-label */
+/* W59 routes: Lanes: a painted lane dashed, a dimmer one (less comfort), a protected lane's double line, in --wormhole */
+#layerspick .tile :is(.ln, .lp) { fill: none; stroke: var(--wormhole); } #layerspick .tile .ln { stroke-width: 3; stroke-dasharray: 6 4; } /* W59 routes */
+#layerspick .tile .ln.dim { opacity: 0.45; } #layerspick .tile .lp { stroke-width: 1.8; } /* W59 routes */
+#layerspick .tile .pd { fill: var(--luna); stroke: var(--void); stroke-width: 2.4; }
+#layerspick .tile :is(.lh, .lb) { fill: none; stroke-linecap: round; } #layerspick .tile .lh { stroke: var(--void); stroke-width: 7.5; } #layerspick .tile .lb { stroke: var(--stardust); stroke-width: 3.6; }
+/* Weather: the rain's wash in the radiation colour (--caution), heavier to the middle, as app/weather.js */
+#layerspick .tile :is(.w1, .w2, .w3) { fill: var(--caution); } #layerspick .tile .w1 { opacity: 0.22; } #layerspick .tile .w2 { opacity: 0.3; } #layerspick .tile .w3 { opacity: 0.4; }
+/* W56 parking (SPEC §73): Anchorages: the rack glyph (W86 map: design/glyphs/rack.svg, a --wormhole ring and its bar),
+   as app/anchorages.js draws them; Systems: the towns' soft --nebula-glow, as system-nebula */
+#layerspick .tile .an circle { fill: var(--void); stroke: var(--wormhole); stroke-width: 2.6; } /* W86 map: the rack mark, a ring with a bar through it */
+#layerspick .tile .an path { fill: none; stroke: var(--wormhole); stroke-width: 2.6; stroke-linecap: round; } /* W86 map */
+#layerspick .tile .sg0 { stop-color: var(--nebula-glow); stop-opacity: 0.75; } #layerspick .tile .sg1 { stop-color: var(--nebula-glow); stop-opacity: 0.3; } #layerspick .tile .sg2 { stop-color: var(--nebula-glow); stop-opacity: 0; }
+:root[data-theme="light"] #layerspick .tile :is(.sg0, .sg1, .sg2) { stop-color: #5640e0; } /* W86 map: the town glow stays purple by day, as the sprite's (chart/style/build_style.py DAY_SPRITE_ACCENTS); --nebula-glow is the water's slate rim */
+#layerspick .tile .sn { stroke: var(--starlight); stroke-width: 3.6; stroke-linecap: round; opacity: 0.85; }
+
+/* the smallest phones in flight on a course: under Layers there is no room above Settings, so the compass goes beside it (W58 clean) */
+@media (orientation: portrait) and (max-height: 600px) {
+  body:has(.cturn:not([hidden])) > #compass { top: calc(var(--top) + var(--card-h, 0px)); right: calc(var(--mr) + 44px + 8px); } /* W58 clean */
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  #layers { top: var(--top); } /* W58 clean: Layers has the top of the right column, and the compass is under it */
+  #compass { top: calc(var(--top) + 44px + 8px); } /* W58 clean */
+  /* beside the ship, and above Where to? and Launch; it scrolls when it must */
+  #layerspick { top: var(--top); width: min(500px, 74vw); max-height: calc(100dvh - var(--top) - max(var(--rail), calc(var(--bar-h, 0px) + 14px)) - 48px - 8px); } /* W56 parking: 500 px, 74vw (was 340, 44vw): six a row */
+  #layerspick .tiles { grid-template-columns: repeat(7, minmax(44px, 1fr)); } /* W56 parking, W59 routes: the seven in one row: no room for two */
+  #layerspick .tile { font-size: 12.5px; } /* W56 parking: "Anchorages" under a 71 px picture at 667 px */
+  /* in flight on a course, under the turn card, which reaches the right column here (app/course.css): the next turn stays in view */
+  body:has(.cturn:not([hidden])) > #layerspick { top: calc(var(--top) + var(--card-h, 0px) + 8px); max-height: calc(100dvh - var(--top) - var(--card-h, 0px) - 8px - var(--rail)); }
+}
+body.calm #layerspick { animation-duration: var(--t-press); }
+
+/* W54 flight (SPEC §70): the overview, in flight on a course, beside Layers, to its left: clear of the turn card, the
+   readout and Land, and of Settings and Sound, which come up the right column from the bottom (a 640 px phone with its
+   insets has no room for a fourth button under the compass). Lit while it frames the rest of the course. */
+.i-overview { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8V3.5H8M16 3.5h4.5V8M20.5 16v4.5H16M8 20.5H3.5V16'/%3E%3Cpath d='M7.5 16.5c2-4.5 3.5-1 5-4.5s3-2.5 4-4.5' stroke-width='2'/%3E%3Ccircle cx='16.6' cy='7.4' r='1.6' fill='%23000' stroke='none'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8V3.5H8M16 3.5h4.5V8M20.5 16v4.5H16M8 20.5H3.5V16'/%3E%3Cpath d='M7.5 16.5c2-4.5 3.5-1 5-4.5s3-2.5 4-4.5' stroke-width='2'/%3E%3Ccircle cx='16.6' cy='7.4' r='1.6' fill='%23000' stroke='none'/%3E%3C/svg%3E"); }
+#overview { right: calc(var(--mr) + 44px + 8px); top: calc(var(--top) + var(--card-h, 0px)); z-index: 2; } /* W58 clean: beside Layers, in its row */
+#overview[aria-pressed="true"] { color: var(--course); border-color: color-mix(in srgb, var(--course) 70%, transparent); }
+body:is(.has-csearch, .has-csheet, .log-page, .log-flight) > #overview { visibility: hidden; }
+@media (orientation: portrait) and (max-height: 600px) {
+  body:has(.cturn:not([hidden])) > #overview { top: calc(var(--top) + var(--card-h, 0px)); right: calc(var(--mr) + 2 * (44px + 8px)); } /* the compass went beside Layers (W58 clean) */
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  #overview { top: var(--top); right: calc(var(--mr) + 44px + 8px); } /* beside Layers: under it, Sound comes up from the bottom; W58 clean: in the top row; W73 polish: a slot further, since in flight the gear sat beside Layers; W75 chrome: back beside Layers, since the gear leaves flight (app.css body > #about) */
+}
+body.cturns-open > #overview { visibility: hidden; } /* W54 flight: the unfolded turn list pushes the right column down; the overview waits */

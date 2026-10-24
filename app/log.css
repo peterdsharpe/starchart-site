@@ -1,0 +1,321 @@
+/* The bottom bar and the Log (wave 17, design/app-ui/SPEC.md §14 and §15; app/log.js).
+   Colours and type from design/tokens.css. Only transform and opacity animate. */
+:root { --bar-h: 0px; }
+/* W18 controls: the bar uses the bottom safe area (Chrome on Android reports the gesture bar there, with
+   viewport-fit=cover). Its tabs sit up to half the inset into it, the icons stay above it, and the lower
+   half is a fading glass over the chart, not dead black. 64 px with no inset; 80 px at 48 px (was 112). */
+:root { --bar-in: env(safe-area-inset-bottom, 0px); --bar-box: 49px; } /* W20 chrome: one row, the label beside the icon (was 64 and 80 px); W23 bar: 49 px with no inset (48 px targets under its edge), 73 at 48 (was 45 and 69), for the corner's 48 px targets */
+:root.bar { --bar-h: calc(var(--bar-box) + var(--bar-in) / 2); }
+
+.i-black-box { -webkit-mask-image: url("../design/glyphs/ui/black_box.svg"); mask-image: url("../design/glyphs/ui/black_box.svg"); }
+.i-back { -webkit-mask-image: url("../design/glyphs/ui/back.svg"); mask-image: url("../design/glyphs/ui/back.svg"); }
+.i-tag { -webkit-mask-image: url("../design/glyphs/ui/chalk_tag.svg"); mask-image: url("../design/glyphs/ui/chalk_tag.svg"); }
+.i-gpx { -webkit-mask-image: url("../design/glyphs/ui/export_gpx.svg"); mask-image: url("../design/glyphs/ui/export_gpx.svg"); }
+/* drawn here until the UI set has them: a folded chart, pause and play */
+.i-fold-chart { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z'/%3E%3Cpath d='M9 4v13.5M15 6.5V20'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z'/%3E%3Cpath d='M9 4v13.5M15 6.5V20'/%3E%3C/svg%3E"); }
+.i-pause { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='5' width='4' height='14' rx='1.5'/%3E%3Crect x='14' y='5' width='4' height='14' rx='1.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='5' width='4' height='14' rx='1.5'/%3E%3Crect x='14' y='5' width='4' height='14' rx='1.5'/%3E%3C/svg%3E"); }
+.i-play { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z'/%3E%3C/svg%3E"); }
+
+/* ---- the bar, parked only: Material 3's navigation bar ----------------------------------------- */
+#bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; box-sizing: border-box; height: calc(var(--bar-box) + var(--bar-in) / 2); /* W18 controls */
+  padding: 0 calc(6px + env(safe-area-inset-right)) 0 calc(6px + env(safe-area-inset-left));
+  display: flex; border-top: var(--hairline) solid var(--glass-edge);
+  background: linear-gradient(to top, color-mix(in srgb, var(--glass-btn) 60%, transparent), var(--glass-btn) calc(var(--bar-in) / 2)); /* W18 controls; W21 glass: --glass-btn, was 94 % */
+  box-shadow: 0 -4px 16px color-mix(in srgb, var(--shade) 45%, transparent); contain: layout paint;
+  transition: transform var(--t-normal) var(--ease-enter), opacity var(--t-normal) var(--ease-enter); } /* W18 controls: settled within 300 ms; W73 polish: back at Land in Land's beat, with the glow and Launch */
+.inset-probe { position: fixed; visibility: hidden; pointer-events: none; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); } /* W18 controls: About's Screen row */
+#bar.away { transform: translateY(100%); opacity: 0; pointer-events: none; transition-duration: var(--t-small); transition-timing-function: var(--ease-exit); } /* W73 polish: and away at Launch quickly */
+body.log-page #bar { background: var(--space-1); } /* W73 polish: opaque over a page (ART §3), so the Log's rows don't show through */
+body.has-csheet #bar { visibility: hidden; } /* W21 glass: the see-through course sheets cover it, so it must not show through them */
+/* W20 chrome: the label beside the icon, in one 32 px row; the whole height is still the tab, down to the screen's edge (W18) */
+#bar .tab { position: relative; flex: 1; max-width: 200px; margin: 0 auto; display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 7px;
+  padding: calc(var(--bar-box) / 2 - 12px) 0 0; border: 0; background: none; color: var(--stardust); font-family: var(--font-display); font-weight: 600; font-size: 15px; line-height: 24px; letter-spacing: 0.07em; text-transform: uppercase; }
+#bar .tab .i { width: 24px; height: 24px; }
+#bar .tab.on { color: var(--phosphor); }
+/* the pill around the icon and its label: the labels' widths, in em, as Antonio sets them */
+#bar .tab.on::after { content: ""; position: absolute; top: calc(var(--bar-box) / 2 - 16px); left: 50%; width: calc(24px + 7px + var(--lw) + 26px); height: 32px; translate: -50% 0; border-radius: var(--r-pill); background: color-mix(in srgb, var(--phosphor) 16%, transparent); } /* W69 artdir */
+#tab-chart { --lw: 2.6em; } #tab-log { --lw: 1.6em; }
+/* W23 bar: Settings and Sound, icons in the right corner, 48 px wide with 8 px between, each as tall as the bar; Sound in the
+   column of the location button above it. Chart and Log split the rest. */
+#bar #stack { flex: none; display: flex; gap: 8px; margin: 0 6px 0 8px; }
+#bar #stack button { position: relative; width: 48px; height: 100%; padding: calc(var(--bar-box) / 2 - 12px) 0 0; display: flex; justify-content: center;
+  border: 0; background: none; color: var(--stardust); }
+#bar #about::after { inset: auto; left: 50%; top: calc(var(--bar-box) / 2); width: 40px; height: 40px; translate: -50% -50%; } /* the download's ring, round the gear */
+
+/* the parked anchors sit 14 px above the bar, and the folded © 2 px above it, left of the location button */
+#launch, #locate { bottom: max(var(--rail), calc(var(--bar-h) + 14px)); }
+#nofix { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 58px); }
+.bar .maplibregl-ctrl-bottom-right { bottom: calc(var(--bar-h) + 2px); }
+.bar .maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin-right: calc(var(--m) + 56px); }
+
+/* ---- the Log: a page over the chart ------------------------------------------------------------- */
+#log-page { position: fixed; inset: 0; z-index: 4; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top) + 11px) calc(16px + env(safe-area-inset-right)) calc(var(--bar-h) + 24px) calc(16px + env(safe-area-inset-left));
+  background: var(--void); color: var(--starlight); animation: log-in var(--t-small) var(--ease-enter); }
+@keyframes log-in { from { opacity: 0; } }
+#log-page > * { max-width: 560px; margin-left: auto; margin-right: auto; }
+#log-page header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+#log-page h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.05; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--phosphor); }
+#log-page header small { color: var(--stardust); font-size: 14px; }
+#log-page header .sat { margin-right: auto; font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; color: var(--pulsar); } /* W76 loghead (SPEC §135): Saturnight, beside LOG */
+:root[data-theme="light"] #log-page header .sat { color: color-mix(in srgb, var(--pulsar) 80%, var(--starlight)); } /* W76 loghead: 5.5:1 on Daystar's page (the pulsar alone, 4.2) */
+#log-page header:has(.sat) small { text-align: right; text-wrap: balance; } /* W76 loghead: at 320 px the demo's line takes two lines, evenly */
+#log-page header .ghosts { align-self: center; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 9px; border-radius: var(--r-pill); /* W73 ghosts: the count opens the season chart */
+  border: 1px solid var(--space-3); background: var(--space-1); color: var(--stardust); font: inherit; font-size: 14px; }
+#log-page header .ghosts .i { width: 20px; height: 20px; color: var(--chalk); } /* W73 ghosts */
+.i-ghosts { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M3 19c2.5-1 3-4.5 6-5s4 2 7 .5S18.5 8 21 5' stroke-dasharray='3.2 2.6'/%3E%3Cpath d='M3 12c2-1.5 3-5 6.5-5.5' stroke-dasharray='3.2 2.6' opacity='.55'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M3 19c2.5-1 3-4.5 6-5s4 2 7 .5S18.5 8 21 5' stroke-dasharray='3.2 2.6'/%3E%3Cpath d='M3 12c2-1.5 3-5 6.5-5.5' stroke-dasharray='3.2 2.6' opacity='.55'/%3E%3C/svg%3E"); } /* W73 ghosts: two chalk trails, dashed as on the chart */
+#log-flight h2.name { margin: 0; } /* W73 ghosts: the season chart's title */
+#log-page h3 { margin: 14px auto 4px; font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--console-grey); }
+#log-page .note, #log-ladder .note { font-size: 14px; line-height: 1.35; color: var(--stardust); }
+.awards { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; width: 100%; box-sizing: border-box; padding: 12px 14px; margin-bottom: 12px;
+  text-align: left; background: var(--space-1); border: 1px solid var(--space-3); border-radius: var(--r-card); color: var(--starlight); } /* W69 artdir */
+.awards .odo { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.awards .odo b { font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1; color: var(--phosphor); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--phosphor) 35%, transparent); }
+.awards .odo span { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stardust); }
+.awards .star svg, #log-ladder svg { width: 40px; height: 40px; display: block; }
+.awards .star.none { opacity: 0.4; }
+.awards .bar6 { grid-column: 1 / -1; height: 6px; margin-top: 6px; border-radius: var(--r-pill); background: var(--space-3); overflow: hidden; } /* W69 artdir */
+.awards .bar6 i { display: block; height: 100%; background: var(--funk); transform-origin: left; transform: scaleX(0); }
+/* W88 logavg (SPEC §182): the milestone compact, one line over a thin bar: the star, the lifetime, "Next: 150 mi · 38 to go" */
+.awards { grid-template-columns: auto auto 1fr; gap: 0 8px; padding: 8px 12px 9px; min-height: 44px; } /* W88 logavg */
+.awards .odo b { font-size: 22px; text-shadow: none; } .awards .odo { gap: 5px; } .awards .odo span { font-size: 12px; } /* W88 logavg */
+.awards .star svg { width: 22px; height: 22px; } /* W88 logavg */
+.awards .next { justify-self: end; min-width: 0; text-align: right; text-wrap: balance; font-size: 13px; line-height: 1.25; color: var(--stardust); } /* W88 logavg */
+.awards .bar6 { height: 3px; margin-top: 6px; } /* W88 logavg */
+@media (max-width: 359px) { .awards { gap: 0 6px; } .awards .odo { gap: 3px; } .awards .next { font-size: 12px; } .weeks .wtot { font-size: 19px; letter-spacing: 0; } .weeks .wtot .wav { font-size: 13px; } } /* W88 logavg: SCUL's longest, "Next: Supernova · 233 LY to go", in one line at 320 px */
+.star svg .disc, #log-ladder svg .disc { fill: var(--void); }
+.star svg .glint, #log-ladder svg .glint { fill: var(--starlight); }
+.star svg .beam, #log-ladder svg .beam { stroke: var(--starlight); }
+.awards .cls-flare, #log-ladder .cls-flare { color: var(--course); } .awards .cls-nova, #log-ladder .cls-nova { color: var(--pulsar); }
+.awards .cls-supernova, #log-ladder .cls-supernova { color: var(--wormhole); } .awards .cls-quasar, #log-ladder .cls-quasar { color: var(--black-hole); }
+#log-class { color: var(--starlight); }
+/* W88 logweek (SPEC §177): distance and climb by week or month, a card at the Log's top. Each period is a column, a button the
+   card's height: its distance bar above, its climb's below on a scale of its own, the month under it. */
+.weeks { box-sizing: border-box; width: 100%; padding: 10px 12px 6px; margin-bottom: 12px; background: var(--space-1); border: 1px solid var(--space-3); border-radius: var(--r-card); }
+.weeks .whead { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+.weeks .wwhen { font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stardust); }
+.weeks .wtot { grid-column: 1 / -1; grid-row: 2; font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.15; letter-spacing: 0.02em; color: var(--starlight); font-variant-numeric: tabular-nums; }
+.weeks .wtot span { white-space: nowrap; } .weeks .whead:has(.wall) .wtot { padding-right: 40px; } /* the whole row, but the × */
+.weeks .wall { grid-column: 2; grid-row: 2; justify-self: end; margin: -10px -6px -10px 0; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--r-pill); background: none; color: var(--stardust); } /* 44 px, over the gaps, so the card keeps its height while it filters */
+.weeks .wall .i { width: 20px; height: 20px; }
+.weeks .seg { font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; }
+.weeks .wbars { display: grid; grid-template-columns: repeat(12, 1fr); margin-top: 6px; touch-action: pan-y; cursor: pointer; border-radius: var(--r-xs); } /* one control: the slider; a vertical drag scrolls the Log */
+.weeks .wbars:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+.weeks .wcol { display: flex; flex-direction: column; align-items: stretch; min-width: 0; padding: 0 2px; }
+.weeks .wcol > span { display: flex; justify-content: center; }
+.weeks .wd { height: 84px; align-items: flex-end; border-bottom: 1px solid var(--space-3); }
+.weeks .wc { height: 22px; align-items: flex-start; }
+.weeks .wcol i { position: relative; display: block; width: min(100%, 22px); box-sizing: border-box; }
+.weeks .wd i { height: max(2px, calc(var(--h) * 100% - 14px * var(--h))); border-radius: var(--r-xs) var(--r-xs) 0 0; background: color-mix(in srgb, var(--phosphor) 55%, var(--space-1)); } /* 14 px left above the top bar for its number; 3.6:1 on the card */
+.weeks .wc i { height: calc(var(--h) * 100%); margin-top: 2px; border-radius: 0 0 var(--r-xs) var(--r-xs); background: color-mix(in srgb, var(--stardust) 65%, var(--space-1)); } /* 3.5:1 */
+:root[data-theme="light"] .weeks .wd i { background: color-mix(in srgb, var(--phosphor) 72%, var(--space-1)); } :root[data-theme="light"] .weeks .wc i { background: color-mix(in srgb, var(--stardust) 72%, var(--space-1)); } /* 3.2:1 and 3.4:1 on Daystar's card */
+:root .weeks .wcol.on .wd i { background: var(--phosphor); box-shadow: var(--glow-s) color-mix(in srgb, var(--phosphor) 40%, transparent); }
+:root .weeks .wcol.on .wc i { background: var(--stardust); }
+.weeks .wcol.picked { border-radius: var(--r-xs); background: color-mix(in srgb, var(--phosphor) 12%, transparent); } /* the period the list is filtered to, plain on a phone too */
+.weeks .wd small { position: absolute; bottom: 100%; left: 50%; translate: -50% -1px; font: 600 11px/13px var(--font-display); letter-spacing: 0.02em; color: var(--stardust); white-space: nowrap; }
+.weeks .wt { height: 15px; font: 600 11px/15px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--console-grey); white-space: nowrap; overflow: visible; }
+.weeks .wcol.now .wt { color: var(--phosphor); }
+.weeks .wcol.now .wt:empty::before { content: ""; width: 5px; height: 5px; margin-top: 5px; border-radius: 50%; background: var(--phosphor); } /* the week now is in, where no month names it */
+.weeks .wtot span:first-child { color: var(--phosphor); } .weeks .wtot span + span { color: var(--stardust); } /* the key to the bars: distance green, climb grey */
+/* W88 logavg (SPEC §182): her own average, a dashed line across each plot at its height (the bars' scales: 70 px of 84 above, 22 below), and beside the distance */
+.weeks .wbars { position: relative; } /* W88 logavg */
+.weeks .wavg { position: absolute; left: 0; right: 0; top: calc(84px - var(--a) * 70px); border-top: 1px dashed var(--phosphor); pointer-events: none; } /* W88 logavg */
+.weeks .wavg.c { top: calc(87px + var(--a) * 22px); border-top-color: var(--starlight); } /* W88 logavg: the climb's, under the axis */
+.weeks .wtot .wav { font-size: 15px; font-weight: 600; color: var(--phosphor); } /* W88 logavg: smaller, in the distance's ink */
+.season { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; } /* W60 c: 4 cells, or Plain's 3 */
+.season div { display: flex; flex-direction: column; font-family: var(--font-display); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--console-grey); }
+.season b { font-size: 22px; color: var(--starlight); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.season b i, #log-flight .stats b i { font-style: normal; font-size: 0.6em; letter-spacing: 0.02em; text-transform: none; } /* W68 fixes: "1h 20m", its units small, as the cards' " min" */
+.flights { list-style: none; padding: 0; }
+.flights .flight { display: flex; gap: 12px; align-items: center; width: 100%; min-height: 72px; padding: 8px 0; border: 0; background: none; color: var(--starlight); text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+.thumb { flex: none; background: var(--space-1); border: 1px solid var(--space-3); border-radius: var(--r-inner); } /* W69 artdir */
+.thumb .route { fill: none; stroke: var(--chalk); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; opacity: 0.9; }
+.thumb .dot { fill: var(--phosphor); }
+.flights .ft { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.flights .ft b { font-size: 17px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flights .ft span { font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--phosphor); font-variant-numeric: tabular-nums; }
+.flights .ft small { font-size: 13px; color: var(--stardust); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flights .chev { font-style: normal; color: var(--stardust); font-size: 26px; }
+#log-page .foot { margin-top: 18px; text-align: center; }
+/* W67 logsafe (SPEC §96): Back up the Log and Restore, two quiet pills above the note */
+#log-page .safe { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 10px; }
+#log-page .safe button { height: 44px; padding: 0 16px; border-radius: var(--r-pill); border: 1px solid var(--space-3); background: var(--space-1); color: var(--starlight); /* W69 artdir */
+  font: 700 17px var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; white-space: nowrap; } /* W69 artdir */
+#log-page .safe button:is(:disabled, [aria-disabled="true"]) { opacity: 0.4; cursor: default; }
+#log-page .reset { display: block; margin: 4px auto 0; height: 44px; padding: 0 8px; border: 0; background: none; font: 400 14px var(--font-body); text-decoration: underline; text-underline-offset: 3px;
+  color: var(--stardust); } /* W21 logfix: apart from the rows, and quieter than an action; W27 friction: a small plain link, below the note, a 44 px target */
+#log-page .reset:is(:disabled, [aria-disabled="true"]) { /* W24 quiet: aria-disabled, so a tap says why */ color: var(--space-3); cursor: default; }
+
+/* ---- the star classes: a sheet over the Log ------------------------------------------------------- */
+#log-ladder { padding-bottom: calc(env(safe-area-inset-bottom) + 24px); }
+#log-ladder[open] { animation: sheet-in var(--t-small) var(--ease-enter); } /* W18 controls */
+#log-ladder::backdrop { background: color-mix(in srgb, var(--void) 62%, transparent); }
+#log-ladder h2 { margin: 2px 44px 4px 0; color: var(--phosphor); }
+#log-ladder ol { list-style: none; padding: 0; margin: 8px 0 0; }
+#log-ladder li { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; padding: 6px 0; opacity: 0.55; }
+#log-ladder li.got { opacity: 1; }
+#log-ladder li svg { width: 48px; height: 48px; }
+#log-ladder li b { display: block; font-family: var(--font-display); font-size: 22px; letter-spacing: var(--track-display); text-transform: uppercase; }
+#log-ladder li small { color: var(--stardust); font-size: 14px; } /* W69 artdir */
+#log-ladder li > span { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--stardust); }
+
+/* ---- W39 confirm (SPEC §51): "Delete all 12 flights?", a small card in the welcome's glass, low over the bar --------- */
+#log-confirm { box-sizing: border-box; width: min(360px, calc(100vw - var(--ml) - var(--mr))); max-height: calc(100dvh - 16px); margin: auto auto max(var(--rail), calc(var(--bar-h) + 10px));
+  padding: 14px 16px 14px; overflow-y: auto; background: var(--glass-snack); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  color: var(--starlight); font: 16px/1.35 var(--font-body); }
+#log-confirm[open] { animation: enter var(--t-small) var(--ease-enter); }
+#log-confirm::backdrop { background: color-mix(in srgb, var(--void) 45%, transparent); }
+:root[data-theme="light"] #log-confirm::backdrop { background: color-mix(in srgb, var(--starlight) 22%, transparent); }
+#log-confirm form { margin: 0; }
+#log-confirm h2 { margin: 2px 40px 14px 0; font: 700 22px/1.15 var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; }
+#log-confirm .acts { display: flex; flex-wrap: wrap; gap: 10px; }
+#log-confirm .acts button { flex: 1 1 auto; height: 48px; padding: 0 16px; border-radius: var(--r-pill); font: 600 16px var(--font-body); white-space: nowrap; }
+#log-confirm .no { border: var(--hairline) solid var(--glass-edge); background: none; color: var(--starlight); }
+#log-confirm .go { border: 0; background: var(--starlight); color: var(--void); }
+#log-confirm > form > .nx { position: absolute; top: 6px; right: 4px; margin: 0; }
+@media (orientation: landscape) and (max-height: 500px) { #log-confirm { margin-bottom: 8px; } }
+
+/* ---- a flight's page: the route on the chart, a top bar and a sheet ----------------------------------- */
+.log-flight #stack, .log-flight #compass, .log-flight #launch, .log-flight #locate, .log-flight #nofix, .log-flight #banner,
+.log-flight .maplibregl-ctrl-bottom-right, .log-flight .sticker, .log-page #nofix, .log-page #perf, .log-flight #perf, .log-flight .csearch /* W22 fit */, .log-page .csearch /* W29 polish: under the Log, as on a flight's page */ { visibility: hidden; } /* the live ship: main.js hold(); W21 logfix: #perf */
+.replay-ship { width: 60px; height: 60px; pointer-events: none; will-change: transform; }
+.replay-ship img { width: 100%; height: 100%; display: block; }
+#log-flight { position: fixed; inset: 0; z-index: 4; pointer-events: none; color: var(--starlight); }
+#log-flight > * { pointer-events: auto; }
+#log-flight .topbar { position: absolute; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top) + 8px) calc(12px + env(safe-area-inset-right)) 18px calc(6px + env(safe-area-inset-left));
+  display: flex; gap: 4px; align-items: flex-start; background: linear-gradient(var(--void) 60%, color-mix(in srgb, var(--void) 0%, transparent)); }
+#log-flight .back { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; background: none; color: var(--starlight); }
+#log-flight .ttl { flex: 1; min-width: 0; }
+#log-flight .name { width: 100%; box-sizing: border-box; min-height: 44px; padding: 6px 0 2px; /* W22 fit: a 44 px target */ border: 0; border-bottom: 2px solid transparent; outline: none; background: none;
+  color: var(--starlight); font: 700 21px/1.2 var(--font-body); text-overflow: ellipsis; }
+#log-flight.renaming .name { border-bottom-color: var(--phosphor); }
+#log-flight .ttl small { display: block; margin-top: 2px; font-family: var(--font-mono); font-size: 12px; color: var(--stardust); } /* W69 artdir */
+#log-flight .fsheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; box-sizing: border-box;
+  padding: 6px calc(14px + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 12px) calc(14px + env(safe-area-inset-left));
+  background: var(--space-2); border-top: var(--hairline) solid var(--glass-edge); border-radius: var(--r-sheet); box-shadow: var(--lift-up); /* W69 artdir */
+  transition: transform var(--t-small) var(--ease-enter); }
+#log-flight .handle { margin: -2px auto 2px; }
+#log-flight.replaying .fsheet { transform: translateY(105%); }
+#log-flight .acts { display: flex; flex-wrap: wrap; /* W22 fit: a narrow column */ gap: 8px; margin-bottom: 12px; }
+#log-flight .acts button { height: 44px; padding: 0 14px 0 10px; display: flex; align-items: center; gap: 6px; border-radius: var(--r-pill); border: 1px solid var(--space-3);
+  background: var(--space-1); color: var(--starlight); font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: var(--track-display); text-transform: uppercase; }
+#log-flight .acts .i { width: 20px; height: 20px; }
+#log-flight .acts .replay { background: var(--phosphor); color: var(--void); border-color: var(--phosphor); }
+#log-flight .acts button:is(:disabled, [aria-disabled="true"]) { /* W24 quiet */ opacity: 0.4; cursor: default; }
+#log-flight .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--space-3); border: 1px solid var(--space-3); border-radius: var(--r-inner); overflow: hidden; } /* W69 artdir */
+#log-flight .stats div { display: flex; flex-direction: column; padding: 7px 10px 6px; background: var(--space-2); font-family: var(--font-display); }
+#log-flight .stats div:last-child:nth-child(3n+1) { grid-column: span 3; } /* W60 c: Plain's 7th tile, the row's own */
+#log-flight .stats b { font-size: 26px; line-height: 1.05; color: var(--phosphor); font-variant-numeric: tabular-nums; white-space: nowrap; text-transform: uppercase; } /* W69 artdir */
+#log-flight .stats span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--console-grey); }
+#log-flight .note { margin: 10px 0 0; font-size: 14px; line-height: 1.35; color: var(--stardust); }
+#log-flight .note:empty { display: none; }
+#log-flight .note b { color: var(--caution); }
+#log-flight .foot { display: flex; justify-content: flex-start; align-items: center; margin-top: 6px; flex-wrap: wrap; column-gap: 18px; } /* W74 flightlog: flex-start, wrap, gap */
+#log-flight .foot .osm { margin-left: auto; } /* W74 flightlog: Delete and Send feedback at the left, the credit at the right, or below at 320 px */
+#log-flight :is(.del, .fb) /* W74 flightlog: .fb */ { height: 44px; padding: 0; border: 0; background: none; color: var(--stardust); font: 15px var(--font-body); text-decoration: underline; text-underline-offset: 3px; }
+#log-flight .foot span { font-size: 11px; /* W22 fit: 11 px at least */ color: color-mix(in srgb, var(--stardust) 85%, transparent); }
+
+/* replay: a bar 58 px above the bottom */
+#log-flight .replaybar { position: absolute; left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); bottom: calc(env(safe-area-inset-bottom) + 58px);
+  max-width: 536px; margin: 0 auto; height: 56px; padding: 0 4px; display: flex; align-items: center; gap: 8px; box-sizing: border-box;
+  background: var(--space-2); border: 1px solid var(--space-3); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  animation: enter var(--t-small) var(--ease-enter); }
+#log-flight .replaybar > button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; background: none; color: var(--starlight); }
+#log-flight .replaybar .seg button { min-height: 34px; height: 34px; min-width: 0; padding: 0 10px; font-size: 16px; }
+#log-flight .scrub { flex: 1; height: 4px; border-radius: var(--r-pill); background: var(--space-3); overflow: hidden; } /* W69 artdir */
+#log-flight .scrub i { display: block; height: 100%; background: var(--funk); transform-origin: left; transform: scaleX(0); }
+#log-flight .clock { min-width: 3.1em; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--phosphor); font-variant-numeric: tabular-nums; }
+
+/* ---- Undo, and the note for a flight saved at the start: above the bar ------------------------------------ */
+#log-snack { position: fixed; z-index: 6; left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); bottom: calc(var(--bar-h) + 12px);
+  max-width: 420px; height: 56px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 14px; box-sizing: border-box; overflow: hidden;
+  background: var(--space-2); border: 1px solid var(--space-3); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  animation: enter var(--t-small) var(--ease-enter); } /* W18 controls: the Log's sheet, replay bar and snackbar settle within 300 ms */
+#log-snack .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-weight: 700; font-size: 19px;
+  letter-spacing: var(--track-display); text-transform: uppercase; }
+#log-snack em { font-style: normal; font-weight: 600; font-size: 16px; color: var(--stardust); }
+#log-snack button { flex: none; height: 44px; padding: 0 8px 0 4px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: var(--r-pill); background: none;
+  color: var(--phosphor); font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: var(--track-display); text-transform: uppercase; }
+#log-snack .timer { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--phosphor); transform-origin: left; }
+#log-snack.run .timer { animation: undo-timer 5s var(--ease-orbit) forwards; } /* W19 course: 5 s */
+body:not(.log-page) #log-snack { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 56px); } /* on the chart: above Launch; W20 chrome: Launch is 44 px */
+.log-flight #log-snack { bottom: calc(env(safe-area-inset-bottom) + 12px); }
+
+/* landscape, on a handlebar: a flight's sheet is a column at the right, so the route stays in sight; W77 desktop: and on a wide screen */
+@media (orientation: landscape) and (max-height: 500px), (min-width: 900px) and (min-height: 561px) { /* W77 desktop */
+  #log-flight .fsheet { left: auto; right: 0; top: 0; width: min(400px, 50vw); margin: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding-top: calc(env(safe-area-inset-top) + 8px); border-top: 0; border-left: var(--hairline) solid var(--glass-edge); border-radius: var(--r-l) 0 0 0; /* W69 artdir */
+    padding-left: 14px; } /* W22 fit: at the right, so only the right inset; the GPX button stays in */
+  #log-flight .fsheet .handle { display: none; }
+  #log-flight .topbar { right: min(400px, 50vw); }
+  #log-flight.replaying .fsheet { transform: translateX(105%); }
+  #log-flight.replaying .topbar { right: 0; }
+}
+@media (min-width: 900px) and (min-height: 561px) { /* W77 desktop: the column only as tall as it needs, with its own scroll */
+  #log-flight .fsheet { bottom: auto; max-height: 100%; border-bottom: var(--hairline) solid var(--glass-edge); border-radius: 0 0 0 var(--r-l); } } /* W77 desktop */
+body.calm #bar, body.calm #log-flight .fsheet { transition-duration: var(--t-press); }
+
+/* W59 pace (SPEC §81): planned against flown. In the Log, under the season, one quiet line that is a button: a tap offers
+   the pace that fits, a pill like the flight page's; on a flight's page, one line under the stats. */
+#log-page .pace { margin-top: 10px; }
+#log-page .paceline { display: block; width: 100%; min-height: 44px; padding: 6px 0; border: 0; background: none; text-align: left; font: 400 15px/1.35 var(--font-body);
+  color: var(--stardust); }
+#log-page .paceline::after { content: " ›"; color: var(--stardust); }
+#log-page .paceline[aria-expanded="true"]::after { content: ""; }
+#log-page .paceset { height: 44px; padding: 0 16px; border-radius: var(--r-pill); border: 1px solid var(--space-3); background: var(--space-1); color: var(--phosphor);
+  font: 600 16px var(--font-body); }
+#log-page .paceset[hidden] { display: none; }
+#log-flight .plan { margin: 10px 0 0; font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--phosphor); font-variant-numeric: tabular-nums; }
+
+/* ---- W68 logbulk (design/app-ui/SPEC.md §99): select several, as Gmail does; swipe a row; tiny flights greyed ---------------- */
+.i-trash { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6'/%3E%3C/svg%3E"); } /* W68 logbulk */
+.i-star { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); } /* W68 logbulk */
+.i-star-on { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); } /* W68 logbulk */
+.i-archive { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3.5 4h17v4.5h-17zM5 8.5V20h14V8.5M12 11v6M9.5 14.5L12 17l2.5-2.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3.5 4h17v4.5h-17zM5 8.5V20h14V8.5M12 11v6M9.5 14.5L12 17l2.5-2.5'/%3E%3C/svg%3E"); } /* W68 logbulk */
+.i-unarchive { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3.5 4h17v4.5h-17zM5 8.5V20h14V8.5M12 17v-6M9.5 13.5L12 11l2.5 2.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3.5 4h17v4.5h-17zM5 8.5V20h14V8.5M12 17v-6M9.5 13.5L12 11l2.5 2.5'/%3E%3C/svg%3E"); } /* W68 logbulk */
+.i-select-all { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M8 3.5h12.5V16M3.5 8h12.5v12.5H3.5zM6.5 14.3l2.4 2.4 4.3-4.9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M8 3.5h12.5V16M3.5 8h12.5v12.5H3.5zM6.5 14.3l2.4 2.4 4.3-4.9'/%3E%3C/svg%3E"); } /* W68 logbulk */
+/* the select bar takes the Log's head, and stays at the top as the list scrolls */
+#log-page .selbar { position: sticky; top: calc(-11px - env(safe-area-inset-top)); z-index: 2; margin-top: calc(-11px - env(safe-area-inset-top)); margin-bottom: 10px; /* W68 logbulk */
+  padding: calc(env(safe-area-inset-top) + 5px) 0 6px; background: var(--void); border-bottom: 1px solid var(--space-3); } /* W68 logbulk */
+#log-page .selbar .row1 { display: flex; align-items: center; gap: 4px; } /* W68 logbulk */
+#log-page .selbar button { flex: none; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--r-pill); background: none; color: var(--starlight); } /* W68 logbulk */
+#log-page .selbar .n { flex: 1; min-width: 2ch; font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1; color: var(--phosphor); font-variant-numeric: tabular-nums; } /* W68 logbulk */
+#log-page .selbar .sall[aria-pressed="true"] { background: color-mix(in srgb, var(--phosphor) 16%, transparent); color: var(--phosphor); } /* W68 logbulk */
+#log-page .selbar .stiny { width: auto; height: 36px; margin: 4px 0 0 48px; padding: 0 14px; border: 1px solid var(--space-3); font: 600 15px var(--font-body); color: var(--starlight); } /* W68 logbulk: "Select 4 tiny flights" */
+/* a row: selected, its thumbnail is a check; starred, a chalk star; tiny, really grey */
+.flights li { position: relative; overflow: hidden; } /* W68 logbulk */
+.flights .flight { position: relative; z-index: 1; background: var(--void); touch-action: pan-y; transition: transform var(--t-small) var(--ease-enter); -webkit-touch-callout: none; user-select: none; } /* W68 logbulk */
+.flights li.swiping .flight { transition: none; } /* W68 logbulk */
+.flights .flight .thumb { transition: opacity var(--t-press); } /* W68 logbulk */
+.flights .flight.on { background: color-mix(in srgb, var(--phosphor) 12%, var(--void)); } /* W68 logbulk */
+.flights .flight.on::before, .flights .flight.on::after { content: ""; position: absolute; left: 0; top: 50%; width: 56px; height: 56px; translate: 0 -50%; border-radius: var(--r-inner); background: var(--phosphor); } /* W68 logbulk */ /* W69 artdir */
+.flights .flight.on::after { background: var(--void); -webkit-mask: url("../design/glyphs/ui/check.svg") center / 32px no-repeat; mask: url("../design/glyphs/ui/check.svg") center / 32px no-repeat; } /* W68 logbulk */
+.flights .flight.on .thumb { opacity: 0; } /* W68 logbulk */
+.flights .fstar { flex: none; width: 16px; height: 16px; background: var(--chalk); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2l2.9 6.1 6.6.9-4.8 4.6 1.2 6.5L12 16.9l-5.9 3.2 1.2-6.5L2.5 9l6.6-.9z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2l2.9 6.1 6.6.9-4.8 4.6 1.2 6.5L12 16.9l-5.9 3.2 1.2-6.5L2.5 9l6.6-.9z'/%3E%3C/svg%3E") center / contain no-repeat; } /* W68 logbulk: as a starred place's (W67 places) */
+.flights .ft .tl { display: flex; align-items: center; gap: 6px; min-width: 0; } /* W68 logbulk: the title, and its star after it */
+.flights .ft .tl b { min-width: 0; } /* W68 logbulk */
+.flights .flight.tiny { --tiny: color-mix(in srgb, var(--console-grey) 75%, var(--void)); } /* W68 logbulk: really grey, and still 5.2:1 */
+:root[data-theme="light"] .flights .flight.tiny { --tiny: color-mix(in srgb, var(--console-grey) 90%, var(--void)); } /* W68 logbulk: 4.7:1 on Daystar's page */
+.flights .flight.tiny .ft b, .flights .flight.tiny .ft span, .flights .flight.tiny .ft small, .flights .flight.tiny .chev { color: var(--tiny); font-weight: 400; } /* W68 logbulk */
+.flights .flight.tiny .thumb { opacity: 0.35; } /* W68 logbulk */
+/* the swipe: Archive and Delete behind the row, 72 px each */
+.flights .swipe { position: absolute; top: 0; right: 0; bottom: 1px; display: flex; } /* W68 logbulk */
+.flights .swipe button { width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0; border: 0; /* W68 logbulk */
+  background: var(--space-3); color: var(--starlight); font: 600 13px var(--font-body); } /* W68 logbulk */
+.flights .swipe .sdel { background: var(--negi); color: #fff; } /* W68 logbulk: danger; white on --negi is 5.1:1 (Daystar's, 6.0) */
+/* the Archived section: at the foot of the Log, folded, with its count */
+#log-page details.archived { margin-top: 14px; } /* W68 logbulk */
+#log-page details.archived > summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none; font-family: var(--font-display); font-weight: 600; font-size: 13px; /* W68 logbulk */
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--console-grey); } /* W68 logbulk: as a year's heading */
+#log-page details.archived > summary::-webkit-details-marker { display: none; } /* W68 logbulk */
+#log-page details.archived > summary::after { content: "›"; font-size: 20px; line-height: 1; transition: rotate var(--t-press); } /* W68 logbulk */
+#log-page details.archived[open] > summary::after { rotate: 90deg; } /* W68 logbulk */
+#log-page details.archived > summary small { min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; display: grid; place-items: center; border-radius: var(--r-pill); /* W68 logbulk */ /* W69 artdir */
+  background: var(--space-2); border: 1px solid var(--space-3); font: 600 13px var(--font-body); letter-spacing: 0; color: var(--starlight); } /* W68 logbulk */

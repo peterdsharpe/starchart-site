@@ -1,0 +1,22 @@
+/* W21 scale: the light-years scale (app/scale.js), left of the folded OpenStreetMap credit, on the credit's row.
+   No box: an 11 px Space Mono label over a hairline bar with end ticks, both with a soft halo of the ground.
+   In flight it sits clear of the location button above the © and right of the readout card; parked, it sits
+   left of the © above the bar. Its right end stays put, so the label holds still while the bar changes. */
+#scale { position: absolute; z-index: 2; right: calc(env(safe-area-inset-right) + var(--m) + 56px); bottom: calc(env(safe-area-inset-bottom) + 3px);
+  display: flex; flex-direction: column; align-items: flex-end; gap: 1px; pointer-events: none; contain: layout paint;
+  color: color-mix(in srgb, var(--stardust) 90%, transparent); --halo: var(--void);
+  opacity: 0; visibility: hidden; transition: opacity var(--t-normal) var(--ease-orbit), visibility 0s linear var(--t-normal); }
+#scale.on { opacity: 1; visibility: visible; transition: none; }
+.bar #scale { right: calc(env(safe-area-inset-right) + var(--m) + 56px + 40px); bottom: calc(var(--bar-h) + 2px); }
+/* W22 fit: in flight on a narrow screen there is no room right of the readout, so the scale sits above it, at the left */
+@media (max-width: 379px) { :root:not(.bar) #scale { right: auto; left: var(--ml); bottom: calc(var(--card) + 64px + 6px); align-items: flex-start; } }
+#scale span { font: 11px/12px var(--font-mono); /* W22 fit: 11 px at least (BRIEF §7.8) */ letter-spacing: 0.02em; white-space: nowrap;
+  text-shadow: 0 0 1px var(--halo), 0 0 3px var(--halo), 0 0 4px var(--halo), 0 0 4px var(--halo); }
+#scale i { display: block; box-sizing: border-box; width: 0; height: 5px; border: 1.5px solid currentColor; border-top: 0;
+  filter: drop-shadow(0 0 1px var(--halo)) drop-shadow(0 0 2px var(--halo)); }
+/* where the chart is covered, or the full credit is open: the Log, a flight's page, the place and preview sheets,
+   the no-location sheet and Settings */
+body:is(.log-page, .log-flight, .has-csheet) #scale, body:has(#nogps:not([hidden]), #about-sheet[open], .maplibregl-ctrl-attrib[open]) #scale {
+  opacity: 0; visibility: hidden; transition: none; }
+/* Show frame rate, parked: its readout sits on Launch's line, over the scale's spot, so the scale gives way */
+.bar body.fps #scale { opacity: 0; visibility: hidden; transition: none; }

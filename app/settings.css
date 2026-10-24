@@ -1,0 +1,126 @@
+/* Settings (wave 15): the gear, and the Settings sheet at full height, grouped as phone settings are:
+   a small caps heading over a card of rows, 44 px or more each. Colours from design/tokens.css. */
+.i-gear { -webkit-mask-image: url("../design/glyphs/ui/gear.svg"); mask-image: url("../design/glyphs/ui/gear.svg"); }
+.i-theme { -webkit-mask-image: url("../design/glyphs/ui/theme.svg"); mask-image: url("../design/glyphs/ui/theme.svg"); }
+.i-lingo { -webkit-mask-image: url("../design/glyphs/ui/lingo_mode.svg"); mask-image: url("../design/glyphs/ui/lingo_mode.svg"); } /* W60 a: Words */
+
+/* W24 quiet: Settings covers the chart, at every size (arclight, 2026-10-16: "In what world would I want to see both the map
+   and the settings?"). Its head and × stay at the top while the rows scroll; on a wide screen they sit in a centred column of
+   640 px at most, on the sheet's own --space-2. It replaces W18's 55 % sheet and W21's landscape column. */
+#about-sheet, #about-sheet.full { inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; transform: none;
+  --pl: max(calc(16px + env(safe-area-inset-left)), calc((100vw - 640px) / 2)); --pr: max(calc(16px + env(safe-area-inset-right)), calc((100vw - 640px) / 2));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px); border: 0; border-radius: 0; box-shadow: none; }
+#about-sheet .top { padding-top: calc(env(safe-area-inset-top) + 8px); border-radius: 0; }
+#about-sheet .handle { display: none; }
+#about-sheet .x { top: calc(env(safe-area-inset-top) + 2px); right: calc(var(--pr) - 10px); }
+#about-sheet .head { margin-top: 2px; }
+#about-sheet h3 { margin: 18px 4px 6px; }
+#about-sheet .group { background: var(--space-1); border: 1px solid color-mix(in srgb, var(--space-3) 60%, transparent); border-radius: var(--r-s); padding: 0 12px; }
+#about-sheet .group > .row:last-child, #about-sheet .group > :last-child > .row:last-child { border-bottom: 0; } /* W88 settings3: W76's More page went */
+#about-sheet .row { min-height: 52px; }
+#about-sheet .group + .group { margin-top: 18px; }
+/* a choice with long words goes under its title, full width */
+.row.stack { flex-wrap: wrap; row-gap: 6px; padding: 8px 0 10px; }
+.row.stack .txt { flex: 1 1 calc(100% - 38px); }
+.row.stack .seg { flex: 1 0 calc(100% - 38px); box-sizing: border-box; margin-left: 38px; }
+.row.stack .seg button { flex: 1; white-space: nowrap; padding: 0 6px; }
+#theme button, #set-sound button, #motion button { flex: 1 1 auto; white-space: normal; line-height: 1.05; } /* W25 rest: "Follow system" wraps at 320 px, where it was cut to "FOLLOW SYSTE"; W28 settings: Sound and Motion too */
+#theme :is([data-v="dark"], [data-v="light"]) { flex-shrink: 0; } /* W73 dark: with By the sun, four choices at 320 px: the one-word names stay whole, the two-word ones wrap */
+#set-sound button { padding: 0 4px; } /* W28 settings: Off, Directions and With chatter on one line at 320 px */
+.deeper .privacy { margin: 8px 0 0; color: var(--phosphor); font-weight: 600; }
+.deeper[open] { padding-bottom: 12px; }
+
+/* the landed sticker: a star class reached on this flight */
+.sticker .cls { display: block; margin-top: 2px; font-size: 16px; color: var(--wormhole); }
+
+/* W20 chrome: drawn here until the UI set has them, in its 24-unit style: Show frame rate; W28 settings: Battery saver and Developer */
+.i-battery { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='7' width='17' height='10' rx='2.2'/%3E%3Cpath d='M22 10.5v3M6 10.5v3'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='7' width='17' height='10' rx='2.2'/%3E%3Cpath d='M22 10.5v3M6 10.5v3'/%3E%3C/svg%3E"); }
+.i-dev { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 5l-3 14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 5l-3 14'/%3E%3C/svg%3E"); }
+.i-credits { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M15.2 9.2a4 4 0 1 0 0 5.6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M15.2 9.2a4 4 0 1 0 0 5.6'/%3E%3C/svg%3E"); } /* 2026-10-20: About › Credits and licences */
+.i-disclaimer { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z'/%3E%3Cpath d='M12 8.5v4M12 16v.01'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z'/%3E%3Cpath d='M12 8.5v4M12 16v.01'/%3E%3C/svg%3E"); } /* 2026-10-20: About › Disclaimer */
+.i-fps { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 17.5a8.6 8.6 0 1 1 15.6 0'/%3E%3Cpath d='M12 14l3.6-4.4'/%3E%3Ccircle cx='12' cy='14' r='1.2' fill='%23000'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 17.5a8.6 8.6 0 1 1 15.6 0'/%3E%3Cpath d='M12 14l3.6-4.4'/%3E%3Ccircle cx='12' cy='14' r='1.2' fill='%23000'/%3E%3C/svg%3E"); }
+.i-scan { -webkit-mask-image: url("../design/glyphs/ui/short_range_scan.svg"); mask-image: url("../design/glyphs/ui/short_range_scan.svg"); } /* W46 updates: Check for updates */
+
+/* W28 settings: a long press on a row tells more (app/settings.js), so a held row selects no text and opens no menu */
+#about-sheet .row { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* W28 settings: Developer, folded inside About; its summary sticks under About's, and its cards are a shade apart */
+#about-sheet .dev { margin-top: 14px; }
+#about-sheet :is(.dev, #credits-fold, #disclaimer-fold)[open] > summary { top: calc(var(--top-h, 78px) + 52px); } /* 2026-10-20: the credits and the disclaimer fold inside About, as Developer does */
+#about-sheet .dev dl { margin-top: 8px; }
+#about-sheet .dev .group { background: color-mix(in srgb, var(--space-2) 55%, var(--space-1)); margin: 12px -8px 0; }
+#about-sheet .dev .group + .group { margin-top: 12px; }
+
+/* W20 chrome: the categories, folded into the More card; each opens in place, one at a time (app/settings.js) */
+#about-sheet .cat > .group { background: color-mix(in srgb, var(--space-2) 55%, var(--space-1)); border: 0; border-radius: var(--r-s); padding: 0 12px; margin: 0 -8px 8px;
+  border-bottom: 0; } /* an open category's rows, a shade apart from the categories' own rows */
+#about-sheet .cat > .group > .row:is(:last-child, :has(+ template:last-child)) { border-bottom: 0; } /* W88 settings3: and the last map pack, before #pack-row */
+#about-sheet .group > .cat:is(:last-child, :has(+ #fav-fold:empty:last-child)):not([open]) > summary { border-bottom: 0; } /* W88 settings3: a shut fold that ends its card (Offline maps; Avoided streets till the favorites fill #fav-fold) */
+#about-sheet .cat[open] > summary { border-bottom-color: transparent; }
+/* W21 glass: Show hidden notices again (app/settings.js), a row that is a button */
+.row.unhide { width: 100%; margin: 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); background: none;
+  color: var(--starlight); text-align: left; font: inherit; font-size: 17px; }
+.row.unhide[aria-disabled="true"] { cursor: default; } /* W24 quiet: aria-disabled, so a tap says why */
+.row.unhide[aria-disabled="true"] .txt { color: var(--stardust); }
+#about-sheet .cat summary .val { font-size: 22px; line-height: 1; transition: transform var(--t-small) var(--ease-enter); }
+
+/* W21 logfix: landscape, on a handlebar: a compact head (W24 quiet: full screen, as at every size) */
+@media (orientation: landscape) and (max-height: 500px) {
+  #about-sheet .head { gap: 8px; margin: 2px 44px 4px 0; }
+  #about-sheet .head img { width: 28px; height: 28px; }
+  #about-sheet .head h2 { font-size: 20px; }
+  #about-sheet .head small { display: none; }
+  #about-sheet h3 { margin-top: 10px; }
+}
+.i-comet { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Ccircle cx='16.2' cy='16.2' r='4.6'/%3E%3Ccircle cx='9.6' cy='9.6' r='2.5'/%3E%3Ccircle cx='5.4' cy='5.4' r='1.7'/%3E%3Ccircle cx='2.6' cy='2.6' r='1.1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Ccircle cx='16.2' cy='16.2' r='4.6'/%3E%3Ccircle cx='9.6' cy='9.6' r='2.5'/%3E%3Ccircle cx='5.4' cy='5.4' r='1.7'/%3E%3Ccircle cx='2.6' cy='2.6' r='1.1'/%3E%3C/svg%3E"); } /* W29 comets: a head and its tail, as on the chart */
+
+/* W59 pace: Pace, a stopwatch in the 24-unit style, and its stepper: − 100 % +, the value in tabular figures */
+.i-pace { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='13.5' r='7.5'/%3E%3Cpath d='M10 2.8h4M12 3v3M12 13.5l3.2-3.2M18.6 6.6l1.4-1.4'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='13.5' r='7.5'/%3E%3Cpath d='M10 2.8h4M12 3v3M12 13.5l3.2-3.2M18.6 6.6l1.4-1.4'/%3E%3C/svg%3E"); }
+#pace-row { flex-wrap: wrap; row-gap: 2px; } /* a phone under about 380 px puts the stepper under its line, at the right */
+#pace-row .txt { min-width: 122px; }
+#pace-row small:empty { display: none; }
+.seg.pace { align-items: center; margin-left: auto; }
+.seg.pace button { width: 46px; font: 400 26px/1 var(--font-body); color: var(--starlight) !important; }
+.seg.pace output { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; color: var(--phosphor); font-size: 17px; }
+.seg.pace { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; } /* W68 settings2; W88 pace: a finger moving on it scrolls Settings, as anywhere (no drag stepping); a still press on − or + still repeats */
+.seg.pace output { align-self: stretch; display: flex; align-items: center; justify-content: center; cursor: ew-resize; } /* W68 settings2: the whole height takes the drag */
+.seg.pace output:focus-visible { outline-offset: -3px; border-radius: var(--r-pill); } /* W68 settings2: inside the pill, which clips */
+
+/* W73 avoid (SPEC §118): Avoided starpaths, a fold in the routing rows while a street is avoided (app/avoid.js): the
+   prohibition sign, the streets in a card a shade apart, each with its × (44 px), and for 5 s after, its Undo in its place */
+.i-avoid { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M5.9 5.9l12.2 12.2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M5.9 5.9l12.2 12.2'/%3E%3C/svg%3E"); } /* W73 avoid */
+#avoid-fold > summary small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* W73 avoid: the names, secondary; the fold has them whole */
+#avoid-list .row.avoid { gap: 10px; } /* W73 avoid */
+#avoid-list .row.avoid button { flex: none; min-width: 44px; height: 44px; display: grid; place-items: center; padding: 0 10px; margin-right: -10px; border: 0; background: none; color: var(--starlight); font: 600 16px var(--font-body); } /* W73 avoid */
+#avoid-list .row.avoid svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; } /* W73 avoid */
+#avoid-list .row.avoid .undo { color: var(--phosphor); } /* W73 avoid */
+#avoid-list .row.avoid.gone .txt { color: var(--stardust); text-decoration: line-through; } /* W73 avoid */
+#avoid-list .row.avoid .txt small.since { color: var(--stardust); } /* W80 avoidmap: "since 3 Oct" */
+#avoid-list .row.avoid.cleared .txt { text-decoration: none; } /* W80 avoidmap: "3 starpaths let back in" */
+#avoid-list .row.avoid.none { color: var(--stardust); } /* W80 avoidmap: "No starpaths avoided." */
+#avoid-list .row.avoid-how { color: var(--stardust); font-size: 15px; } /* W86 settings: "Tap a street on the map, then ⊘." */
+#avoid-list .row.avoid-how .i { display: inline-block; width: 20px; height: 20px; margin: 0 1px 0 2px; vertical-align: -4px; } /* W86 settings: the peek's ⊘, in the line */
+#avoid-list > button.clear { display: block; min-height: 44px; margin: 4px 0 4px auto; padding: 0 14px; border: 0; background: none; color: var(--starlight); font: 600 16px var(--font-body); text-decoration: underline dotted var(--stardust); text-underline-offset: 4px; } /* W80 avoidmap: Clear all, at the list's end, away from the rows' × */
+/* W86 avatar: Your color, a row of swatches under Theme (app/avatar.js); each a 44 px target, the disc ringed in the marker's ink */
+.row.stack .swatches { flex: 1 0 calc(100% - 38px); margin-left: 38px; display: flex; justify-content: space-between; }
+.swatches button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; }
+.swatches i { width: 30px; height: 30px; border-radius: 50%; box-shadow: 0 0 0 2px var(--ink); }
+.swatches button[aria-checked="true"] i { box-shadow: 0 0 0 2px var(--ink), 0 0 0 5px var(--phosphor); }
+@media (max-width: 359px) { .row.stack .swatches { margin: 0 -6px; flex-basis: calc(100% + 12px); } } /* W86 avatar: six 44 px targets at 320 px, under the icon too */
+/* W88 settings3 (SPEC §175): a row's (i), after its name: a 44 px target round an 18 px circled i, in the line's height */
+#about-sheet .row button.info { display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -12px -12px -12px -6px; padding: 0; border: 0; background: none; color: var(--stardust); vertical-align: middle; -webkit-tap-highlight-color: transparent; } /* W88 settings3 */
+#about-sheet .row button.info .i { width: 18px; height: 18px; } /* W88 settings3 */
+#about-sheet .row button.info:active { color: var(--starlight); } /* W88 settings3 */
+#offline-fold > summary small:empty { display: none; } /* W88 settings3: once all is stored, no "more available" */
+/* W97 voices (SPEC §193): Settings › Sound › Voice (app/voices.js), a row per voice under the name: a radio with the name and
+   "about · size", and its ▶ (a 44 px target) at the right */
+.i-voice { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2'/%3E%3C/svg%3E"); } /* W97 voices */
+.row.stack .voices { flex: 1 0 calc(100% - 38px); margin-left: 38px; display: flex; flex-direction: column; } /* W97 voices */
+.voices .voice { display: flex; align-items: center; min-height: 48px; } /* W97 voices */
+.voices .voice > button[role="radio"] { position: relative; flex: 1; min-width: 0; min-height: 48px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 4px 0 4px 32px; border: 0; background: none; color: var(--starlight); font: 600 17px/1.2 var(--font-body); text-align: left; -webkit-tap-highlight-color: transparent; } /* W97 voices */
+.voices .voice > button[role="radio"]::before { content: ""; position: absolute; left: 2px; top: 50%; width: 16px; height: 16px; margin-top: -10px; border: 2px solid var(--stardust); border-radius: 50%; } /* W97 voices */
+.voices .voice > button[aria-checked="true"] { color: var(--phosphor); } /* W97 voices */
+.voices .voice > button[aria-checked="true"]::before { border-color: var(--phosphor); background: radial-gradient(circle, var(--phosphor) 0 4px, transparent 5px); } /* W97 voices */
+.voices .voice small { color: var(--stardust); font-weight: 400; font-size: 14px; } /* W97 voices */
+.voices .voice .play { flex: none; width: 44px; height: 44px; display: grid; place-items: center; margin-right: -10px; padding: 0; border: 0; background: none; color: var(--starlight); -webkit-tap-highlight-color: transparent; } /* W97 voices */
+.voices .voice .play .i { width: 20px; height: 20px; } /* W97 voices */
+.voices .voice .play:active { color: var(--phosphor); } /* W97 voices */

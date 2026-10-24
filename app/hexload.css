@@ -1,0 +1,68 @@
+/* W47 firstload (design/app-ui/SPEC.md §59; its mock-up and two alternatives: design/app-ui/w47-loading/): the start's hexes,
+   while the chart's first tiles load. A faint honeycomb in --wormhole round the chart's centre. It is index.html's, so it
+   shows before any script has run; it fades in after 300 ms, so a quick start barely sees it.
+   W69 boot (SPEC §105; the videos: design/app-ui/w69-boot/): an electric rainbow shockwave runs out through the hexes, one
+   wave each --pulsar-period (1.6 s). As it passes, each hex lights in the funk spectrum (the tokens' rainbow, in the theme's
+   own hues), behind a bright leading edge that crackles as it sets out, and a soft glow that fades behind it. Once the chart's
+   first view is drawn, app/main.js adds .gone, and in the next frame a last ring dissolves the hexes outward over 280 ms;
+   it does not wait for a wave to end. The cost: two masked layers whose only animations are a transform and an opacity,
+   which the compositor plays while the main thread is busy with the start; no script runs for it. Calm (html.calm-start
+   from app/boot.js, body.calm, or the phone's reduced motion unless Motion is Full), and Plain (W76 look): the honeycomb, still, and a soft fade. */
+#hexload { --hex-w: 60px; --hex-h: 34.641px; --hex-at: 50% 50%;
+  --hex-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='34.641'%3E%3Cpath d='M0 17.321L10 0H30L40 17.321L30 34.641H10ZM40 17.321H60' fill='none' stroke='white' stroke-width='1.2'/%3E%3C/svg%3E");
+  --hex-cells: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='34.641'%3E%3Cpolygon points='37.40,17.32 28.70,32.39 11.30,32.39 2.60,17.32 11.30,2.25 28.70,2.25' fill='white'/%3E%3Cpolygon points='67.40,0.00 58.70,15.07 41.30,15.07 32.60,0.00 41.30,-15.07 58.70,-15.07' fill='white'/%3E%3Cpolygon points='67.40,34.64 58.70,49.71 41.30,49.71 32.60,34.64 41.30,19.57 58.70,19.57' fill='white'/%3E%3Cpolygon points='7.40,0.00 -1.30,15.07 -18.70,15.07 -27.40,0.00 -18.70,-15.07 -1.30,-15.07' fill='white'/%3E%3Cpolygon points='7.40,34.64 -1.30,49.71 -18.70,49.71 -27.40,34.64 -18.70,19.57 -1.30,19.57' fill='white'/%3E%3C/svg%3E");
+  --hex-edge: var(--starlight); /* W69 boot: the wave's leading edge, white-hot; in Daystar, the ink */
+  --hex-fade: radial-gradient(circle farthest-side at var(--hex-at), #000 0 20%, transparent 92%);
+  /* W69 boot: the wave's light, brightest at its edge and fading behind it; its hue is the funk spectrum round the ring */
+  --hex-ring: radial-gradient(circle closest-side, transparent 40%, rgb(0 0 0 / 0.2) 66%, rgb(0 0 0 / 0.75) 84%, #000 92% 97%, transparent 98.5%);
+  --hex-reach: radial-gradient(circle farthest-side at var(--hex-at), #000 0 45%, rgb(0 0 0 / 0.6) 100%); /* W69 boot: the wave stays bright to the screen's edges */
+  --hex-period: var(--pulsar-period, 1.6s); /* W69 boot: one wave, then the next */
+  --hex-reveal: 280ms; } /* W69 boot: the hand-off, ready to the bare chart */
+#hexload { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+/* W69 boot: the hand-off: the hexes swell outward and dissolve, as the last ring (below) runs out past the edges; the
+   swell is the layers', inside #hexload's clip, so that it never widens the page */
+#hexload.gone { animation: hex-reveal var(--hex-reveal) ease-in forwards; }
+#hexload.gone::before, #hexload.gone i.wave { transform-origin: var(--hex-at); animation: hex-swell var(--hex-reveal) ease-in forwards; }
+/* the void's square grid gives way to the hexes meanwhile, its stars stay (app/app.css #map) */
+#map:has(+ #hexload) { background-image: radial-gradient(circle, color-mix(in srgb, var(--stardust) 30%, transparent) 1px, transparent 1.5px); }
+/* the honeycomb: hairlines, brightest at the centre */
+#hexload::before { content: ""; position: absolute; inset: 0; background: var(--wormhole); opacity: 0.3;
+  -webkit-mask: var(--hex-lines) var(--hex-at) / var(--hex-w) var(--hex-h), var(--hex-fade); -webkit-mask-composite: source-in;
+  mask: var(--hex-lines) var(--hex-at) / var(--hex-w) var(--hex-h), var(--hex-fade); mask-composite: intersect;
+  animation: hex-in 400ms ease-out 300ms backwards; }
+/* W69 boot: the wave, a ring that grows from the centre (.wave's ::after, a transform) seen through the hexes: they light in
+   the rainbow behind a white-hot edge. One layer: each more (the honeycomb's lines arcing at the edge, sparks) slowed the
+   chart's own start, as every frame of the start paid for them (tests/bench/boot.mjs). */
+#hexload i { position: absolute; inset: 0; opacity: 0.9;
+  -webkit-mask: var(--hex-cells) var(--hex-at) / var(--hex-w) var(--hex-h), var(--hex-reach); -webkit-mask-composite: source-in;
+  mask: var(--hex-cells) var(--hex-at) / var(--hex-w) var(--hex-h), var(--hex-reach); mask-composite: intersect;
+  animation: hex-in 400ms ease-out 300ms backwards; }
+#hexload i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1300px; height: 1300px; margin: -650px 0 0 -650px; will-change: transform, opacity;
+  background: radial-gradient(circle closest-side, transparent 94.5%, var(--hex-edge) 96.5% 97.5%, transparent 98.5%),
+    conic-gradient(var(--luna), var(--course), var(--pulsar), var(--wormhole), var(--black-hole), var(--luna));
+  -webkit-mask: var(--hex-ring); mask: var(--hex-ring);
+  animation: hex-wave var(--hex-period) cubic-bezier(0.33, 0.4, 0.6, 1) 300ms infinite backwards; }
+/* W69 boot: the hand-off's last ring (.last, until then not drawn), from the centre past the edges as the hexes go */
+#hexload i.last { opacity: 1; animation: none; }
+#hexload:not(.gone) i.last { display: none; }
+#hexload i.last::after { animation: hex-final var(--hex-reveal) cubic-bezier(0.3, 0.5, 0.6, 1) forwards;
+  background: radial-gradient(circle closest-side, transparent 90%, var(--hex-edge) 96% 98%, transparent 99%),
+    conic-gradient(var(--luna), var(--course), var(--pulsar), var(--wormhole), var(--black-hole), var(--luna)); }
+@keyframes hex-in { from { opacity: 0; } }
+@keyframes hex-wave { from { transform: scale(0.03) rotate(0deg); opacity: 1; } 9% { opacity: 0.55; } 12% { opacity: 1; } 21% { opacity: 0.7; } 24%, 60% { opacity: 1; } 90%, to { transform: scale(0.9) rotate(100deg); opacity: 0; } }
+/* the crackle: two quick dips as it sets out, under 3 a second (BRIEF §7.6) */
+/* one animation per element, with the hues' turn in its transform: a second (rotate) would keep both off the compositor */
+@keyframes hex-final { from { transform: scale(0.05); } to { transform: scale(1.1); } }
+@keyframes hex-reveal { 40% { opacity: 1; } to { opacity: 0; } }
+@keyframes hex-swell { to { transform: scale(1.3); } }
+@keyframes hex-fade { to { opacity: 0; } }
+html.calm-start #hexload i, body.calm #hexload i, [data-lingo="meatspace"] #hexload i { display: none; }
+html.calm-start #hexload.gone, body.calm #hexload.gone, [data-lingo="meatspace"] #hexload.gone { animation-name: hex-fade; } /* W69 boot: Calm: a soft fade */
+html.calm-start #hexload.gone::before, body.calm #hexload.gone::before, [data-lingo="meatspace"] #hexload.gone::before { animation: none; }
+/* W76 look (D14c): Plain has no rainbow start-up, as it has no flashes: the honeycomb, still, and Calm's soft fade
+   (<html data-lingo> from app/words-first.js, before the body is parsed) */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.full-start) #hexload i { display: none; }
+  html:not(.full-start) #hexload.gone { animation-name: hex-fade; } /* W69 boot */
+  html:not(.full-start) #hexload.gone::before { animation: none; }
+}

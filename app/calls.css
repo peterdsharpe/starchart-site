@@ -1,0 +1,34 @@
+/* Sound (wave 18's Calls; W28 settings, app/calls.js, design/app-ui/SPEC.md §38): the chooser a long press on the
+   sound button opens, Off, Directions or Directions with chatter. Colours and type from design/tokens.css. */
+#sound, #compass, #bar .tab { -webkit-touch-callout: none; } /* a long press is ours, not the browser's */
+
+/* the chooser: W23 bar: above the sound button, its right edge with the button's (app/calls.js sets --above and --right) */
+#soundpick { position: fixed; z-index: 7; bottom: var(--above, 60px); right: max(var(--mr), var(--right, 0px)); width: min(280px, calc(100vw - var(--ml) - var(--mr)));
+  max-height: calc(100dvh - var(--above, 60px) - var(--top)); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; padding: 8px 12px 4px;
+  background: var(--space-2); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift-sheet); /* W69 artdir */
+  transform-origin: bottom right; animation: soundpick-in var(--t-small) var(--ease-enter); }
+@keyframes soundpick-in { from { opacity: 0; transform: scale(0.92); } }
+#soundpick h2 { margin: 0 0 12px; font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--phosphor); } /* W40 maplayout: 12 px under it (was 2), so the ×'s 44 px target ends above the first row */
+#soundpick .x { position: sticky; z-index: 1; top: -6px; float: right; margin: -6px -10px -38px 0; width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: inherit; color: var(--stardust); } /* W25 rest: the ×; W92 panels: in the corner as before, and there while the card scrolls */
+#soundpick .row { min-height: 48px; gap: 12px; font-size: 16px; }
+#soundpick .row:last-child { border-bottom: 0; }
+#soundpick .row { width: 100%; margin: 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); background: none;
+  color: var(--starlight); text-align: left; font: inherit; font-size: 16px; padding: 0 2px; cursor: pointer; }
+#soundpick .row .i { color: var(--phosphor); visibility: hidden; }
+#soundpick .row[aria-checked="true"] { color: var(--phosphor); font-weight: 700; }
+#soundpick .row[aria-checked="true"] .i { visibility: visible; }
+/* W75 chrome (D14a, SPEC §131): in flight, where the gear is away, Settings at the chooser's foot, under a hairline; every row
+   at the riding size (56 px, BRIEF §7.8). Parked, the row isn't there: the gear is in the bar */
+#soundpick .set { display: none; }
+body:has(> #sound) #soundpick .row { min-height: 56px; }
+body:has(> #sound) #soundpick .set { display: flex; border-top: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); margin-top: 4px; }
+#soundpick .set .i { color: var(--stardust); visibility: visible; }
+#soundpick .set .txt { flex: 1; }
+/* W75 chrome: in flight, beside Sound, its foot level with Sound's, so the Settings row shows without a scroll on the
+   smallest phones too (above Sound, 320 x 568 had 229 px for 278); in landscape from the top (W74's mock-up) */
+body:has(> #sound) #soundpick { right: var(--beside, 76px); bottom: var(--foot, 60px); width: min(280px, calc(100vw - var(--ml) - var(--beside, 76px)));
+  max-height: calc(100dvh - var(--foot, 60px) - var(--top)); }
+@media (orientation: landscape) and (max-height: 500px) {
+  body:has(> #sound) #soundpick { bottom: auto; top: var(--top); max-height: calc(100dvh - 2 * var(--top)); transform-origin: top right; }
+}
+body.calm #soundpick { animation-duration: var(--t-press); }

@@ -1,0 +1,74 @@
+/* W23 fromto (SPEC §26): the From/To editor, and the preview's From → To row (W25 course: the directions button went).
+   app/fromto.js makes them; the editor borrows the search's results page (.cresults in app/course.css). */
+.i-back { -webkit-mask-image: url("../design/glyphs/ui/back.svg"); mask-image: url("../design/glyphs/ui/back.svg"); }
+.ftic { display: block; flex: none; }
+.ftic svg { display: block; }
+
+/* the editor: the fields at the top, the picks or results for the focused one under them */
+.cfromto { z-index: 7; padding-top: var(--top); }
+body.has-cfromto .csearch, body.has-cfromto #stack { visibility: hidden; }
+.ft-head { display: flex; align-items: center; gap: 6px; padding: 0 var(--mr) 10px calc(var(--ml) - 6px); }
+.ft-back, .ft-swap { flex: none; width: 48px; height: 48px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--starlight); }
+.ft-fields { position: relative; flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.ft-fields::before { content: ""; position: absolute; left: 21px; top: 31px; bottom: 31px; border-left: 2px dotted var(--stardust); } /* From to To */
+.ft-f { min-width: 0; display: flex; align-items: center; gap: 10px; height: 44px; box-sizing: border-box; padding: 0 8px 0 14px; border-radius: var(--r-pill); /* W69 artdir */
+  background: var(--space-2); border: var(--hairline) solid var(--glass-edge); }
+.ft-f:focus-within { border-color: color-mix(in srgb, var(--course) 70%, transparent); }
+.ft-f input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: none; outline: none; color: var(--starlight); font: 17px var(--font-body); }
+.ft-f input::placeholder { color: var(--stardust); }
+.ft-f input::-webkit-search-cancel-button { display: none; }
+.ft-f input.you, .ft-p.you b { color: var(--you); }
+.ftic.ic-from .ring { fill: none; stroke: var(--starlight); stroke-width: 2.4; }
+.ftic.ic-to .pin { fill: var(--course); }
+.ftic.ic-to .hole { fill: var(--void); }
+.ftic.ic-swap path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ftic.ic-you .halo { fill: color-mix(in srgb, var(--you) 25%, transparent); }
+.ftic.ic-you .dot { fill: var(--you); stroke: var(--starlight); stroke-width: 2; }
+.cfromto .picks[hidden] { display: none; }
+
+/* W86 preview (SPEC §167): the preview's From/To bar, at the top of the screen while the preview is open, as the editor's
+   fields (her ask, 2026-10-22: "always display the upper bar with starting and ending location"): From over To, each a
+   44 px target that opens the editor on it; ⇅ beside them, share under it; and the bike / walk + T switch at the end, bike over
+   walk, so the bar keeps to the fields' two rows and the chart keeps its room for the route (the map comes first) */
+.pvbar { position: absolute; left: 0; right: 0; top: 0; z-index: 5; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: start; gap: 6px 6px;
+  padding: var(--top) var(--mr) 8px var(--ml); background: var(--glass-snack); border-bottom: 1px solid color-mix(in srgb, var(--course) 70%, transparent);
+  border-radius: 0 0 var(--r-l) var(--r-l); box-shadow: var(--lift-sheet); } /* W69 artdir: a bar down from the top edge */
+.pvbar .ft-fields { grid-column: 1; grid-row: 1; gap: 4px; }
+.pvbar .ft-fields::before { top: 26px; bottom: 26px; }
+.ft-p { position: relative; min-height: 44px; display: flex; align-items: center; gap: 10px; box-sizing: border-box; padding: 3px 12px 3px 14px; border-radius: var(--r-pill);
+  background: var(--space-2); border: var(--hairline) solid var(--glass-edge); color: var(--starlight); text-align: left; }
+.ft-p b { min-width: 0; overflow-wrap: break-word; font: 600 17px/1.15 var(--font-body); } /* a long name wraps, never cut */
+.ft-p.ft-to b { font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.05; letter-spacing: var(--track-display); text-transform: uppercase; } /* To, where the course goes, in the display face, as the title was */
+.ft-p .gen { font-style: normal; font-size: max(11px, 0.68em); /* W76 look: ART §4's 11 px floor */ font-weight: 600; color: var(--stardust); letter-spacing: 0.06em; }
+.ft-p.empty { border: 1.5px dashed color-mix(in srgb, var(--course) 70%, transparent); }
+.ft-p.empty b { color: var(--course-ink); } /* W102 a11y */
+.ft-p[aria-disabled="true"] { cursor: default; } /* W25 course: in flight, it says why */
+.pvbar .pv-tools { grid-column: 2; grid-row: 1; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; }
+.pvbar .ft-swap { width: 44px; height: 44px; }
+.pvbar .ft-swap[hidden], .pvbar .pv-share[hidden] { display: none; }
+/* the switch: two halves in one pill, the chosen one filled (starlight on the dark, ink on Daystar's paper): not orange, the course's */
+.ft-modes { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; padding: 1px; border-radius: var(--r-pill); background: var(--space-2); border: var(--hairline) solid var(--glass-edge); }
+.ft-mode { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--r-pill); background: none; color: var(--stardust); }
+.ft-mode[aria-pressed="true"] { background: var(--starlight); color: var(--void); }
+.ft-mode svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ft-mode .head { fill: currentColor; stroke: none; }
+body.has-pvbar .csearch { visibility: hidden; }
+@media (orientation: portrait), (orientation: landscape) and (min-height: 561px) and (max-width: 899px) { /* the preview at the bottom: Layers and the compass under the bar */
+  body.has-pvbar > #layers { top: calc(var(--card-h, 0px) + var(--pvbar-h, 0px) + 8px); }
+  body.has-pvbar > #compass { top: calc(var(--card-h, 0px) + var(--pvbar-h, 0px) + 8px + 44px + 8px); }
+  .pvbar { top: var(--card-h, 0px); } /* in flight, under the turn card: the next turn stays in view (BRIEF §7.8) */
+  body:has(.cturn:not([hidden])) .pvbar { padding-top: 8px; border-radius: var(--r-l); }
+}
+/* landscape and wide screens: the preview is a column at the left, and the bar its top */
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) {
+  .pvbar { right: auto; z-index: 6; width: min(380px, max(46vw, 320px)); padding: calc(env(safe-area-inset-top) + 10px) calc(var(--m) + 4px) 6px var(--ml); border-radius: 0;
+    border-bottom: 0; border-right: 1px solid color-mix(in srgb, var(--course) 70%, transparent); box-shadow: none; }
+  body.has-pvbar .cpreview { top: var(--pvbar-h, 0px); max-height: calc(100% - var(--pvbar-h, 0px)); padding-top: 4px; } /* the column under the bar (course.js sideSheet) */
+}
+@media (min-width: 900px) and (min-height: 561px) { .pvbar { width: 420px; } }
+/* From's mark on the chart, when From isn't the ship: a ring, as in the editor */
+.cpreview { container-type: inline-size; }
+.cpreview .cards[hidden], .cpreview .pv-go .row[hidden], .cpreview .plan[hidden] { display: none; }
+.cpreview .plan { flex: 1 1 100%; margin: 0; padding: 4px 0; font-size: 15px; color: var(--stardust); }
+.cstart { width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 4px solid var(--starlight); background: var(--void);
+  box-shadow: 0 0 0 1.5px var(--void), 0 1px 4px rgba(0, 0, 0, 0.6); pointer-events: none; }

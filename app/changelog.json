@@ -1,0 +1,237 @@
+{
+  "next": [],
+  "versions": [
+    {
+      "version": "0.1.54",
+      "release": "Fornax",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Settings › Sound › Voice: four new voices, each with a ▶ to hear it first. Vega, Rigel and Mira, and Burble for fun.",
+          "plain": "Settings › Sound › Voice: four new voices, each with a ▶ to hear it first. Warm, Calm and Bright, and Silly for fun."
+        },
+        "A snow or ice warning from the National Weather Service shows where No rain usually is, for as long as it lasts.",
+        {
+          "scul": "Search for a kind of place, like coolant, and Show on the chart lights them all. A tap elsewhere puts the chart back.",
+          "plain": "Search for a kind of place, like water, and Show on the map lights them all. A tap elsewhere puts the map back."
+        },
+        "Battery saver turns on by itself when the battery runs low, with Undo. Unpaved stretches show hatched on the course's height strip.",
+        "The Log opens quickly even with hundreds of rides, and the app downloads less when it starts."
+      ]
+    },
+    {
+      "version": "0.1.53",
+      "release": "Eridanus",
+      "date": "2026-10-24",
+      "notes": [
+        "Send feedback goes at once: the box empties and it says Sending…, then Sent. No waiting between messages.",
+        {
+          "scul": "Sandworm nest ahead: a callout where your course's bike lane passes a bus stop on your side.",
+          "plain": "Bus stop ahead: a callout where your route's bike lane passes a bus stop on your side."
+        },
+        {
+          "scul": "Comets ride on their tracks, and a Comet Station's times keep each line's name whole.",
+          "plain": "Trains ride on their tracks, and a station's times keep each line's name whole."
+        },
+        "Bubbles and the cards you tap on the map have solid backgrounds, and any tap on empty space closes them. A card's star, share and avoid stack in a column.",
+        {
+          "scul": "Layers opens in full, the ×s stay in view, Calm motion is one switch in Appearance, and after an update a note links to What's new.",
+          "plain": "Layers opens in full, the ×s stay in view, Calm motion is one switch, a mile passes without a chime, and a note links to What's new."
+        }
+      ]
+    },
+    {
+      "version": "0.1.52",
+      "release": "Draco",
+      "date": "2026-10-23",
+      "notes": [
+        "Bubbles close at your next tap elsewhere, or on Escape, and that tap still does what you aimed at.",
+        {
+          "scul": "With Bike lanes off in Layers, wormholes draw as plain paths instead of bright blue.",
+          "plain": "With Bike lanes off in Layers, bike paths draw as plain paths instead of bright blue."
+        },
+        "Pace in Settings changes only with its − and + buttons, so scrolling past it leaves it alone.",
+        "The Log draws your own average across its weeks and months.",
+        {
+          "scul": "The preview's fourth number is the transport-free share again: higher is better.",
+          "plain": "The preview's fourth number is the car-free share again: higher is better."
+        }
+      ]
+    },
+    {
+      "version": "0.1.51",
+      "release": "Cygnus",
+      "date": "2026-10-23",
+      "notes": [
+        {
+          "scul": "On a course, the arrival time and the minutes left are the big numbers, with speed and distance small.",
+          "plain": "On a route, the arrival time and the minutes left are the big numbers, with speed and distance small."
+        },
+        {
+          "scul": "A free flight shows its time, distance and speed.",
+          "plain": "A ride with no destination shows its time, distance and speed."
+        },
+        {
+          "scul": "In Plain words, the button for a ride with no destination says Record.",
+          "plain": "The button for a ride with no destination says Record."
+        },
+        "A stretch to walk shows as close dots when zoomed out, and as footprints when zoomed in."
+      ]
+    },
+    {
+      "version": "0.1.50",
+      "release": "Columba",
+      "date": "2026-10-23",
+      "notes": [
+        "Settings is in titled sections, and the (i) by a row explains it. The More page is gone.",
+        {
+          "scul": "Offline charts are one fold in Settings, and its line says what is stored.",
+          "plain": "Offline maps are one fold in Settings, and its line says what is stored."
+        },
+        "Bike lanes off in Layers hides every on-street lane.",
+        {
+          "scul": "Parks and water are brighter in Daystar.",
+          "plain": "Parks and water are brighter in Light."
+        },
+        "The Log has a card of your distance and climb for each of the last 12 weeks or months."
+      ]
+    },
+    {
+      "version": "0.1.49",
+      "release": "Cassiopeia",
+      "date": "2026-10-23",
+      "notes": [
+        "The empty search shows your starred places and your recent searches.",
+        "Starred places are marked in search results and listed in Settings.",
+        "Send feedback can attach what the app was doing. It never sends your location.",
+        "An installed app's home-screen icon now updates to the current one, within about a day."
+      ]
+    },
+    {
+      "version": "0.1.48",
+      "release": "Carina",
+      "date": "2026-10-23",
+      "notes": [
+        {
+          "scul": "Daystar is slate now: a grey ground with graphite starpaths.",
+          "plain": "The Light theme is slate now: a grey ground with graphite streets."
+        },
+        "Layers has a Bike lanes layer.",
+        {
+          "scul": "Anchorages are drawn as a bike lock.",
+          "plain": "Bike racks are drawn as a bike lock."
+        }
+      ]
+    },
+    {
+      "version": "0.1.47",
+      "release": "Boötes",
+      "date": "2026-10-23",
+      "notes": [
+        "The preview keeps From and To at the top, with a switch for bike or walk.",
+        {
+          "scul": "Its four numbers are time, length, climb and the share on starpaths with transports.",
+          "plain": "Its four numbers are time, length, climb and the share on streets with cars."
+        },
+        "The turn count and the arrival clock are off the preview."
+      ]
+    },
+    {
+      "version": "0.1.46",
+      "release": "Auriga",
+      "date": "2026-10-23",
+      "notes": [
+        "Arrival times leave out the minutes you stand still at the start, and learn your own pace.",
+        {
+          "scul": "Stop signs are called out, as pulsars are.",
+          "plain": "Stop signs are called out, as traffic lights are."
+        },
+        {
+          "scul": "In flight on a course, the readout shows the arrival time and the time left.",
+          "plain": "On a route, the readout shows the arrival time and the time left."
+        },
+        {
+          "scul": "Walking stretches show as footprints, and the course is always orange.",
+          "plain": "Walking stretches show as footprints, and the route is always orange."
+        },
+        {
+          "scul": "Settings has Pilot color, the color of your marker.",
+          "plain": "Settings has Avatar color, the color of your marker."
+        }
+      ]
+    },
+    {
+      "version": "0.1.45",
+      "release": "Aquila",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "At sunset the preview puts the sunset time beside the arrival time, so more of the chart stays in view.",
+          "plain": "At sunset the preview puts the sunset time beside the arrival time, so more of the map stays in view."
+        }
+      ]
+    },
+    {
+      "version": "0.1.44",
+      "release": "Andromeda",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "Long trips plan several times faster with Wormholes and Quickest, and the courses are the same.",
+          "plain": "Long trips plan several times faster with Bike paths and Quickest, and the routes are the same."
+        },
+        "Trips into a stored map pack plan just as fast."
+      ]
+    },
+    {
+      "version": "0.1.43",
+      "release": "Zubenelgenubi",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "A tap on the course shows the starpath it runs on there. A hold still moves the course.",
+          "plain": "A tap on the route shows the street it runs on there. A hold still moves the route."
+        },
+        "Each popup's arrow points at what it names.",
+        "Trips plan faster again."
+      ]
+    },
+    {
+      "version": "0.1.42",
+      "release": "Yed Prior",
+      "date": "2026-10-22",
+      "notes": [
+        "The preview shows each route card as soon as it's ready, so the first one comes sooner."
+      ]
+    },
+    {
+      "version": "0.1.41",
+      "release": "Xamidimura",
+      "date": "2026-10-22",
+      "notes": [
+        "Map packs: store more of Massachusetts from Settings, from Central MA to the South Coast, plus Hull and Nahant.",
+        "Search finds towns across the state. A place in a pack you haven't stored offers to get that pack.",
+        {
+          "scul": "A stored pack draws on the chart, and courses run into it.",
+          "plain": "A stored pack draws on the map, and routes run into it."
+        }
+      ]
+    },
+    {
+      "version": "0.1.40",
+      "release": "Wezen",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "On a flat chart, your ship stands up a little toward you.",
+          "plain": "On a flat map, your marker stands up a little toward you."
+        },
+        {
+          "scul": "Starpaths you avoid show on the chart, and Settings lists them with their dates and a Clear all.",
+          "plain": "Streets you avoid show on the map, and Settings lists them with their dates and a Clear all."
+        },
+        "Starred places show from farther out, small at first."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+/* W53 turns (SPEC §67): the turn list in the preview and in flight, and the course strip. app/turns.js makes them. */
+
+/* ---- the course strip: the route's heights, coloured by way, the steep parts marked ---------------------------- */
+.cstrip { display: flex; align-items: flex-end; gap: 8px; min-width: 0; }
+.cstrip .plot { position: relative; flex: 1 1 auto; min-width: 0; height: var(--strip-h, 28px); cursor: ew-resize; }
+.cstrip svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.cstrip .way { stroke: none; opacity: 0.85; }
+.cstrip .way.wormhole { fill: var(--wormhole); }
+.cstrip .way.starpath { fill: var(--starpath); opacity: 0.6; }
+.cstrip .way.transport { fill: var(--negi); }
+.cstrip .way.walk { fill: var(--stardust); opacity: 0.5; }
+.cstrip .steep { fill: var(--caution); }
+.cstrip .top { fill: none; stroke: var(--starlight); stroke-width: 1.2; vector-effect: non-scaling-stroke; opacity: 0.7; }
+.cstrip .up { position: absolute; top: -3px; transform: translateX(-50%); font-style: normal; font-size: 11px; /* W73 a11y: 11 px at least (BRIEF §7.8) */ line-height: 1; color: var(--caution); pointer-events: none; }
+.cstrip .dust { position: absolute; bottom: 0; height: 9px; min-width: 3px; pointer-events: none; opacity: 0.9; /* W104 oss2 (SPEC §210): unpaved, hatched along the foot */
+  background: repeating-linear-gradient(135deg, var(--starlight) 0 1.5px, transparent 1.5px 4.5px); }
+.cstrip .ship { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--you); box-shadow: 0 0 0 2px var(--void); pointer-events: none; }
+.cstrip .range { flex: none; font-family: var(--font-display); font-weight: 600; font-size: 16px; line-height: 1; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--starlight); white-space: nowrap; font-variant-numeric: tabular-nums; } /* W69 artdir */
+.cpreview .pv-strip { margin: 4px 4px 0; }
+.cpreview .pv-strip:empty, .cpreview .cards:not([data-n="1"]) ~ .pv-strip { display: none; } /* two or three cards: no room under 30 %; the list's head has it */
+.cpreview .cards[data-n="1"] ~ .facts { margin-top: 4px; }
+/* the dot a finger along the strip moves along the route, and the ring of a lit turn */
+.cstrip-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--course); box-shadow: 0 0 0 3px var(--void), var(--glow-s) var(--course); pointer-events: none; }
+.cturn-ring { width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; border: 3px solid var(--course); box-shadow: 0 0 0 2px var(--void), var(--glow-s) var(--course); pointer-events: none; }
+.cturn-ptr { position: fixed; left: 0; top: 0; z-index: 4; width: 24px; height: 24px; margin: -12px 0 0 -12px; pointer-events: none; } /* turned to point at the lit turn */
+.cturn-ptr::before { content: ""; position: absolute; left: 3px; top: 1px; border: 11px solid transparent; border-left: 18px solid var(--course); border-right: 0;
+  filter: drop-shadow(0 0 2px var(--void)); }
+.cturn-ptr[hidden] { display: none; }
+
+/* ---- the preview: TURNS 7 › in the foot, and the list in place of the cards ------------------------------------ */
+.cpreview { container-type: inline-size; } /* the foot's row fits by the sheet's own width: a phone's, or the side sheet's in landscape */
+.cpreview .turns-chip { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 44px; padding: 0 9px 0 11px; border-radius: var(--r-pill);
+  border: 1px solid var(--glass-edge, var(--space-3)); background: var(--glass-btn); color: var(--starlight);
+  font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: 0.04em; text-transform: uppercase; }
+.cpreview .turns-chip[hidden] { display: none; }
+.cpreview .turns-chip { width: 52px; height: 52px; justify-content: center; padding: 0; } /* W86 preview: the turn list's button, an icon and no count, as tall as Launch */
+.cpreview .turns-chip svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; } .cpreview .turns-chip circle { fill: currentColor; stroke: none; } /* W86 preview */
+.cpreview .pv-go:has(> .turns-chip:not([hidden])) { column-gap: 8px; } /* the list button and Launch share the row (W86 preview: no clock) */
+.cpreview .pv-go:has(> .turns-chip:not([hidden])) .launch-c { padding: 0 18px 0 14px; }
+@container (max-width: 359px) { /* 320 px */
+  .cpreview .pv-go:has(> .turns-chip:not([hidden])) .launch-c { padding: 0 14px 0 10px; }
+}
+.cpreview.turns-on > :not(.handle, .x, .cturns) { display: none; }
+.cpreview:not(.turns-on) > .cturns { display: none; }
+.cpreview.turns-on { display: flex; flex-direction: column; max-height: 50dvh; box-sizing: border-box; } /* at most half the screen; the rows scroll */
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { .cpreview.turns-on { max-height: 100%; } } /* W77 desktop */
+.cpreview .cturns { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.cpreview .cturns .thead { flex: none; display: flex; flex-direction: column; gap: 8px; padding: 2px 4px 8px; border-bottom: 1px solid color-mix(in srgb, var(--course) 30%, transparent); }
+.cpreview .cturns h4 { margin: 4px 44px 0 0; font-size: 20px; }
+.cturns .trows, .cturns-fly .trows { list-style: none; margin: 0; padding: 0; overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+.trow { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 10px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px 8px;
+  border: 0; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); background: none; color: var(--starlight); text-align: left;
+  font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.15; letter-spacing: 0.03em; text-transform: uppercase; }
+.trow img { width: 32px; height: 32px; }
+.trow .w { min-width: 0; overflow-wrap: break-word; }
+.trow .w em { font-style: normal; font-weight: 600; color: var(--stardust); }
+.trow .d { color: var(--course-ink); /* W102 a11y */ font-variant-numeric: tabular-nums; white-space: nowrap; }
+.trow.pad .w { color: var(--course-ink); } /* W102 a11y */
+button.trow[aria-pressed="true"] { background: color-mix(in srgb, var(--course) 16%, transparent); box-shadow: inset 3px 0 0 var(--course); }
+
+/* ---- in flight: the card's foot unfolds it into the turns still ahead ------------------------------------------ */
+.cturn .foot { cursor: pointer; }
+.cturn .foot .fold { flex: none; width: 9px; height: 9px; margin: -4px 2px 0 0; border: solid var(--course); border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform var(--t-fast, 120ms); }
+.cturn .foot[aria-expanded="true"] .fold { margin-top: 4px; transform: rotate(-135deg); }
+.cturns-fly { position: absolute; left: var(--ml); right: var(--mr); top: calc(var(--top) + 116px - 1px); z-index: 2; display: flex; flex-direction: column; box-sizing: border-box;
+  background: var(--glass-snack); border: 1px solid color-mix(in srgb, var(--course) 70%, transparent); border-top: 0; border-radius: 0 0 var(--r-m) var(--r-m);
+  box-shadow: var(--lift); overflow: hidden; }
+.cturns-fly[hidden] { display: none; }
+.cturns-fly .thead { flex: none; padding: 8px 12px 6px; }
+.cturns-fly .flown { flex: none; margin: 0; padding: 4px 12px 6px; font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stardust);
+  border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+.cturns-fly .flown[hidden] { display: none; }
+.cturns-fly .trow { padding: 6px 12px; }
+body.cturns-open .cthen { display: none; } /* the list has the turn after this one */
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { /* W77 desktop */
+  .cturns-fly { right: auto; width: min(440px, calc(100vw - var(--ml) - var(--mr) - 3 * (44px + 8px))); } /* W73 polish: as the card */
+}
+/* W54 flight (SPEC §70): a warning's row: the steps drawn here, in the caution colour; the g-well has its own glyph */
+.trow .wi { width: 32px; height: 32px; color: var(--caution); }
+.i-steps { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 20.5h5v-4.5h4.5v-4.5h4.5V7h5'/%3E%3Cpath d='M2.5 20.5h19' stroke-width='1.6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 20.5h5v-4.5h4.5v-4.5h4.5V7h5'/%3E%3Cpath d='M2.5 20.5h19' stroke-width='1.6'/%3E%3C/svg%3E"); }
+.bpill .i-steps { color: var(--hue); } /* W54 flight */
+/* W67 graph3 (SPEC §95): the tracks drawn here, two rails and their ties, in the caution colour */
+.i-tracks { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-linecap='round'%3E%3Cpath d='M3 15L15 3M9 21L21 9' stroke-width='2.4'/%3E%3Cpath d='M5 11l8 8M9 7l8 8M13 3l8 8' stroke-width='1.6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-linecap='round'%3E%3Cpath d='M3 15L15 3M9 21L21 9' stroke-width='2.4'/%3E%3Cpath d='M5 11l8 8M9 7l8 8M13 3l8 8' stroke-width='1.6'/%3E%3C/svg%3E"); }
+.bpill .i-tracks { color: var(--hue); } /* W67 graph3 */
+/* W86 stops (SPEC §171): the stop sign drawn here, an octagon with its rim, in the pill's hue (negi red) */
+.i-stop { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M22.53 16.36L16.36 22.53L7.64 22.53L1.47 16.36L1.47 7.64L7.64 1.47L16.36 1.47L22.53 7.64Z M20.87 15.67L15.67 20.87L8.33 20.87L3.13 15.67L3.13 8.33L8.33 3.13L15.67 3.13L20.87 8.33Z M19.58 15.14L15.14 19.58L8.86 19.58L4.42 15.14L4.42 8.86L8.86 4.42L15.14 4.42L19.58 8.86Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M22.53 16.36L16.36 22.53L7.64 22.53L1.47 16.36L1.47 7.64L7.64 1.47L16.36 1.47L22.53 7.64Z M20.87 15.67L15.67 20.87L8.33 20.87L3.13 15.67L3.13 8.33L8.33 3.13L15.67 3.13L20.87 8.33Z M19.58 15.14L15.14 19.58L8.86 19.58L4.42 15.14L4.42 8.86L8.86 4.42L15.14 4.42L19.58 8.86Z'/%3E%3C/svg%3E"); }
+.bpill .i-stop { color: var(--hue); } /* W86 stops */

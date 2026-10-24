@@ -1,0 +1,53 @@
+/* W48 feedback (design/app-ui/SPEC.md §60): Settings › Send feedback, a full-screen page over Settings (app/feedback.js).
+   It covers the chart as Settings does (BRIEF §7.8), in a centred column of 640 px at most; ← goes back to Settings, × closes both. */
+#feedback { inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; transform: none; overflow: auto; overscroll-behavior: contain;
+  --pl: max(calc(16px + env(safe-area-inset-left)), calc((100vw - 640px) / 2)); --pr: max(calc(16px + env(safe-area-inset-right)), calc((100vw - 640px) / 2));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px); border: 0; border-radius: 0; box-shadow: none; }
+#feedback[open] { display: flex; flex-direction: column; animation: sheet-in var(--t-small) var(--ease-enter); }
+#feedback .top { display: flex; align-items: center; gap: 4px; min-height: 52px; padding-top: calc(env(safe-area-inset-top) + 4px); padding-bottom: 4px; border-radius: 0;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--space-3) 70%, transparent); }
+#feedback .back { flex: none; width: 48px; height: 48px; margin-left: -12px; display: grid; place-items: center; border: 0; background: none; color: var(--starlight); }
+#feedback h2 { flex: 1; color: var(--phosphor); font-size: 26px; line-height: 1; }
+#feedback .x { position: static; flex: none; margin-right: -12px; }
+/* the form fills the page, so with the fold shut the disclaimer and Send sit at the bottom, in the thumb's reach */
+#feedback form { flex: 1 0 auto; display: flex; flex-direction: column; margin: 0; }
+
+#feedback .ask { display: block; margin: 16px 0 8px; font-size: 18px; font-weight: 600; line-height: 1.3; }
+#feedback textarea { display: block; box-sizing: border-box; width: 100%; min-height: 9.5em; max-height: 45dvh; resize: vertical; margin: 0; padding: 10px 12px;
+  background: var(--space-1); color: var(--starlight); border: 1px solid color-mix(in srgb, var(--stardust) 50%, transparent); border-radius: var(--r-s); font: 17px/1.4 var(--font-body); }
+#feedback textarea:focus { outline: 2px solid var(--phosphor); outline-offset: 0; border-color: transparent; }
+#feedback .under { display: flex; align-items: flex-start; gap: 12px; margin: 6px 0 16px; color: var(--stardust); font-size: 14px; line-height: 1.3; }
+#feedback .mic { flex: 1; display: flex; gap: 6px; align-items: flex-start; }
+#feedback .mic .i { flex: none; width: 18px; height: 18px; }
+#feedback #fb-count { flex: none; font: 12px/1.6 var(--font-mono); }
+
+#feedback .group { background: var(--space-1); border: 1px solid color-mix(in srgb, var(--space-3) 60%, transparent); border-radius: var(--r-s); padding: 0 12px; }
+#feedback .group > :last-child, #feedback .group > :last-child > summary.row { border-bottom: 0; }
+#feedback summary.row { cursor: pointer; list-style: none; }
+#feedback summary.row::-webkit-details-marker { display: none; }
+#feedback summary .val { font-size: 22px; line-height: 1; transition: transform var(--t-small) var(--ease-enter); }
+#feedback details[open] summary .val { transform: rotate(90deg); }
+#feedback details[open] > summary.row { border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+#feedback .ver { margin: 10px 0 6px; font: 13px/1.4 var(--font-mono); color: var(--stardust); }
+#feedback .ver span { color: var(--starlight); }
+/* every word that goes, readable: it wraps, so nothing scrolls sideways */
+#feedback pre { margin: 0 0 12px; padding: 0; white-space: pre-wrap; overflow-wrap: anywhere;
+  font: 12.5px/1.45 var(--font-mono); color: var(--starlight); }
+
+#feedback .warn { margin: auto 2px 14px; padding-top: 16px; font-size: 15px; line-height: 1.4; color: var(--starlight); }
+#feedback .go { display: block; width: 100%; height: 56px; margin: 0; border: 0; border-radius: var(--r-pill); background: var(--phosphor); color: var(--void);
+  font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: var(--track-display); text-transform: uppercase; }
+#feedback #fb-status { margin: 10px 0 0; min-height: 1.3em; text-align: center; color: var(--stardust); font-size: 14px; }
+#feedback #fb-status:empty { display: none; }
+/* the honeypot: off the screen, out of the tab order; a person never fills it */
+#feedback .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+@media (orientation: landscape) and (max-height: 500px) {
+  #feedback h2 { font-size: 20px; }
+  #feedback .ask { margin-top: 10px; }
+  #feedback textarea { min-height: 6em; }
+}
+
+/* drawn here until the UI set has them, in its 24-unit style: a speech bubble, and a microphone */
+.i-feedback { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5h16v10.5h-9l-4.5 3.5v-3.5h-2.5z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5h16v10.5h-9l-4.5 3.5v-3.5h-2.5z'/%3E%3Cpath d='M8 9.5h8M8 12.5h5'/%3E%3C/svg%3E"); }
+.i-mic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21'/%3E%3C/svg%3E"); }
