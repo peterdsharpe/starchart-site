@@ -1,0 +1,93 @@
+/* W54 course (design/app-ui/SPEC.md §69): around the course: the share button, its menu and the QR; the stops along the
+   course (chips in the turn list's head, rows, lit places and a stop's peek); radiation on the course. app/course.js. */
+
+/* ---- share ---- */
+.ftrow .pv-share { flex: none; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--starlight); }
+.ftrow .ft-swap[hidden] + .pv-share { margin-left: auto; } /* in flight, or From unknown: no ⇅, and share keeps the row's end */
+.pv-share svg, .cshare .ic svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.cshare { position: fixed; z-index: 8; width: min(340px, calc(100vw - 16px)); box-sizing: border-box; padding: 12px 12px 12px 14px; border-radius: var(--r-m);
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); color: var(--starlight);
+  font-family: var(--font-body); animation: cpeek-in var(--t-small) var(--ease-enter); }
+body.calm .cshare { animation: none; }
+.cshare .head { margin: 0 0 10px; font-size: max(11px, 1rem); line-height: 1.3; color: var(--stardust); } /* W142 remscale */
+.cshare .head b { color: var(--starlight); font-weight: 700; }
+.cshare .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cshare .acts button { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 14px; border-radius: var(--r-pill);
+  border: 1px solid var(--glass-edge, var(--space-3)); background: var(--glass-btn); color: var(--starlight);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.0625rem); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; } /* W142 remscale */
+.cshare .acts .send { border-color: color-mix(in srgb, var(--course) 70%, transparent); }
+.cshare .ic { display: grid; width: 24px; height: 24px; }
+.i-qr { -webkit-mask-image: url("../design/glyphs/ui/share_qr.svg"); mask-image: url("../design/glyphs/ui/share_qr.svg"); }
+
+/* the QR, full screen: a task (BRIEF §7.8). The code is black on white in both themes, with its quiet zone, as large as fits */
+.cqr { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  padding: calc(env(safe-area-inset-top) + 60px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 24px) calc(env(safe-area-inset-left) + 16px);
+  box-sizing: border-box; background: var(--void); color: var(--starlight); }
+.cqr > .x { position: absolute; top: calc(env(safe-area-inset-top) + 8px); right: calc(env(safe-area-inset-right) + 8px); width: 56px; height: 56px; display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: var(--glass-btn); color: var(--starlight); }
+.cqr .cap { margin: 0; max-width: 32ch; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: calc(24px + (1rem - 16px) * 1.5); line-height: 1.15; /* W142 remscale */
+  letter-spacing: var(--track-display); text-transform: uppercase; text-wrap: balance; }
+.cqr .code { width: min(88vw, calc(100dvh - 260px), 520px); min-width: 180px; aspect-ratio: 1; }
+.cqr .code svg { display: block; width: 100%; height: 100%; border-radius: var(--r-s); }
+.cqr .url { margin: 0; max-width: min(88vw, 520px); font-family: var(--font-mono); font-size: max(11px, 0.75rem); line-height: 1.35; color: var(--stardust); overflow-wrap: anywhere; text-align: center; } /* W142 remscale */
+@media (orientation: landscape) and (max-height: 500px) { /* a small landscape: the words beside the code */
+  .cqr { flex-direction: row; flex-wrap: wrap; padding-top: calc(env(safe-area-inset-top) + 16px); padding-right: calc(env(safe-area-inset-right) + 76px); } /* clear of the × */
+  .cqr .code { width: min(calc(100dvh - 40px), 50vw); }
+  .cqr .cap { max-width: 36vw; }
+  .cqr .url { display: none; }
+}
+
+/* ---- the stops along the course: chips in the list's head ---- */
+.tstops { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 -4px; padding: 0 4px; } /* one row, sideways if it must: the list keeps its room */
+.tstops[hidden], .train[hidden] { display: none; }
+.stop-chip { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 44px; padding: 0 10px 0 7px; border-radius: var(--r-pill);
+  border: 1px solid var(--glass-edge, var(--space-3)); background: var(--glass-btn); color: var(--starlight);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 0.9375rem); letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; } /* W142 remscale */
+.stop-chip img { width: 22px; height: 22px; }
+.stop-chip b { font-size: max(11px, 1.125rem); color: var(--course-ink); /* W102 a11y */ font-variant-numeric: tabular-nums; } /* W142 remscale */
+.stop-chip[aria-pressed="true"] { background: color-mix(in srgb, var(--course) 18%, var(--glass-btn)); border-color: var(--course); box-shadow: inset 0 0 0 1px var(--course); }
+.trow.stop .d { font-size: 24px; /* W142 remscale: px, the › glyph is an icon */ color: var(--stardust); }
+/* a lit place on the chart: its glyph on a --course ring */
+.cstop { width: 34px; height: 34px; display: grid; place-items: center; box-sizing: border-box; border-radius: 50%; pointer-events: none;
+  background: color-mix(in srgb, var(--void) 70%, transparent); border: 3px solid var(--course); box-shadow: 0 0 0 2px color-mix(in srgb, var(--void) 60%, transparent); }
+.cstop img { width: 22px; height: 22px; }
+/* a stop's peek: the card's glass, its facts, and "Add as a stop" */
+.cstop-peek { flex-direction: column; align-items: stretch; gap: 10px; border-radius: var(--r-card); padding: 10px 12px 12px 14px; } /* W69 artdir */
+.cstop-peek::after { display: none; }
+.cstop-peek .add { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: var(--r-pill); border: 0;
+  background: var(--course); color: var(--void); font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.0625rem); letter-spacing: 0.04em; text-transform: uppercase; } /* W142 remscale */
+.cstop-peek .add .i { background: currentColor; }
+
+/* ---- radiation on the course: a line in the list's head ---- */
+.train { margin: 0; padding-left: 26px; position: relative; font-size: max(11px, 1rem); line-height: 1.3; color: var(--starlight); } /* W142 remscale */
+.train::before { content: ""; position: absolute; left: 0; top: 0; width: 20px; height: 20px; background: url("../design/glyphs/radiation.svg") center / contain no-repeat; } /* the chart's radiation glyph */
+.i-plus { -webkit-mask-image: url("../design/glyphs/ui/plus.svg"); mask-image: url("../design/glyphs/ui/plus.svg"); }
+.cturns-fly .tstops { flex: none; padding: 2px 12px 8px; } /* in flight, under the strip */
+/* W86 preview: W54's share in the turn list's head went: share sits in the From/To bar, under ⇅ */
+
+/* ---- the stops along the course: chips in the list's head ---- */
+.tstops { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 -4px; padding: 0 4px; } /* one row, sideways if it must: the list keeps its room */
+.tstops[hidden], .train[hidden] { display: none; }
+.stop-chip { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 44px; padding: 0 10px 0 7px; border-radius: var(--r-pill);
+  border: 1px solid var(--glass-edge, var(--space-3)); background: var(--glass-btn); color: var(--starlight);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 0.9375rem); letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; } /* W142 remscale */
+.stop-chip img { width: 22px; height: 22px; }
+.stop-chip b { font-size: max(11px, 1.125rem); color: var(--course-ink); /* W102 a11y */ font-variant-numeric: tabular-nums; } /* W142 remscale */
+.stop-chip[aria-pressed="true"] { background: color-mix(in srgb, var(--course) 18%, var(--glass-btn)); border-color: var(--course); box-shadow: inset 0 0 0 1px var(--course); }
+.trow.stop .d { font-size: 24px; /* W142 remscale: px, the › glyph is an icon */ color: var(--stardust); }
+/* a lit place on the chart: its glyph on a --course ring */
+.cstop { width: 34px; height: 34px; display: grid; place-items: center; box-sizing: border-box; border-radius: 50%; pointer-events: none;
+  background: color-mix(in srgb, var(--void) 70%, transparent); border: 3px solid var(--course); box-shadow: 0 0 0 2px color-mix(in srgb, var(--void) 60%, transparent); }
+.cstop img { width: 22px; height: 22px; }
+/* a stop's peek: the card's glass, its facts, and "Add as a stop" */
+.cstop-peek { flex-direction: column; align-items: stretch; gap: 10px; border-radius: var(--r-card); padding: 10px 12px 12px 14px; } /* W69 artdir */
+.cstop-peek::after { display: none; }
+.cstop-peek .add { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: var(--r-pill); border: 0;
+  background: var(--course); color: var(--void); font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.0625rem); letter-spacing: 0.04em; text-transform: uppercase; } /* W142 remscale */
+.cstop-peek .add .i { background: currentColor; }
+
+/* ---- radiation on the course: a line in the list's head ---- */
+.train { margin: 0; padding-left: 26px; position: relative; font-size: max(11px, 1rem); line-height: 1.3; color: var(--starlight); } /* W142 remscale */
+.train::before { content: ""; position: absolute; left: 0; top: 0; width: 20px; height: 20px; background: url("../design/glyphs/radiation.svg") center / contain no-repeat; } /* the chart's radiation glyph */
+.i-plus { -webkit-mask-image: url("../design/glyphs/ui/plus.svg"); mask-image: url("../design/glyphs/ui/plus.svg"); }
+.cturns-fly .tstops { flex: none; padding: 2px 12px 8px; } /* in flight, under the strip */

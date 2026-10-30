@@ -1,0 +1,15 @@
+Shuttle times: Massport.
+
+The Logan Airport shuttles' times in Starchart's walker's timetable
+(data/routing/greater-boston-transit-v1.bin.gz, built by
+chart/transit/build_timetable.py --massport) are supplied by Massport (the
+Massachusetts Port Authority), from its GTFS feed published by Trillium
+Solutions:
+
+  https://data.trilliumtransit.com/gtfs/massport-ma-us/massport-ma-us.zip
+
+They are used and displayed under the Massport Basic Data Feed License
+Agreement (https://www.massport.com/media/1651/massportdatalicenseagreement.pdf):
+a revocable, royalty-free, non-exclusive licence. The content stays
+Massport's; Starchart is not Massport, nor its agent or partner, and uses no
+Massport logo. The feed is refreshed at each release, and times can be wrong.

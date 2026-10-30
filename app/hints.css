@@ -1,0 +1,88 @@
+/* W23 touch: the hover tooltip and the tap's peek (app/hints.js, design/app-ui/SPEC.md §27). The glass of the
+   cards (W21 glass); the name in --starlight, the kind in --stardust. */
+:root { --peek-ground: var(--space-1); } :root[data-theme="light"] { --peek-ground: var(--space-2); } /* W92 panels (arclight, 2026-10-23: tooltips need an opaque background): the hint, the peek and its tail are solid in every theme, as #loctip is, so the chart's words don't show through */
+.chint, .cpeek { position: fixed; z-index: 7; display: flex; align-items: center; gap: 0; max-width: min(320px, calc(100vw - 16px));
+  background: var(--peek-ground); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); color: var(--starlight);
+  font-family: var(--font-body); line-height: 1.25; text-align: left; overflow-wrap: anywhere; }
+.chint b, .cpeek b { font-weight: 700; }
+.chint .t, .cpeek .t { min-width: 0; }
+.chint .t span, .cpeek .t span { color: var(--stardust); }
+.chint { left: 0; top: 0; pointer-events: none; padding: 5px 10px; border-radius: var(--r-s); font-size: max(11px, 0.875rem); } /* placed by a transform */ /* W142 remscale */
+.chint[hidden] { display: none; }
+/* The peek: a 44 px pill (BRIEF §7.8), with a chevron when a tap on it sets a course (W26 peek). scroll-margin carries the
+   safe areas to hints.js, which keeps the peek inside them. */
+.cpeek { min-height: 44px; padding: 8px 14px; border-radius: var(--r-card); font-size: max(11px, 1rem); margin: 0; /* W69 artdir */ /* W142 remscale */
+  scroll-margin: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  animation: cpeek-in var(--t-small) var(--ease-enter); }
+.cpeek:not(.fly)::after { content: ""; flex: none; width: 7px; height: 7px; margin: 0 2px 0 12px; border: solid var(--stardust); border-width: 2px 2px 0 0; transform: rotate(45deg); }
+/* W67 places (SPEC §97): a live peek with the star and share is a pill of its own: the peek's button (the name, its lines and
+   the chevron) and, behind a hairline, the star and share, 44 px each */
+.cpeek-place { position: fixed; z-index: 7; box-sizing: border-box; display: flex; align-items: stretch; max-width: min(320px, calc(100vw - 16px)); border-radius: var(--r-card); /* W69 artdir */
+  background: var(--peek-ground); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift);
+  scroll-margin: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  animation: cpeek-in var(--t-small) var(--ease-enter); }
+.cpeek-place:has(small) { border-radius: var(--r-m); }
+.cpeek-place:has(.crows) { max-width: min(448px, calc(100vw - 16px)); } /* a station's trains, as comets.css gives its peek, and the two buttons */
+.cpeek-place > .cpeek { position: static; flex: 1 1 auto; min-width: 0; max-width: none; background: none; border: 0; box-shadow: none; border-radius: inherit; animation: none; }
+.cpeek-place > .acts { display: flex; flex-direction: column; justify-content: center; flex: none; align-items: center; border-left: var(--hairline) solid var(--glass-edge); } /* W92 panels (her note): star, share and Avoid in one column at the right edge, Avoid at the foot, out of the corner where a close is looked for */
+.cpeek-place > .acts :is(button, a) { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--starlight); } /* W111 osmlink: a, the OSM link */
+.cpeek-place > .acts :is(button, a) + :is(button, a) { border-top: var(--hairline) solid var(--glass-edge); } /* W92 panels: a hairline between the stacked buttons */
+.cpeek-place > .acts svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.cpeek-place > .acts .star[aria-pressed="true"] svg { fill: var(--fav); stroke: var(--fav); } /* W157 icons3: yellow once set (app/starred.css --fav), was chalk */
+:root[data-theme="light"] .cpeek-place > .acts .star[aria-pressed="true"] svg { stroke: var(--fav-edge); stroke-width: 2.4; paint-order: stroke; } /* W157 icons3: the ink edge by day; W166 icons4: under the fill, 1.2 of 24 outside it (was 1.4 over it) */
+/* W133 roadprefs (SPEC §245): a road's opinion in the column, good to bad, words not glyphs; the one set is filled: Prefer in chalk
+   (your own marks), Avoid ringed and Never filled in caution lime, as the chart marks them */
+.cpeek-place > .acts .levels { display: flex; flex-direction: column; align-self: stretch; justify-content: center; }
+.cpeek-place > .acts .levels .lv { width: auto; min-width: 76px; padding: 0 12px; font: 600 max(11px, 0.9375rem) var(--font-body); } /* W142 remscale */
+.cpeek-place > .acts .levels .lv:first-child { border-top-right-radius: var(--r-m); } /* the one set, filled, keeps the peek's corners */
+.cpeek-place > .acts .levels .lv:last-child { border-bottom-right-radius: var(--r-m); }
+.levels .lv.lv-prefer[aria-pressed="true"] { color: var(--void); background: var(--chalk); }
+.levels .lv.lv-avoid[aria-pressed="true"] { color: var(--caution-words, var(--caution)); background: none; box-shadow: inset 0 0 0 2px var(--caution-words, var(--caution)); }
+.levels .lv.lv-never[aria-pressed="true"] { color: var(--void); background: var(--caution); }
+:root[data-lingo="meatspace"][data-theme="light"] .levels .lv.lv-never[aria-pressed="true"] { color: var(--pal-ink); } /* W186 palette: by day in Plain, her yellow block under her day ink (13:1; the ground's words on it are 1.2:1) */
+/* W140 routelit (SPEC §253): a road's bike routes, a 44 px row each under the peek's button, beside the opinion column; a tap
+   lights the route (pressed: the text's ink), and its chevron says it does something */
+.cpeek-place:has(> .croute) { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.cpeek-place > .acts { grid-column: 2; } /* its rows: hints.js */
+.cpeek-place > .croute { grid-column: 1; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 4px 14px; border: 0; border-top: var(--hairline) solid var(--glass-edge);
+  background: none; color: var(--stardust); font: max(11px, 0.875rem)/1.25 var(--font-body); text-align: left; overflow-wrap: anywhere; } /* W142 remscale */
+.cpeek-place > .croute::after { content: ""; flex: none; width: 6px; height: 6px; margin: 0 2px 0 auto; border: solid var(--stardust); border-width: 2px 2px 0 0; transform: rotate(45deg); }
+.cpeek-place > .croute[aria-pressed="true"] { color: var(--starlight); font-weight: 600; }
+.cpeek .t small.croute { color: var(--stardust); }
+body.calm .cpeek-place { animation: none; }
+.cpeek.fly { pointer-events: none; } /* in flight a hint only: every tap passes through it, to the chart or a control */
+@keyframes cpeek-in { from { opacity: 0; transform: translateY(4px); } }
+body.calm .cpeek { animation: none; }
+/* W26 peek: a road's facts and the distance from you, a line each under the name (SPEC §32); the card's corners round
+   less once it has lines, and the chevron sits by the name's line */
+.cpeek .t small { display: block; margin-top: 2px; font-size: max(11px, 0.875rem); color: var(--stardust); } /* W142 remscale */
+.cpeek .t small.away { margin-top: 4px; font-family: var(--font-display); font-weight: 600; color: var(--course-ink); /* W102 a11y */ letter-spacing: var(--track-display); text-transform: uppercase; } /* W69 artdir */
+.cpeek:has(small) { border-radius: var(--r-card); padding: 9px 14px 10px; } /* W69 artdir */
+/* W27 card: a road's flying conditions, its comfort (SPEC §36): seven bars that rise, lit up to its level, then the word.
+   W90 comfort (SPEC §184): lit in the level's colour of the comfort scale, as the course and the Bike quality layer are. */
+.cpeek .t small.cfly { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+.cfly .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 13px; flex: none; }
+.cfly .bars i { width: 3px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--stardust) 30%, transparent); } /* W69 artdir */
+.cfly .bars i.on { background: var(--fly, var(--wormhole)); } /* W90 comfort: the level's colour in the comfort scale (app/hints.js), the course's, at full strength (was the cyan, brighter with the level) */
+.cfly .bars i:nth-child(1) { height: 4px; }
+.cfly .bars i:nth-child(2) { height: 5.5px; }
+.cfly .bars i:nth-child(3) { height: 7px; }
+.cfly .bars i:nth-child(4) { height: 8.5px; }
+.cfly .bars i:nth-child(5) { height: 10px; }
+.cfly .bars i:nth-child(6) { height: 11.5px; }
+.cfly .bars i:nth-child(7) { height: 13px; }
+.cfly b { font-weight: 600; color: var(--starlight); }
+.cpeek .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* W84 roadtap (SPEC §164): the peek points at what it names: its glass, hairline and lift are one SVG shape, the box and a
+   10 px tail toward the road's nearest point (or the icon), so the tail shows no seam; a small dot marks the road's spot */
+.cpeek.tailed, .cpeek-place.tailed { background: none; border-color: transparent; box-shadow: none; }
+.cpeek.tailed:hover { border-color: transparent !important; } /* states.css's hover edge goes on the outline instead */
+.ctail { position: absolute; left: calc(-1 * var(--hairline)); top: calc(-1 * var(--hairline)); z-index: -1; overflow: visible; pointer-events: none;
+  filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--shade) 55%, transparent)); }
+.ctail path { fill: var(--peek-ground); stroke: var(--glass-edge); stroke-width: var(--hairline); stroke-linejoin: round; }
+.cpeek.tailed:hover > .ctail path { stroke: var(--edge-hover); }
+@media (hover: hover) and (pointer: fine) { /* states.css's hover wash goes on the outline too, not on the box alone */
+  .cpeek.tailed:hover { background-image: none !important; }
+  .cpeek.tailed:hover > .ctail path { fill: color-mix(in srgb, var(--peek-ground), var(--starlight) 8%); } /* W92 panels */
+}
+.ctail circle { fill: var(--starlight); stroke: var(--space-1); stroke-width: 1.5; }

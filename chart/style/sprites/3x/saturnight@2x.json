@@ -1,0 +1,590 @@
+{
+ "aed": {
+  "x": 0,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "anchorage": {
+  "x": 144,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "anchorage_covered": {
+  "x": 288,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "asteroids": {
+  "x": 432,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "bank": {
+  "x": 576,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "black_hole": {
+  "x": 720,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "buoy_field": {
+  "x": 864,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "bus_stop": {
+  "x": 1008,
+  "y": 0,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station": {
+  "x": 0,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_blue": {
+  "x": 144,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_blue_green": {
+  "x": 0,
+  "y": 1440,
+  "width": 284,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_blue_orange": {
+  "x": 284,
+  "y": 1440,
+  "width": 284,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_commuter_rail": {
+  "x": 288,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_commuter_rail_orange": {
+  "x": 568,
+  "y": 1440,
+  "width": 284,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_green": {
+  "x": 432,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_green_orange": {
+  "x": 852,
+  "y": 1440,
+  "width": 284,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_green_red": {
+  "x": 0,
+  "y": 1584,
+  "width": 284,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_mattapan": {
+  "x": 576,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_orange": {
+  "x": 720,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_orange_red": {
+  "x": 284,
+  "y": 1584,
+  "width": 284,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_red": {
+  "x": 864,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "constellation": {
+  "x": 1008,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "coolant": {
+  "x": 0,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "crossing": {
+  "x": 144,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "daystar": {
+  "x": 288,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "derby_arena": {
+  "x": 432,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "fort": {
+  "x": 576,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "fuel_depot": {
+  "x": 720,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "g_well_negi": {
+  "x": 864,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "g_well_posi": {
+  "x": 1008,
+  "y": 288,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "gantry": {
+  "x": 0,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "grenade_depot": {
+  "x": 144,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "grocery": {
+  "x": 288,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "hamburger_helper": {
+  "x": 432,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "heavy_radiation": {
+  "x": 576,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "home": {
+  "x": 720,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "hospital": {
+  "x": 864,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "klingon_dock": {
+  "x": 1008,
+  "y": 432,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "landing_pad": {
+  "x": 0,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "launchpad": {
+  "x": 144,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "lore": {
+  "x": 288,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "luna": {
+  "x": 432,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "meat_repair": {
+  "x": 576,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "meteorites": {
+  "x": 720,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "nebula": {
+  "x": 864,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "negi_g_well": {
+  "x": 1008,
+  "y": 576,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "obstacle": {
+  "x": 0,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "oneway": {
+  "x": 144,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "pharmacy": {
+  "x": 288,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "pin": {
+  "x": 432,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "plasma": {
+  "x": 576,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "police": {
+  "x": 720,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "posi_g_well": {
+  "x": 864,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "pulsar": {
+  "x": 1008,
+  "y": 720,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "rack": {
+  "x": 0,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "rack_alt": {
+  "x": 144,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "radiation": {
+  "x": 288,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "rain": {
+  "x": 432,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "refueling_station": {
+  "x": 576,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "restaurant": {
+  "x": 720,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "rotary": {
+  "x": 864,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "route_start": {
+  "x": 1008,
+  "y": 864,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "sandworm_nest": {
+  "x": 0,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "shield_byway": {
+  "x": 144,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "shield_system": {
+  "x": 288,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "shield_wormhole": {
+  "x": 432,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "shop": {
+  "x": 576,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "shore_leave": {
+  "x": 720,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "space_dock": {
+  "x": 864,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "space_dust": {
+  "x": 1008,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "space_junk": {
+  "x": 0,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "space_station": {
+  "x": 144,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "st_outpost": {
+  "x": 288,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "steering_dampener": {
+  "x": 432,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "stop": {
+  "x": 576,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "stop_all": {
+  "x": 720,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "system": {
+  "x": 864,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "tardis": {
+  "x": 1008,
+  "y": 1152,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "temple_of_knowledge": {
+  "x": 0,
+  "y": 1296,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "traffic_light": {
+  "x": 144,
+  "y": 1296,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "two_way": {
+  "x": 288,
+  "y": 1296,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "waypoint": {
+  "x": 432,
+  "y": 1296,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "starfield": {
+  "x": 0,
+  "y": 1728,
+  "width": 960,
+  "height": 960,
+  "pixelRatio": 3
+ },
+ "system_nebula": {
+  "x": 0,
+  "y": 2688,
+  "width": 480,
+  "height": 288,
+  "pixelRatio": 3
+ }
+}

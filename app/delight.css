@@ -1,0 +1,12 @@
+/* W73 delight (design/app-ui/SPEC.md §124; app/delight.js): the readout's rolling digits and the theme sweep's pictures. */
+
+/* the odometer: a changed digit's span slides up from below (app/delight.js animates it); its old digit is the ::before,
+   one line above, so the element's text stays the number. The box clips, and the old digit shows, only while a roll plays. */
+#readout b.rolling { overflow: clip; }
+#readout b .od { display: inline-block; position: relative; }
+#readout b.rolling .od::before { content: attr(data-was); position: absolute; left: 0; right: 0; bottom: 100%; text-align: center; }
+
+/* the theme sweep: app/delight.js plays the new picture (a growing circle, or a fade in Calm), and the old one stays
+   under it, still; neither takes the browser's own crossfade */
+:root.sweeping::view-transition-old(root), :root.sweeping::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root.sweeping::view-transition-new(root) { opacity: 0; } /* until the sweep's first frame, so the new picture never flashes whole */

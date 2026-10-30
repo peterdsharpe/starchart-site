@@ -1,0 +1,29 @@
+/* W98 changelog (design/app-ui/SPEC.md §194): what each version changed (app/changelog.js). The list is full screen, as the
+   install guide is (BRIEF §7.8): its head and × stay at the top; on a wide screen a centred column of 640 px at most. */
+.i-changes { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 6h10M10 12h10M10 18h10M4.5 6h.01M4.5 12h.01M4.5 18h.01'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 6h10M10 12h10M10 18h10M4.5 6h.01M4.5 12h.01M4.5 18h.01'/%3E%3C/svg%3E"); } /* a list */
+#changelog { inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; transform: none; overflow: auto; overscroll-behavior: contain;
+  --pl: max(calc(16px + env(safe-area-inset-left)), calc((100vw - 640px) / 2)); --pr: max(calc(16px + env(safe-area-inset-right)), calc((100vw - 640px) / 2));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px); border: 0; border-radius: 0; box-shadow: none; }
+#changelog[open] { animation: sheet-in var(--t-small) var(--ease-enter); }
+#changelog::backdrop { background: color-mix(in srgb, var(--void) 62%, transparent); }
+#changelog form { margin: 0; }
+#changelog .top { padding-top: calc(env(safe-area-inset-top) + 8px); border-radius: 0; box-shadow: 0 1px 0 color-mix(in srgb, var(--space-3) 70%, transparent); }
+#changelog .head { display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0 0 6px; } /* W133 settings4: after the back arrow, no × */
+#changelog .head .i { width: 28px; height: 28px; color: var(--phosphor); }
+#changelog .head h2 { color: var(--phosphor); font-size: calc(28px + (1rem - 16px) * 1.5); line-height: 1; } /* W142 remscale */
+.cl-v { padding: 16px 0 4px; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+.cl-v:last-child { border-bottom: 0; }
+.cl-v h3 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; letter-spacing: var(--track-display); line-height: 1.15; } /* W142 remscale */
+.cl-v h3 .name { color: var(--stardust); font-weight: 400; }
+.cl-v .when { margin: 2px 0 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--stardust); font-size: max(11px, 0.875rem); } /* W142 remscale */
+.cl-v .when b { padding: 1px 8px; border-radius: var(--r-pill); background: var(--phosphor); color: var(--void); font-size: max(11px, 0.8125rem); font-weight: 700; } /* W142 remscale */
+.cl-v.now h3 { color: var(--phosphor); }
+.cl-v ul { margin: 0; padding-left: 20px; }
+.cl-v li { margin: 0 0 8px; font-size: max(11px, 1rem); line-height: 1.4; } /* W142 remscale */
+.cl-v li::marker { color: var(--stardust); }
+#changelog .note { color: var(--stardust); margin: 16px 0; }
+/* the note after an update: the snackbar's look (app.css .nsnack), across the column the tallies take in flight (it shows only
+   parked), so the version and What's new fit whole at 320 px */
+#updated { right: var(--mr); }
+#updated .t { font-size: max(11px, 1.0625rem); } /* W142 remscale */
+#updated button { font-size: max(11px, 1.125rem); padding: 0 10px; } /* W142 remscale */

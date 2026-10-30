@@ -1,0 +1,22 @@
+/* W21 scale: the light-years scale (app/scale.js), left of the folded OpenStreetMap credit, on the credit's row.
+   No box: an 11 px Space Mono label over a hairline bar with end ticks, both with a soft halo of the ground.
+   In flight it sits clear of the location button above the © and right of the readout card; parked, it sits
+   left of the © above the bar. Its right end stays put, so the label holds still while the bar changes. */
+#scale { position: absolute; z-index: 2; /* W187 handside: its side is app/home.css's */ bottom: calc(env(safe-area-inset-bottom) + 3px);
+  display: flex; flex-direction: column; align-items: flex-end; gap: 1px; pointer-events: none; contain: layout paint;
+  color: color-mix(in srgb, var(--stardust) 90%, transparent); --halo: var(--void);
+  opacity: 0; visibility: hidden; transition: opacity var(--t-normal) var(--ease-orbit), visibility 0s linear var(--t-normal); }
+#scale.on { opacity: 1; visibility: visible; transition: none; }
+[data-flight="parked"] #scale { bottom: calc(var(--bar-h) + 2px); }
+/* W22 fit: in flight on a narrow screen there is no room right of the readout, so the scale sits above it, at the left */
+@media (max-width: 379px) { :root:not([data-flight="parked"]) #scale { bottom: calc(var(--card) + 64px + 6px); } }
+#scale span { font: max(11px, 0.6875rem)/1.091 var(--font-mono); /* W22 fit: 11 px at least (BRIEF §7.8) */ letter-spacing: 0.02em; white-space: nowrap; /* W142 remscale */
+  text-shadow: 0 0 1px var(--halo), 0 0 3px var(--halo), 0 0 4px var(--halo), 0 0 4px var(--halo); }
+#scale i { display: block; box-sizing: border-box; width: 0; height: 5px; border: 1.5px solid currentColor; border-top: 0;
+  filter: drop-shadow(0 0 1px var(--halo)) drop-shadow(0 0 2px var(--halo)); }
+/* where the chart is covered, or the full credit is open: the Log, a flight's page, the place and preview sheets,
+   the no-location sheet and Settings */
+body:is([data-open~="log"], [data-open~="flight-page"], [data-open~="preview"]) #scale, body:has(#nogps:not([hidden]), #about-sheet[open]) #scale { /* W122 homerow: the credit is always open now, and in its own corner */
+  opacity: 0; visibility: hidden; transition: none; }
+/* Show frame rate, parked: its readout sits on Launch's line, over the scale's spot, so the scale gives way */
+[data-flight="parked"] body.fps #scale { opacity: 0; visibility: hidden; transition: none; }

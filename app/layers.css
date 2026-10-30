@@ -1,0 +1,94 @@
+/* W50 layers (app/layers.js, design/app-ui/SPEC.md §62): the Layers button at the top right (W58 clean: in the corner, the compass under it), and
+   its card, which drops from there over the chart: small, whole even over the ship (W92 panels), with an ×. The
+   compass shows only when the chart is turned, so the button keeps its own place under the compass's, and never moves
+   when the compass comes and goes. Colours and type from design/tokens.css. */
+.i-layers { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5l8.5 4.6L12 12.7 3.5 8.1z' fill='%23000'/%3E%3Cpath d='M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4l8.5 4.6 8.5-4.6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5l8.5 4.6L12 12.7 3.5 8.1z' fill='%23000'/%3E%3Cpath d='M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4l8.5 4.6 8.5-4.6'/%3E%3C/svg%3E"); }
+.i-places { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5.5' cy='12' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M11 9h9.5M11 15h6.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5.5' cy='12' r='2.6' fill='%23000' stroke='none'/%3E%3Cpath d='M11 9h9.5M11 15h6.5'/%3E%3C/svg%3E"); }
+
+#layers { z-index: 2; } /* W58 clean; W191 appleft (SPEC §334): its W58 place went, and the compass's under it, which app/home.css's rules replaced in every state (layout audit #8) */
+#layers[aria-expanded="true"] { color: var(--phosphor); border-color: var(--phosphor-dim); }
+body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) > #layers { visibility: hidden; } /* under the search across the top, and the Log */
+
+#layerspick { position: fixed; z-index: 7; top: calc(var(--top) + var(--card-h, 0px)); right: var(--mr); width: min(340px, calc(100vw - var(--ml) - var(--mr)));
+  max-height: calc(100dvh - var(--top) - var(--card-h, 0px) - var(--m)); overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box; padding: 8px 12px 2px;
+  background: var(--space-2); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift-sheet); /* W69 artdir */
+  transform-origin: top right; animation: layerspick-in var(--t-small) var(--ease-enter); }
+@keyframes layerspick-in { from { opacity: 0; transform: scale(0.92); } }
+#layerspick h2 { margin: 4px 44px 8px 0; font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; line-height: 1.2; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--phosphor); } /* W142 remscale */
+#layerspick .x { position: sticky; z-index: 1; top: -6px; float: right; margin: -6px -10px -38px 0; width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: inherit; color: var(--stardust); } /* W92 panels: in the corner as before (a sticky top counts from the padding, so it is the margin's) (2 px in), and there while the card scrolls, if it ever must */
+/* W55 layers2 (SPEC §71): Google Maps' toggle tiles, four a row: a square picture of what the layer shows, drawn in
+   app/index.html in the theme's own colours, and its one-word name; outlined in --course when on, a hairline when off. */
+#layerspick .tiles { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); gap: 8px; padding: 2px 2px 10px; } /* W56 parking, W59 routes: seven tiles, four a row; W122 homerow: six, three a row */
+#layerspick .tiles .tile { font-size: max(11px, 0.78125rem); } /* four a row: "Anchorages" stays whole under its picture (14 px ran 5 px past a 72 px tile) */ /* W142 remscale */
+@media (max-width: 340px) { #layerspick .tiles .tile { font-size: max(11px, 0.6875rem); } } /* 320 px: 56 px tiles; 11 px is BRIEF §7.8's floor */ /* W142 remscale */
+#layerspick .tile { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 44px; margin: 0; padding: 0 0 2px; border: 0; border-radius: var(--r-s); background: none;
+  color: var(--stardust); font: 600 max(11px, 0.875rem)/1.2 var(--font-body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; } /* W142 remscale */
+#layerspick .tile .pic { display: block; width: 100%; max-width: 72px; aspect-ratio: 1; /* W56 parking: max-width, as four a row at 412 px */ border-radius: var(--r-s); overflow: hidden;
+  outline: var(--hairline) solid var(--space-3); outline-offset: 0; } /* W69 motion: no outline-offset transition; the tile settles into its ring (app/motion.css) */
+#layerspick .tile svg { display: block; width: 100%; height: 100%; }
+#layerspick .tile[aria-pressed="true"] { color: var(--starlight); }
+#layerspick .tile[aria-pressed="true"] .pic { outline: 2.5px solid var(--phosphor); outline-offset: 2px; } /* W69 artdir */
+#layerspick .tile:focus-visible { outline: none; }
+#layerspick .tile:focus-visible .pic { box-shadow: 0 0 0 5px color-mix(in srgb, var(--phosphor) 55%, transparent); } /* W69 artdir */
+#layerspick .tile .g { fill: var(--void); }
+#layerspick .tile .st { fill: none; stroke: var(--starpath); stroke-width: 2.2; opacity: 0.3; }
+/* Comets: the MBTA's own colours, as the comets (app/comets-logic.js), a comet's glow, head and white core, and its tail */
+/* W95 cometlook: as the map draws them (SPEC §192): thin solid tracks and a dashed tunnel in the lines' colours, lifted a third toward
+   white on Dark as chart/style/build_style.py's TRACK_DARK and the MBTA's own by day (TRACK_DAY); the comet's tail narrows to a point */
+#layerspick .tile { --t-r: var(--mbta-red); --t-o: var(--mbta-orange); --t-ot: var(--mbta-track-orange-tunnel); --t-g: var(--mbta-green); } /* W185 colours: the tokens; W95 cometlook; W173 mapstyle2: the tracks' bold colours (TRACK_BOLD) */
+:root[data-theme="light"] #layerspick .tile { --t-r: var(--mbta-day-red); --t-o: var(--mbta-track-day-orange); --t-ot: var(--mbta-track-day-orange-tunnel); --t-g: var(--mbta-day-green); } /* W185 colours; W95 cometlook; W173 mapstyle2: TRACK_BOLD_DAY; W186 palette: her day fills */
+/* W144 tlines (SPEC §258): thick see-through bands at the map's opacities (build_style.py track_opacity: Dark's Red 0.57, Orange 0.44,
+   Green 0.54; Daystar's 0.65, 0.68, 0.72), a tunnel 0.85 of its line's, solid (were W95's thin lines, a tunnel dashed) */
+/* W173 mapstyle2 (SPEC §303): each line a track as the map draws it (chart/style/build_style.py track_paint): two rails (a 6.4 stroke with
+   the ground's 3.6 inside it) and ties across them (a dashed 8 stroke under them), opaque, in the tracks' bold colours (TRACK_BOLD,
+   TRACK_BOLD_DAY), the Orange Line in a tunnel at TUNNEL_SHARE on the ground; was W144's see-through band */
+#layerspick .tile :is(.tr, .ti, .tg) { fill: none; stroke-linejoin: round; } #layerspick .tile .tr { stroke-width: 6.4; } /* W144 tlines: was 2.2, round caps, 0.85; W150 mapink: 0.7 of W144's 6, as the map's; W173 mapstyle2: the rails' span */
+#layerspick .tile .tg { stroke: var(--void); stroke-width: 3.6; } #layerspick .tile .ti { stroke-width: 8; stroke-dasharray: 1.4 1.1; } /* W173 mapstyle2: the gauge; the ties; W177 mapmarks2: a tie to the next half as far (was 1.4 3.6), as the map's (SPEC §314) */
+#layerspick .tile .r { stroke: var(--t-r); } #layerspick .tile .o { stroke: var(--t-o); } #layerspick .tile .gn { stroke: var(--t-g); } /* W95 cometlook; W173 mapstyle2: opaque (W144's opacities went) */
+#layerspick .tile .o.tun { stroke: var(--t-ot); } /* W144 tlines: the Orange Line in a tunnel; W173 mapstyle2: its colour on the ground */
+#layerspick .tile :is(.ch, .cg) { fill: var(--t-r); } #layerspick .tile .ts { stop-color: var(--t-r); } #layerspick .tile .tl { fill: url(#comet-tail); } /* W95 cometlook */
+#layerspick .tile .cg { opacity: 0.35; } #layerspick .tile .cc { fill: var(--fixed-white); } :root[data-theme="light"] #layerspick .tile .cc { opacity: 0.4; } /* W95 cometlook: the core as the map's, dimmer by day */
+/* Terrain: the hills' tint, as app/terrain.js (starlight on Dark, stardust on Daystar), and steep ground's hachures in --caution */
+#layerspick .tile :is(.h1, .h2, .h3) { fill: var(--starlight); } #layerspick .tile .h1 { opacity: 0.14; } #layerspick .tile .h2 { opacity: 0.2; } #layerspick .tile .h3 { opacity: 0.28; }
+:root[data-theme="light"] #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--stardust); }
+#layerspick .tile .hc { fill: none; stroke: var(--caution); stroke-width: 2.2; stroke-linecap: round; }
+/* Places: magenta dots, each with its name's stroke in a dark halo, as spot-dot and spot-label */
+/* W59 routes: Lanes: a painted lane dashed, a dimmer one (less comfort), a protected lane's double line, in --bike-line (W116: the map's, Daystar's blue) */
+#layerspick .tile :is(.ln, .lp) { fill: none; stroke: var(--bike-line); } #layerspick .tile .ln { stroke-width: 3; stroke-dasharray: 6 4; } /* W59 routes */
+#layerspick .tile .ln.dim { opacity: 0.45; } #layerspick .tile .lp { stroke-width: 1.8; } /* W59 routes */
+/* W140 dircomfort (SPEC §254): Ride quality's ⓘ, small on the picture's top right corner (the picture is at most 72 px, centred), a 32 px
+   target reaching 5 px past it; its glyph on the card's ground, so it reads over the lines */
+#layerspick .tilebox { position: relative; display: grid; } /* W140 dircomfort */
+#layerspick .tinfo { position: absolute; top: -5px; border-radius: 50%; right: calc(max(0px, 50% - 36px) - 5px); width: 32px; height: 32px; display: grid; place-items: center; margin: 0; padding: 0; border: 0; background: none; color: var(--stardust); -webkit-tap-highlight-color: transparent; cursor: pointer; } /* W140 dircomfort */
+#layerspick .tinfo::before { content: ""; grid-area: 1 / 1; width: 20px; height: 20px; border-radius: 50%; background: var(--space-2); } /* W140 dircomfort: the about glyph on the card's ground */
+#layerspick .tinfo .i { grid-area: 1 / 1; width: 18px; height: 18px; } /* W140 dircomfort */
+#layerspick .tinfo:is(:active, :focus-visible) { color: var(--starlight); outline: none; } /* W140 dircomfort */
+#layerspick .tile .q { fill: none; stroke-width: 3; stroke-linecap: round; } /* W90 comfort: the comfort scale's colours (app/comfort-along.js COMFORT_INK) */
+#layerspick .tile .q3 { stroke: var(--quality-green); } #layerspick .tile .qr { stroke: url(#q-ramp); } #layerspick .tile .q8 { stroke: var(--quality-good); } /* W185 colours; W156 qualitysteps (app/comfort-along.js QUALITY_INK); W173 quality3: the green, the continuum (index.html #q-ramp) and the blue, one palette in both themes (W160 quality2: red and yellow alone) */
+#q-ramp .q-green { stop-color: var(--quality-green); } #q-ramp .q-yellow { stop-color: var(--quality-yellow); } #q-ramp .q-orange { stop-color: var(--quality-orange); } #q-ramp .q-red { stop-color: var(--quality-red); } /* W185 colours: the ramp's stops (index.html), from the tokens */
+#layerspick .tile .qe { fill: none; stroke: none; stroke-width: 5; stroke-linecap: round; } :root[data-theme="light"] #layerspick .tile .qe { stroke: var(--quality-edge); stroke-opacity: 0.85; } /* W185 colours; W160 quality2: Daystar's ink edge (EDGE_INK) */
+#layerspick .tile .pd { fill: var(--luna); stroke: var(--void); stroke-width: 2.4; }
+#layerspick .tile :is(.pw, .pws) { fill: var(--fixed-drawing); stroke: var(--fixed-drawing); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; } #layerspick .tile .pws { fill: none; } /* W157 icons3 (SPEC §276): the places' one white drawing */
+#layerspick .tile :is(.lh, .lb) { fill: none; stroke-linecap: round; } #layerspick .tile .lh { stroke: var(--void); stroke-width: 7.5; } #layerspick .tile .lb { stroke: var(--stardust); stroke-width: 3.6; }
+/* Weather: the rain's wash in the ink (--starlight), heavier to the middle, and its streaks, as app/weather.js (W112 weatherlook: never green) */
+#layerspick .tile :is(.w1, .w2, .w3) { fill: var(--starlight); } #layerspick .tile .wr { fill: none; stroke: var(--starlight); stroke-width: 2.4; stroke-linecap: round; opacity: 0.9; } /* W112 weatherlook */ /* W177 weatherlook: as bold as the map's dashes (was 2 and 0.8) */ #layerspick .tile .w1 { opacity: 0.22; } #layerspick .tile .w2 { opacity: 0.3; } #layerspick .tile .w3 { opacity: 0.4; }
+/* W122 homerow: the Anchorages and Systems tiles went (SPEC §230), and their pictures' colours with them */
+
+@media (orientation: landscape) and (max-height: 500px) { /* W191 appleft: Layers' and the compass's W58 places went (#8) */
+  /* beside the ship, and above Where to? and Launch; it scrolls when it must */
+  #layerspick { top: var(--top); width: min(500px, 74vw); max-height: calc(100dvh - var(--top) - max(var(--rail), calc(var(--bar-h, 0px) + 14px)) - 48px - 8px); } /* W56 parking: 500 px, 74vw (was 340, 44vw): six a row */
+  #layerspick .tiles { grid-template-columns: repeat(6, minmax(44px, 1fr)); } /* W56 parking, W59 routes: all in one row: no room for two; W114: eight since W90's Flying; W122 homerow: six */
+  #layerspick .tile { font-size: max(11px, 0.78125rem); } /* W56 parking: "Anchorages" under a 71 px picture at 667 px */ /* W142 remscale */
+  /* in flight on a course, under the turn card, which reaches the right column here (app/course.css): the next turn stays in view */
+  body:has(.cturn:not([hidden])) > #layerspick { top: calc(var(--top) + var(--card-h, 0px) + 8px); max-height: calc(100dvh - var(--top) - var(--card-h, 0px) - 8px - var(--rail)); }
+}
+body.calm #layerspick { animation-duration: var(--t-press); }
+
+/* W54 flight (SPEC §70): the overview, in flight on a course, beside Layers, to its left: clear of the turn card, the
+   readout and Land, and of Settings and Sound, which come up the right column from the bottom (a 640 px phone with its
+   insets has no room for a fourth button under the compass). Lit while it frames the rest of the course. */
+.i-overview { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8V3.5H8M16 3.5h4.5V8M20.5 16v4.5H16M8 20.5H3.5V16'/%3E%3Cpath d='M7.5 16.5c2-4.5 3.5-1 5-4.5s3-2.5 4-4.5' stroke-width='2'/%3E%3Ccircle cx='16.6' cy='7.4' r='1.6' fill='%23000' stroke='none'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8V3.5H8M16 3.5h4.5V8M20.5 16v4.5H16M8 20.5H3.5V16'/%3E%3Cpath d='M7.5 16.5c2-4.5 3.5-1 5-4.5s3-2.5 4-4.5' stroke-width='2'/%3E%3Ccircle cx='16.6' cy='7.4' r='1.6' fill='%23000' stroke='none'/%3E%3C/svg%3E"); }
+#overview { z-index: 2; } /* W58 clean; W191 appleft (SPEC §334): its W58 place went, which app/home.css's rules replaced in every state (layout audit #8) */
+#overview[aria-pressed="true"] { color: var(--course); border-color: color-mix(in srgb, var(--course) 70%, transparent); }
+body:is([data-open~="search"], [data-open~="preview"], [data-open~="log"], [data-open~="flight-page"]) > #overview { visibility: hidden; }
+body[data-open~="turns"] > #overview { visibility: hidden; } /* W54 flight: the unfolded turn list pushes the right column down; the overview waits */

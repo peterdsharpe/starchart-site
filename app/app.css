@@ -1,0 +1,401 @@
+/* Starchart 0.1: the app's screen (design/app-ui/SPEC.md). Colours and type come from
+   design/tokens.css. Only transform and opacity animate, and nothing uses backdrop blur: the chart
+   redraws all ride (brief 8). Two numbers place everything: --m, the margin from each edge, and
+   --rail, the bottom rail everything at the bottom sits on (the OpenStreetMap credit runs under it).
+   Every colour is a variable, so the themes (app/theme.css, design/tokens.css) can swap them. */
+@import url("theme.css");
+:root {
+  --m: 12px;
+  --ml: calc(var(--m) + env(safe-area-inset-left));
+  --mr: calc(var(--m) + env(safe-area-inset-right));
+  --top: calc(env(safe-area-inset-top) + 10px);
+  --rail: calc(env(safe-area-inset-bottom) + 22px);
+  --card: env(safe-area-inset-bottom); /* the flight readout sits on the bottom edge of the safe area: arclight, "tuck it even lower, bottom-align it" (W16 had 8 px) */
+  --shade: var(--fixed-shadow); /* the colour of every shadow; W185 colours: the token */
+  --sticker-paper: var(--fixed-paper); /* the die-cut edge of a sticker, in every theme; W185 colours: the token */
+  --lift: 0 2px 8px color-mix(in srgb, var(--shade) 55%, transparent);
+  /* W69 artdir: the elevation scale has three steps: --lift for everything on the chart (buttons, the bar, cards, bubbles, snackbars), */
+  --lift-sheet: 0 6px 24px color-mix(in srgb, var(--shade) 65%, transparent); /* W69 artdir: a card that drops over the chrome (Layers, the weather, the sound's chooser) */
+  --lift-up: 0 -6px 24px color-mix(in srgb, var(--shade) 60%, transparent); /* W69 artdir: a sheet up from the bottom edge */
+  --col: 60px; /* the right column and its gap: banners and the snackbar stay left of it */
+  --colb: calc(var(--card) + 64px + 8px); /* W171 flightbar (SPEC §298): in flight the column's foot, the location button, 8 px above the readout, which spans the screen under it */
+}
+html, body { margin: 0; height: 100%; background: var(--void); overflow: hidden; }
+html { touch-action: pan-x pan-y; } /* W154 nozoom (SPEC §273): no pinch zoom of the page; what sets its own touch-action keeps it, and the map pinches through its own (none) */
+body { height: 100dvh; font-family: var(--font-body); color: var(--starlight); -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+[hidden] { display: none !important; }
+.rem-probe { position: fixed; top: 0; left: 0; width: 1rem; height: 0; visibility: hidden; pointer-events: none; } /* W142 remscale: resizes with the root font size (app/textscale.js) */
+
+/* the chart: until the tiles come, the space shows a faint dotted texture, never a blank screen */
+#map { position: absolute; inset: 0; background-color: var(--void);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--stardust) 30%, transparent) 1px, transparent 1.5px),
+    linear-gradient(color-mix(in srgb, var(--space-3) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--space-3) 70%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px, 132px 132px, 132px 132px; background-position: center; }
+/* W186 palette (SPEC §328): Plain is flat, her "no glows, gradients or text shadows anywhere": no dotted texture under the chart and no
+   glow on the readout's figures (tokens.css sets Plain's --glow-s and --glow-m to a zero shadow, 0 0 0); the thin halos that part words from the moving
+   chart stay, and so do the shadows that lift a control off it */
+:root[data-lingo="meatspace"] #map { background-image: none; } /* W186 palette */
+:root[data-lingo="meatspace"] #readout b { text-shadow: none; } /* W186 palette */
+/* W186 palette, her row of 10-28 18:32: "Please remove the halo around the record button in dark mode. It's distracting and unnecessary":
+   in Plain, Record and Start keep their lift and lose their glow, in both themes (SCUL keeps its glow) */
+:root[data-lingo="meatspace"] #launch, :root[data-lingo="meatspace"] #gobar #launch { box-shadow: var(--lift); } /* W186 palette */
+:root[data-lingo="meatspace"] .csheet .launch-c { box-shadow: none; } /* W186 palette: Start, the preview's */
+
+/* icons: masks of the 24-unit UI set, in currentColor. Set here, not in style attributes or custom
+   properties (whose relative URLs resolve differently by browser), so the CSP can forbid inline styles */
+.i { display: block; flex: none; width: 24px; height: 24px; background: currentColor; -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.i-pilot { -webkit-mask-image: url("../design/glyphs/ui/pilot.svg"); mask-image: url("../design/glyphs/ui/pilot.svg"); }
+.i-sound { -webkit-mask-image: url("../design/glyphs/ui/sound_on.svg"); mask-image: url("../design/glyphs/ui/sound_on.svg"); }
+#sound[data-mode="off"] .i { -webkit-mask-image: url("../design/glyphs/ui/silent_running.svg"); mask-image: url("../design/glyphs/ui/silent_running.svg"); }
+/* W177 buttons2 (SPEC §312), her note 3: the sound button's three modes, each its own icon: Off crossed, Basic one wave, Detailed a bigger speaker and three */
+#sound[data-mode="directions"] .i { -webkit-mask-image: url("../design/glyphs/ui/sound_basic.svg"); mask-image: url("../design/glyphs/ui/sound_basic.svg"); }
+#sound[data-mode="all"] .i { -webkit-mask-image: url("../design/glyphs/ui/sound_detailed.svg"); mask-image: url("../design/glyphs/ui/sound_detailed.svg"); }
+.i-compass { -webkit-mask-image: url("../design/glyphs/ui/compass.svg"); mask-image: url("../design/glyphs/ui/compass.svg"); }
+.i-hifive { -webkit-mask-image: url("../design/glyphs/ui/hi_five.svg"); mask-image: url("../design/glyphs/ui/hi_five.svg"); }
+.i-cup { -webkit-mask-image: url("../design/glyphs/ui/cup_crush.svg"); mask-image: url("../design/glyphs/ui/cup_crush.svg"); }
+.i-launch { -webkit-mask-image: url("../design/glyphs/ui/launch.svg"); mask-image: url("../design/glyphs/ui/launch.svg"); }
+.i-land { -webkit-mask-image: url("../design/glyphs/ui/land.svg"); mask-image: url("../design/glyphs/ui/land.svg"); }
+/* W65 plainlook: in Plain an ordinary start and stop for the rocket and the lander (data-lingo: app/lingo-mode.js) */
+[data-lingo="meatspace"] .i-launch { -webkit-mask-image: url("../design/glyphs/ui/start.svg"); mask-image: url("../design/glyphs/ui/start.svg"); }
+[data-lingo="meatspace"] .i-land { -webkit-mask-image: url("../design/glyphs/ui/end.svg"); mask-image: url("../design/glyphs/ui/end.svg"); }
+[data-lingo="meatspace"] .i-pilot { -webkit-mask-image: url("../design/glyphs/ui/person.svg"); mask-image: url("../design/glyphs/ui/person.svg"); } /* W135 plainicons: a person, not the pilot's helmet */
+.i-undo { -webkit-mask-image: url("../design/glyphs/ui/undo.svg"); mask-image: url("../design/glyphs/ui/undo.svg"); }
+.i-close { -webkit-mask-image: url("../design/glyphs/ui/close.svg"); mask-image: url("../design/glyphs/ui/close.svg"); }
+.i-locate-off, #locate.off .i { -webkit-mask-image: url("../design/glyphs/ui/locate_off.svg"); mask-image: url("../design/glyphs/ui/locate_off.svg"); }
+#locate.free .i, #locate.searching .i { -webkit-mask-image: url("../design/glyphs/ui/locate.svg"); mask-image: url("../design/glyphs/ui/locate.svg"); }
+#locate.follow .i { -webkit-mask-image: url("../design/glyphs/ui/locate_follow.svg"); mask-image: url("../design/glyphs/ui/locate_follow.svg"); }
+#locate.heading .i { -webkit-mask-image: url("../design/glyphs/ui/locate_heading.svg"); mask-image: url("../design/glyphs/ui/locate_heading.svg"); }
+.i-wake { -webkit-mask-image: url("../design/glyphs/ui/screen_on.svg"); mask-image: url("../design/glyphs/ui/screen_on.svg"); } /* W173 uismall: a small sun, her note 26 (was warp_core.svg) */
+.i-check { -webkit-mask-image: url("../design/glyphs/ui/check.svg"); mask-image: url("../design/glyphs/ui/check.svg"); }
+.i-download { -webkit-mask-image: url("../design/glyphs/ui/download.svg"); mask-image: url("../design/glyphs/ui/download.svg"); }
+.i-warning { -webkit-mask-image: url("../design/glyphs/ui/warning.svg"); mask-image: url("../design/glyphs/ui/warning.svg"); }
+.i-chart { -webkit-mask-image: url("../design/glyphs/ui/codex.svg"); mask-image: url("../design/glyphs/ui/codex.svg"); }
+.i-about { -webkit-mask-image: url("../design/glyphs/ui/about.svg"); mask-image: url("../design/glyphs/ui/about.svg"); }
+
+/* ---- buttons: round, see-through glass with a hairline (W21 glass: --glass-btn, about 70 %, was 88 %) */
+.btn, body > #sound { position: absolute; background: var(--glass-btn); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); } /* W21 glass; W23 bar: Sound in flight (W75 chrome: the gear is away) */
+.btn, body > #sound { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; color: var(--starlight); }
+button { transition: transform var(--t-press) var(--ease-enter); }
+button:active { transform: scale(0.94); }
+button:focus { outline: none; }
+button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:not([tabindex="-1"]):focus-visible { outline: 2px solid var(--phosphor); outline-offset: 2px; } /* W40 maplayout: and select, textarea, [tabindex] */
+.maplibregl-canvas[tabindex]:focus-visible { outline-offset: -2px; } /* W40 maplayout: the chart fills the screen, so its ring is inside it */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* W73 a11y: for a screen reader only (#say) */
+
+/* W23 bar: Settings and Sound are in the bottom bar's right corner (app/log.css). In flight the bar is away, so they ride
+   in the right column, centred over the tallies: Sound at the riding size (56 px, BRIEF §7.8); W75 chrome: Settings is away (below) */
+/* W191 appleft (SPEC §334): Sound's, the compass's, location's and the tallies' old right-hand places went: app/home.css places them in every state (layout audit #8) */
+body > #about { display: none; } /* W75 chrome (D14a, SPEC §131): in flight the gear goes (W177 buttons2: Settings waits for the landing; Sound's hold and its Settings row are gone) */
+/* W177 buttons2 (SPEC §312): W75 chrome's gear on Sound's rim is gone with the hold it told of (her note 3: "no need for the sound button to also link to the settings") */
+body[data-open~="preview"] > #sound { visibility: hidden; } /* as the tallies, under a course sheet */
+/* W21 glass: a soft halo of the ground round the text on the see-through search pill, so a map label behind it can't run into it */
+.csearch { --halo: color-mix(in srgb, var(--void) 90%, transparent); }
+.csearch input { text-shadow: 0 0 2px var(--halo), 0 0 1px var(--halo); }
+#sound[data-mode="off"] { color: var(--stardust); } /* W177 buttons2: data-mode (was aria-pressed) */
+/* the chart download, as a ring inside the pilot button */
+#about::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; opacity: 0;
+  background: conic-gradient(var(--accent, var(--wormhole)) 0 calc(var(--dlp, 0) * 1turn), color-mix(in srgb, var(--space-3) 80%, transparent) 0); /* W171 palette: the accent in Plain */
+  -webkit-mask: radial-gradient(circle, transparent 17px, #000 17.5px); mask: radial-gradient(circle, transparent 17px, #000 17.5px); }
+#about.dl::after { opacity: 1; }
+
+/* the compass: shown when the chart is turned; the dial turns by minus the bearing */
+#compass { transition: opacity var(--t-small) var(--ease-enter), transform var(--t-small) var(--ease-enter); }
+#compass.hide { color: var(--stardust); } #compass.hide .dial { opacity: 0.55; } /* W122 homerow (her note: "the compass should always be displayed although maybe it can be grayed out when the map is aligned with the North"): north up, greyed, still a target (the class keeps its name) */
+#compass .dial { position: relative; width: 44px; height: 44px; display: grid; place-items: center; will-change: transform; }
+#compass .dial .i { margin-top: 4px; }
+#compass .n { position: absolute; top: 1px; left: 0; right: 0; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: max(11px, 0.75rem); line-height: 1; } /* W142 remscale */
+
+/* the location button, on the rail at the right (MKUserTrackingButton, Google's location button) */
+#locate { width: 48px; height: 48px; } /* W171 flightbar: colb (W191 appleft: app/home.css's) */ /* W166 icons4 (SPEC §292), her note 4: "Gps button should still have a white or black outline even when it's not blue. The gray outline makes it hard to find." Not following, the arrow is the round buttons' full ink (.btn's --starlight: white by night, black by day), was --stardust */
+#locate .i { transition: opacity var(--t-small) var(--ease-enter); }
+#locate.follow, #locate.heading { color: var(--you); border-color: color-mix(in srgb, var(--you) 55%, transparent); }
+#locate.searching .i { animation: breathe var(--pulsar-period) ease-in-out infinite; }
+#locate.lost .i { animation: breathe var(--pulsar-period) ease-in-out infinite; } /* W21 flight: GPS lost in flight */
+/* W31 navview: in flight with a course, the countdown back to following after a pan, a ring that fills round the button */
+#locate[data-back]::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(var(--you) calc(var(--back, 0) * 1turn), color-mix(in srgb, var(--you) 22%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
+@keyframes breathe { 50% { opacity: 0.35; } }
+/* a fix that never comes: one plain line above the location button */
+#nofix { position: absolute; right: var(--mr); bottom: calc(var(--rail) + 48px + 10px); padding: 6px 12px; border-radius: var(--r-card); /* W69 artdir */
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); color: var(--starlight); font-size: max(11px, 0.9375rem); line-height: 1.3; /* W21 glass */ /* W69 artdir */ /* W142 remscale */
+  max-width: min(300px, calc(100vw - var(--ml) - var(--mr))); box-sizing: border-box; } /* W20 chrome: the rough-position line wraps */
+/* W21 locate: the location button's answer without a position, beside it (main.js places it from the button's box) */
+#loctip { position: fixed; inset: auto; z-index: 9; margin: 0; padding: 6px 12px; border-radius: var(--r-card); overflow: visible; /* W24 quiet: the one bubble (app/tip.js), a popover */ /* W69 artdir */
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); color: var(--starlight); /* W69 artdir */
+  font-size: max(11px, 0.9375rem); line-height: 1.3; width: max-content; max-width: min(300px, calc(100vw - 32px)); box-sizing: border-box; text-wrap: balance; pointer-events: none; opacity: 0; transition: opacity var(--t-small) ease; } /* W24 quiet */ /* W142 remscale */
+#loctip.on { opacity: 1; } #loctip { white-space: pre-line; } /* W140 dircomfort: an explanation's lines (Ride quality's ⓘ) */
+:root { --q-ramp: linear-gradient(90deg, var(--quality-good) 0 16%, transparent 16% 20%, var(--quality-green) 20%, var(--quality-yellow) 46.7%, var(--quality-orange) 73.3%, var(--quality-red) 100%); } /* W185 colours: the tokens */ /* W173 quality3: the Bike-friendly roads scale for the ⓘ and the legend: the blue, then the continuum from green to red at its stops (app/comfort-along.js QUALITY_STOPS, QUALITY_INK) */
+#loctip[data-look="qramp"]::before { content: ""; display: block; height: 8px; margin: 6px 0 8px; border-radius: var(--r-pill); background: var(--q-ramp); } /* W173 quality3: the ⓘ's scale over its words */
+#loctip.on.stay { pointer-events: auto; } /* W112 taps: a tap on an explanation closes it, and doesn't reach what is under it (app/tip.js) */
+#loctip { background: var(--space-1); } :root[data-theme="light"] #loctip { background: var(--space-2); } /* arclight 2026-10-23: words over the chart or Settings read on a solid ground, in both themes (Daystar's glass let them show through) */
+/* W21 glass: its × (app/notice.js), small to look at, a 44 px target: a tap hides it for now, a long press for good */
+#nofix { display: flex; align-items: center; gap: 2px; padding-right: 0; }
+#nofix .nt { flex: 1; min-width: 0; }
+#nofix.finding .nt::before { content: ""; display: inline-block; width: 8px; height: 8px; margin: 0 8px 1px 0; border-radius: 50%; background: var(--you); animation: breathe 1.6s ease-in-out infinite; } /* W150 gpshelp: it looks; still in Calm (below) */
+body.calm #nofix.finding .nt::before { animation: none; } /* W150 gpshelp */
+/* W21 flight: in flight the tallies hold the right column, so the line goes to the top left, under the turn card when a course is set */
+body:has(#readout:not([hidden])) #nofix { left: calc(var(--ml) + var(--colw-l)); right: auto; bottom: auto; top: calc(var(--top) + var(--card-h, 0px)); max-width: calc(100vw - var(--ml) - var(--mr) - var(--nfr)); } /* W191 appleft (SPEC §334): either hand's (app/home.css --colw-l, --nfr) */
+.nx { flex: none; align-self: flex-start; width: 44px; height: 44px; margin: -6px 0 -6px 0; padding: 0; display: grid; place-items: center;
+  border: 0; background: none; color: var(--stardust); -webkit-touch-callout: none; }
+.nx .i { width: 18px; height: 18px; }
+/* W21 glass: "Won't show this again", with Undo, 5 s: as the landing's snackbar, above Launch, or above the card in flight */
+.nsnack { position: absolute; z-index: 8; left: calc(var(--ml) + var(--colw-l)); right: calc(var(--mr) + var(--colw-r)); /* W187 handside: clear of the Buttons column on its side (app/home.css) */ bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 56px);
+  min-height: 56px; max-width: 420px; display: flex; align-items: center; gap: 4px; padding: 6px 4px 6px 14px; box-sizing: border-box; overflow: hidden; contain: layout paint; /* W166 walkui: min-height, so a long line wraps */
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); /* W69 artdir */
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--shade) 60%, transparent); animation: enter var(--t-small) var(--ease-enter); }
+body[data-open~="flight-page"] .nsnack { bottom: calc(var(--card) + 64px + 10px); }
+.nsnack .t { flex: 1; min-width: 0; overflow-wrap: break-word; /* W166 walkui (her note 8): a message wraps, never cut */ font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.1875rem); /* W142 remscale */
+  letter-spacing: var(--track-display); text-transform: uppercase; }
+.nsnack button { flex: none; height: 44px; padding: 0 8px 0 4px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: var(--r-pill); background: none;
+  color: var(--phosphor); font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+.nsnack .timer { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--phosphor); transform-origin: left; animation: undo-timer 5s var(--ease-orbit) forwards; }
+
+/* the tallies, in flight only: icon buttons with count badges; W191 appleft (SPEC §334): their W171 heights went, which app/home.css's rules replaced in every state they show (#8) */
+.badge { position: absolute; top: -5px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: var(--r-pill); /* W69 artdir */
+  background: var(--phosphor); color: var(--void); font-family: var(--font-display); font-weight: 700; font-size: max(11px, 0.875rem); line-height: 1.4286; /* W142 remscale */
+  text-align: center; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--void); pointer-events: none; }
+.tally[data-n="0"] .badge { display: none; }
+.tally { -webkit-touch-callout: none; }
+.tally.pop .i { animation: tally-pop var(--t-small) var(--ease-enter); }
+@keyframes tally-pop { 50% { transform: scale(1.18); } }
+.tally::before { content: "−1"; position: absolute; right: 100%; margin-right: 6px; font-family: var(--font-display); font-weight: 700;
+  font-size: max(11px, 1.125rem); color: var(--chalk); text-shadow: 0 0 3px var(--void); opacity: 0; pointer-events: none; } /* W142 remscale */
+.tally.minus::before { animation: minus 0.9s var(--ease-enter); }
+/* The signs hold at full strength for their first 30 % (0.27 s), then drift and fade: --ease-enter (W73 polish: was --ease-warp) front-loads its motion, so
+   from the first frame they were half gone by 150 ms, too faint for a glance. */
+@keyframes minus { 0%, 30% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(14px); } } /* W34 cues: it falls, as the +1 rises */
+.tally.plus::before { content: "+1"; animation: plus 0.9s var(--ease-enter); } /* W34 cues: a tap's +1, the twin of the hold's −1 */
+@keyframes plus { 0%, 30% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-14px); } }
+body.calm .tally:is(.plus, .minus)::before { animation-name: tally-fade; } /* W34 cues: Calm fades it, still */
+@keyframes tally-fade { 0%, 30% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---- bottom left: Launch, the flight readout, Landed with Undo ------------------------------ */
+#launch { position: absolute; left: var(--ml); bottom: var(--rail); height: 44px; padding: 0 20px 0 14px; display: flex; align-items: center; gap: 8px; /* W20 chrome: 44 px, was 56 */
+  border: var(--hairline) solid color-mix(in srgb, var(--starlight) 30%, var(--phosphor)); /* W21 glass: solid green, with a hairline */
+  border-radius: var(--r-pill); background: var(--phosphor); color: var(--void); font-family: var(--font-display); font-weight: 700;
+  font-size: 1.3125rem; letter-spacing: var(--track-display); text-transform: uppercase; /* W142 remscale */
+  box-shadow: var(--lift), var(--glow-m) color-mix(in srgb, var(--phosphor) 45%, transparent); } /* W69 artdir */
+#launch .i { width: 24px; height: 24px; }
+
+#readout { position: absolute; left: var(--ml); bottom: var(--card); height: 64px; display: flex; align-items: stretch; contain: layout paint;
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-pill); /* W21 glass */ /* W69 artdir */
+  box-shadow: var(--lift), var(--glow-s) color-mix(in srgb, var(--phosphor) 22%, transparent); font-family: var(--font-display); }
+#land { width: 52px; display: grid; place-items: center; padding: 0; border: 0; border-right: var(--hairline) solid var(--glass-edge); background: none; color: var(--stardust); } /* W69 artdir */
+#readout .warp { display: flex; flex-direction: column; justify-content: center; padding: 0 10px 0 12px; }
+#readout .lbl { font-weight: 600; font-size: max(11px, min(0.6875rem, 13.2px, 3.4375vw)); letter-spacing: 0.12em; color: var(--console-grey); text-transform: uppercase; } /* W142 remscale */
+#readout b { font-weight: 700; color: var(--phosphor); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in srgb, var(--phosphor) 35%, transparent); white-space: nowrap; }
+#warp { font-size: min(2.75rem, 52.8px, 13.75vw); line-height: 0.9; min-width: 1.1em; } /* W142 remscale */
+#readout .warp .nofix { display: none; font-weight: 600; font-size: max(11px, min(0.75rem, 14.4px, 3.75vw)); letter-spacing: 0.08em; color: var(--caution-words, var(--caution)); text-transform: uppercase; white-space: nowrap; } /* W25 rest: GPS lost, under the number */ /* W142 remscale */
+#readout .warp.lost .nofix { display: block; } #readout .warp.lost #warp { font-size: min(1.875rem, 36px, 9.375vw); } /* W142 remscale */
+#readout .pair { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 14px 0 2px; }
+#readout .pair div { display: flex; align-items: baseline; gap: 5px; }
+#readout .pair b { font-size: min(1.5625rem, 30px, 7.8125vw); line-height: 1; min-width: 2.2em; text-align: right; } /* W142 remscale */
+
+#snack { position: absolute; left: calc(var(--ml) + var(--colw-l)); right: calc(var(--mr) + var(--colw-r)); /* W187 handside: clear of the Buttons column on its side (app/home.css) */ bottom: var(--rail); min-height: 56px; max-width: 420px; display: flex; /* W166 walkui: min-height */
+  align-items: center; gap: 4px; padding: 6px 4px 6px 14px; box-sizing: border-box; overflow: hidden; contain: layout paint;
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift); } /* W21 glass */ /* W69 artdir */
+#snack .t { flex: 1; min-width: 0; overflow-wrap: break-word; font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; /* W142 remscale */
+  letter-spacing: var(--track-display); text-transform: uppercase; } /* W166 walkui (her note 8): a message wraps, never cut */
+i.du { font-style: normal; text-transform: none; white-space: pre; } /* W68 fixes: a duration's h, m and min ("1h 20m"), small in a line of capitals too; W73 polish: pre, so " min" keeps its space and never wraps from its number */
+#undo { flex: none; height: 44px; padding: 0 8px 0 4px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: var(--r-pill); background: none;
+  color: var(--phosphor); font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#timer { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--phosphor); transform-origin: left; }
+#snack.run #timer { animation: undo-timer 5s var(--ease-orbit) forwards; } /* W18 controls: 5 s */
+#snack.hold #timer { animation: none; } /* W21 flight: full while the ship still rides on after Land */
+#snack { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 56px); } /* W18 controls: over the parked chart, above Launch; W20 chrome: Launch is 44 px */
+@keyframes undo-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* the Launch pill gives way to the readout card, and the snackbar to Launch (SPEC §8) */
+.enter { animation: enter var(--t-small) var(--ease-enter); } /* W18 controls: every mode change settles within 300 ms */
+@keyframes enter { from { opacity: 0; transform: translateY(16px); } }
+
+/* the landed sticker, slapped on the chart beside the ship (the garage layer) */
+.sticker { pointer-events: none; }
+.sticker > div { pointer-events: auto; cursor: pointer; } /* W25 rest: a tap opens this flight */
+.sticker > div { padding: 8px 14px 6px; background: var(--void); border: var(--sticker-edge) solid var(--sticker-paper); border-radius: var(--r-m);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--shade) 70%, transparent); font-family: var(--font-marker); font-size: 1.375rem; line-height: 1.05; text-align: center; /* W142 remscale */
+  color: var(--pulsar); white-space: nowrap; transform: rotate(-7deg); }
+.sticker small { display: block; font-size: max(11px, 0.875rem); color: var(--chalk); } /* W142 remscale */
+.sticker.slap > div { animation: slap var(--t-ceremony) var(--ease-enter); }
+@keyframes slap { 0% { opacity: 0; transform: rotate(-7deg) scale(1.3); } 30% { opacity: 1; transform: rotate(-7deg) scale(0.96); } 100% { transform: rotate(-7deg) scale(1); } }
+
+/* ---- banner pills: glyph and title, bottom left above the card, clear of the right column ----- */
+#banner { position: absolute; left: calc(var(--ml) + var(--colw-l)); right: calc(var(--mr) + var(--colw-r)); /* W187 handside: clear of the Buttons column on its side (app/home.css) */ bottom: calc(var(--card) + 64px + 10px); max-width: 420px; /* W21 flight: up to the right column (was 306 px) */
+  display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 6px; pointer-events: none; contain: layout; }
+.bpill { --hue: var(--phosphor); display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 40px; padding: 0 16px 0 6px;
+  box-sizing: border-box; border-radius: var(--r-pill); background: color-mix(in srgb, var(--glass-card) 94%, var(--hue)); border: 1.5px solid var(--hue); /* W69 artdir */
+  box-shadow: var(--lift), var(--glow-s) color-mix(in srgb, var(--hue) 40%, transparent); /* W69 artdir */
+  font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: var(--track-display); text-transform: uppercase; white-space: nowrap; /* W142 remscale */
+  opacity: 0; transform: translateY(140%);
+  animation: pill-in var(--t-sheet) var(--ease-enter) forwards, pill-out var(--t-small) var(--ease-exit) calc(var(--t-sheet) + var(--banner-hold)) forwards; } /* W73 polish: ART's beats, in as a sheet and out quickly (was 0.6 s each) */
+.bpill .glyph { width: 30px; height: 30px; flex: none; }
+.bpill .t { min-width: 0; overflow-wrap: break-word; } /* W166 walkui (her note 8): never cut */
+/* W31 navview: a long line ("Touchdown: Concord Turnpike") wraps to two lines before it is cut (BRIEF §7.8) */
+.bpill { height: auto; min-height: 40px; padding-top: 4px; padding-bottom: 4px; }
+.bpill .t { white-space: normal; line-height: 1.05; } /* W166 walkui: as many lines as it takes (was cut at two) */
+.bpill .d { flex: none; color: var(--hue); font-weight: 600; font-size: max(11px, 1.0625rem); } /* W142 remscale */
+.bpill.wormhole { --hue: var(--wormhole); } .bpill.black_hole { --hue: var(--black-hole); } .bpill.pulsar { --hue: var(--pulsar); }
+.bpill.negi { --hue: var(--negi); } .bpill.byway { --hue: var(--starlight); } .bpill.constellation { --hue: var(--starpath); }
+.bpill.ly { --hue: var(--course); }
+@keyframes pill-in { to { opacity: 1; transform: none; } }
+@keyframes pill-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(40%); } }
+
+/* W17 ship3d: you on the chart (the ship, its accuracy ring and heading beam) are a GL layer, app/ship3d.js */
+
+/* ---- loading ------------------------------------------------------------------------------- */
+#progress { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); height: 3px; background: color-mix(in srgb, var(--space-3) 70%, transparent);
+  transition: opacity var(--t-normal); }
+#progress i { display: block; height: 100%; width: 100%; transform-origin: left; transform: scaleX(0.05); background: var(--accent, var(--wormhole)); /* W171 palette: her loading bar */
+  box-shadow: var(--glow-s) var(--accent, var(--wormhole)); transition: transform var(--t-small) var(--ease-enter); }
+body.loaded #progress { opacity: 0; visibility: hidden; transition: opacity var(--t-normal), visibility 0s var(--t-normal); } /* W73 a11y: and out of the accessibility tree once faded */
+#loadword { position: absolute; left: 50%; top: calc(62% + 52px); z-index: 2; margin: 0; transform: translateX(-50%); pointer-events: none; font-family: var(--font-display); /* W21 entry: "Charting… 62 %" after 3 s */
+  font-weight: 700; font-size: max(11px, 1.125rem); letter-spacing: 0.08em; text-transform: uppercase; color: var(--phosphor); white-space: nowrap; font-variant-numeric: tabular-nums; /* W142 remscale */
+  text-shadow: 0 0 3px var(--void), 0 0 3px var(--void), 0 0 8px var(--void); }
+/* W69 artdir: in a short landscape the ship sits in the middle and the bar just under its name, so "Charting…" goes above the ship,
+   clear of Launch (and the boot's lines with it, app/fx.css) (the boot lane's matrix: they ran into Launch at 844 × 390 and 667 × 375) */
+@media (orientation: landscape) and (max-height: 500px) { #loadword { top: auto; bottom: calc(50% + 40px); } } /* W69 artdir */
+
+/* ---- the OpenStreetMap credit: under the location button, at the bottom right (W16) -------------
+   Shown in full at start, then folded to a small © after five seconds or the first touch on the chart,
+   as the OSMF's attribution guideline allows for interactive maps; a tap on the © shows it again, and
+   About keeps the full credits (main.js, credit). */
+.maplibregl-ctrl-bottom-right { right: env(safe-area-inset-right); bottom: calc(env(safe-area-inset-bottom) + 3px); }
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin: 0 var(--m) 0 0; }
+.maplibregl-ctrl-attrib { background: none !important; padding: 0 !important; font-size: max(11px, 0.6875rem); /* W22 fit: 11 px at least */ line-height: 1.4545; /* W142 remscale */
+  color: color-mix(in srgb, var(--stardust) 85%, transparent); text-shadow: 0 0 3px var(--void), 0 0 3px var(--void); }
+.maplibregl-ctrl-attrib a { color: inherit; text-decoration: none; }
+.maplibregl-ctrl-attrib[open] .maplibregl-ctrl-attrib-inner { white-space: nowrap; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; } /* W58 clean: "OpenStreetMap" on one line; a hold opens About */
+/* W22 fit: where the full credit can't fit on one line beside Launch (about 140 px), it takes two; and where it can't fit
+   beside the readout (about 220 px), in flight, it shows just above it, at the left */
+[data-flight="parked"] .maplibregl-ctrl-attrib[open] { max-width: calc(100vw - var(--ml) - 140px - 8px - var(--m) - 56px - env(safe-area-inset-right)); }
+@media (max-width: 409px) {
+  body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { right: auto; left: 0; bottom: calc(var(--card) + 64px + 6px); }
+  body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open] { float: left; margin: 0 0 0 var(--ml); }
+}
+/* W73 a11y: the folded © is a 44 px target (BRIEF §7.8), the 16 px ring at its foot where it was, the rest above it, clear of
+   the location button below; its © 11 px (was 16 px with a 40 × 28 ::after, and 10 px) */
+.maplibregl-ctrl-attrib-button { display: none !important; } /* W122 homerow (her note: "the clickable copyright button, which is confusing"): no ©; the credit's words always show */
+.maplibregl-ctrl-attrib:not([open]) .maplibregl-ctrl-attrib-button { display: grid; place-items: end center; position: relative; width: 44px; height: 44px; /* W73 a11y */
+  margin: -28px 2px 0 -14px; box-sizing: border-box; border: 0; border-radius: 0; background: none; font-size: max(11px, 0.6875rem); line-height: 1; color: inherit; } /* W73 a11y */ /* W142 remscale */
+.maplibregl-ctrl-attrib:not([open]) .maplibregl-ctrl-attrib-button::before { content: "©"; display: grid; place-items: center; width: 16px; height: 16px; box-sizing: border-box; /* W73 a11y: the ring */
+  border: 1px solid color-mix(in srgb, var(--stardust) 45%, transparent); border-radius: 50%; background: color-mix(in srgb, var(--void) 70%, transparent); } /* W73 a11y */
+/* W73 a11y: in flight the © sits just above the readout, beside the column (W171 flightbar: in a landscape it sat 3 px under the location button), with no room for 44 px: 16 px, and its target as before */
+body:has(#readout:not([hidden])) .maplibregl-ctrl-attrib:not([open]) .maplibregl-ctrl-attrib-button { width: 16px; height: 16px; margin: 0 16px 0 0; } /* W73 a11y */
+body:has(#readout:not([hidden])) .maplibregl-ctrl-attrib:not([open]) .maplibregl-ctrl-attrib-button::after { content: ""; position: absolute; inset: -8px -12px -4px; } /* W73 a11y */
+.maplibregl-ctrl-attrib:not([open]) .maplibregl-ctrl-attrib-button:focus { outline: none; box-shadow: none; } /* W73 a11y: the ring goes round the ©, not its target */
+.maplibregl-ctrl-attrib:not([open]) .maplibregl-ctrl-attrib-button:focus-visible::before { outline: 2px solid var(--phosphor); outline-offset: 2px; } /* W73 a11y */
+.maplibregl-ctrl-attrib[open] .maplibregl-ctrl-attrib-button::after { content: ""; position: absolute; inset: -8px -12px -4px; } /* a bigger target than it looks; W73 a11y: open only */
+
+/* ---- sheets: Material's bottom sheet, both top corners round (W69 artdir: was the console's one) --- */
+.sheet { --pl: calc(16px + env(safe-area-inset-left)); --pr: calc(16px + env(safe-area-inset-right)); /* clear of a notch in landscape (W16) */
+  box-sizing: border-box; position: fixed; left: 0; right: 0; top: auto; bottom: 0; margin: 0; width: auto; max-width: 560px; padding: 0 var(--pr) calc(env(safe-area-inset-bottom) + 14px) var(--pl);
+  background: var(--space-2); color: var(--starlight); border: 0; border-top: var(--hairline) solid var(--glass-edge); border-radius: var(--r-sheet); /* W69 artdir */
+  box-shadow: var(--lift-up); font-size: max(11px, 1rem); line-height: 1.4; contain: layout paint; } /* W69 artdir */ /* W142 remscale */
+@media (min-width: 576px) { .sheet { --pl: 16px; --pr: 16px; left: 50%; right: auto; width: 560px; transform: translateX(-50%); } } /* centred: clear of any notch */
+.handle { width: 36px; height: 4px; margin: -8px auto 0; padding: 10px 20px; background: var(--space-3) content-box; border-radius: var(--r-pill); touch-action: none; } /* W69 artdir */
+.sheet .head, #nogps h2 { touch-action: none; }
+/* the head (handle, title, ×) stays at the top while the sheet scrolls, so the × is always in reach (W16) */
+.sheet .top { position: sticky; top: 0; z-index: 2; display: flow-root; margin: 0 calc(-1 * var(--pr)) 0 calc(-1 * var(--pl));
+  padding: 8px var(--pr) 0 var(--pl); background: var(--space-2); border-radius: var(--r-sheet); } /* W69 artdir */
+.sheet .x { position: absolute; top: 6px; right: calc(6px + env(safe-area-inset-right)); width: 48px; height: 48px; display: grid; place-items: center; border: 0; background: none; color: var(--stardust); }
+/* W133 settings4 (SPEC §244): a page's one way back, its arrow at the top left (Send feedback's look); no page has an × */
+.sheet .back { width: 48px; height: 48px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--starlight); }
+.sheet .top > form:has(> .back) { float: left; margin: 0 4px 0 -12px; }
+.sheet h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: calc(26px + (1rem - 16px) * 1.5); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+.sheet a { color: var(--accent, var(--wormhole)); } /* W171 palette: links */
+.sheet.dragging { translate: 0 var(--dy, 0); }
+@keyframes sheet-in { from { opacity: 0; translate: 0 24px; } }
+
+#nogps { border-top-color: var(--caution); z-index: 3; max-height: calc(100dvh - env(safe-area-inset-top) - 8px - var(--bar-h)); overflow: auto; overscroll-behavior: contain; animation: sheet-in var(--t-small) var(--ease-enter); } /* W18 controls */
+:root[data-flight="parked"] #nogps { bottom: var(--bar-h); padding-bottom: 14px; } /* W25 rest: above the bar, so the Log and Settings stay in reach; the bar has the safe area */
+#nogps h2 { display: flex; align-items: center; gap: 10px; margin-top: 4px; color: var(--caution-words, var(--caution)); }
+#nogps p { margin: 8px 0 14px; font-size: max(11px, 1.0625rem); line-height: 1.35; max-width: 34em; } /* W142 remscale */
+#nogps ol { margin: -8px 0 14px; padding-left: 1.5em; font-size: max(11px, 1.0625rem); line-height: 1.35; max-width: 34em; } #nogps li + li { margin-top: 4px; } #nogps ol:empty { display: none; } /* W150 gpshelp: the steps, under the why */
+@media (max-height: 700px) and (orientation: portrait) { #nogps:not([hidden]) { display: flex; flex-wrap: wrap; gap: 0 8px; } #nogps > :is(.top, p, ol) { flex: 0 0 100%; box-sizing: border-box; } #nogps:not([hidden]) > :is(.again, .where) { flex: 1 1 0; min-width: 0; width: auto; margin: 0; padding: 0 8px; white-space: nowrap; } } /* W150 gpshelp: room for the steps on a short phone (40 % of the chart above it): Try again and Where to? side by side */
+@media (max-height: 600px) and (orientation: portrait) { #nogps p { margin: 4px 0 10px; font-size: max(11px, 1rem); line-height: 1.3; } #nogps ol { margin: -6px 0 10px; font-size: max(11px, 1rem); line-height: 1.3; } /* W150 gpshelp */ #nogps .handle { display: none; } } /* W25 rest: so a short phone keeps 40 % of the chart above it */ /* W142 remscale */
+.again { display: block; width: min(100%, 320px); margin: 8px auto 0; height: 48px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--phosphor); color: var(--void); font-family: var(--font-display); /* W27 friction: a solid button */ /* W69 artdir */
+  font-weight: 700; font-size: 1.25rem; letter-spacing: var(--track-display); text-transform: uppercase; } /* W69 artdir */ /* W142 remscale */
+
+#about-sheet { max-height: 70dvh; overflow: auto; overscroll-behavior: contain; }
+#about-sheet.full { max-height: calc(100dvh - env(safe-area-inset-top)); }
+#about-sheet[open] { animation: sheet-in var(--t-small) var(--ease-enter); } /* W18 controls */
+#about-sheet::backdrop { background: color-mix(in srgb, var(--void) 62%, transparent); }
+#about-sheet form { margin: 0; }
+#about-sheet .top { box-shadow: 0 1px 0 color-mix(in srgb, var(--space-3) 70%, transparent); }
+/* About, one level down: its row stays under the head while its pages scroll, and a tap on it goes back up */
+#about-sheet :is(.deeper, .cat)[open] > summary { /* W20 chrome: and the categories */ position: sticky; top: var(--top-h, 78px); z-index: 1; margin: 0 -12px; padding: 4px 12px;
+  background: var(--space-1); scroll-margin-top: var(--top-h, 78px); }
+#about-sheet .head { display: flex; align-items: center; gap: 12px; margin: 2px 44px 10px 0; }
+#about-sheet .head img { border-radius: var(--r-inner); } /* W69 artdir */
+#about-sheet .head h2 { color: var(--phosphor); font-size: calc(28px + (1rem - 16px) * 1.5); line-height: 1; } /* W142 remscale */
+#about-sheet .head small { display: block; font-family: var(--font-mono); font-size: max(11px, 0.75rem); color: var(--stardust); margin-top: 4px; } /* W142 remscale */
+#about-sheet h3 { margin: 14px 0 2px; font-family: var(--font-display); font-weight: 600; font-size: max(11px, 0.8125rem); letter-spacing: 0.12em; text-transform: uppercase; color: var(--console-grey); } /* W142 remscale */
+.row { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 4px 0; box-sizing: border-box;
+  border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); font-size: max(11px, 1.0625rem); } /* W142 remscale */
+.row > .i { color: var(--stardust); }
+.row .txt { flex: 1; min-width: 0; }
+.row .txt small { display: block; font-size: max(11px, 0.875rem); line-height: 1.3; color: var(--stardust); margin-top: 1px; overflow-wrap: anywhere; } /* W69 artdir */ /* W142 remscale */
+.row .txt small a { color: var(--accent, var(--wormhole)); } /* W171 palette */
+.row .val { flex: none; color: var(--stardust); font-size: max(11px, 0.9375rem); } /* W142 remscale */
+.row .val.ok { color: var(--phosphor); }
+label.row { cursor: pointer; }
+/* switches: a native checkbox drawn as a switch */
+.row input[type="checkbox"] { flex: none; appearance: none; -webkit-appearance: none; margin: 0; width: 46px; height: 28px; border-radius: var(--r-pill); background: var(--space-3); /* W69 artdir */
+  position: relative; cursor: pointer; } /* W69 motion: no background transition; the fill fades as a ::before (app/motion.css) */
+.row input[type="checkbox"]::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--stardust);
+  transition: transform var(--t-small) var(--ease-enter); }
+.row input[type="checkbox"]:checked { background: color-mix(in srgb, var(--phosphor) 45%, var(--space-3)); }
+.row input[type="checkbox"]:checked::after { transform: translateX(18px); background: var(--phosphor); }
+.seg { flex: none; display: flex; border: 1px solid var(--space-3); border-radius: var(--r-pill); overflow: hidden; font-family: var(--font-display); font-weight: 700;
+  font-size: max(11px, 0.9375rem); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+.seg a, .seg button { min-height: 44px; min-width: 44px; justify-content: center; display: flex; align-items: center; padding: 6px 12px; box-sizing: border-box; color: var(--stardust) !important; text-decoration: none;
+  border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.seg button { min-height: 44px; padding: 0 10px; }
+.seg a[aria-current="true"], .seg button[aria-checked="true"] { background: color-mix(in srgb, var(--phosphor) 22%, transparent); color: var(--phosphor) !important; }
+:is(.deeper, .cat) summary { list-style: none; cursor: pointer; } /* W20 chrome: and the categories */
+:is(.deeper, .cat) summary::-webkit-details-marker { display: none; }
+:is(.deeper, .cat)[open] summary .val { transform: rotate(90deg); }
+.deeper .lede { color: var(--stardust); margin: 10px 0 0; }
+.deeper dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+.deeper dt { color: var(--stardust); }
+.deeper dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.deeper dl.mono dd { font-family: var(--font-mono); font-size: max(11px, 0.875rem); } /* W142 remscale */
+.deeper ul { margin: 0; padding-left: 18px; }
+.deeper .note { font-size: max(11px, 0.875rem); color: var(--stardust); margin: 4px 0 0; } /* W142 remscale */
+.deeper code { font-family: var(--font-mono); font-size: max(11px, 0.875rem); } /* W142 remscale */
+
+#perf { position: absolute; left: var(--ml); top: calc(var(--top) + 44px + 8px + var(--card-h, 0px)); margin: 0; padding: 6px 8px; z-index: 9; pointer-events: none; /* W20 chrome: under the top row */
+  background: color-mix(in srgb, var(--void) 85%, transparent); border: 1px solid var(--space-3); color: var(--phosphor); font: max(11px, 0.6875rem)/1.35 var(--font-mono); white-space: pre; } /* W142 remscale */
+/* W20 chrome: Show frame rate, three short lines between Launch (or the flight card) and the location button */
+#fps { position: absolute; right: calc(var(--mr) + 48px + 8px); bottom: max(var(--rail), calc(var(--bar-h) + 14px)); z-index: 3; margin: 0; pointer-events: none;
+  padding: 3px 6px; border-radius: var(--r-xs); background: color-mix(in srgb, var(--void) 60%, transparent); /* W69 artdir */
+  color: var(--chalk); font: max(11px, 0.6875rem)/1.3 var(--font-mono); text-align: right; white-space: pre; text-shadow: 0 0 3px var(--void); } /* W69 artdir */ /* W142 remscale */
+body.fps #banner { bottom: calc(var(--card) + 64px + 10px + 6px); }
+
+/* ---- landscape, for a handlebar mount: one right column from the stack down to the location button */
+@media (orientation: landscape) and (max-height: 500px) {
+  #banner { max-width: min(420px, calc(50vw - var(--ml) - 88px)); } /* W25 rest: the pills end left of the ship, or each one is dropped. It sits about 12 px left of mid-screen, and its box (the beam too) grows as it turns, to about 55 px from its centre: 88 keeps 8 px and more clear at any heading (app-ui's 844x390 pills, 1 in 5 at 64) */
+  :root { --top: 10px; }
+  .sheet { max-width: 520px; }
+  #about-sheet { max-height: calc(100dvh - 16px); }
+  /* W22 fit: the no-location sheet at the bottom left, so the chart shows beside it */
+  #nogps { --pl: calc(16px + env(safe-area-inset-left)); --pr: 16px; left: 0; right: auto; width: min(420px, 55vw); transform: none; border-radius: 0 var(--r-l) 0 0;
+    border-right: 1px solid var(--caution); max-height: calc(100dvh - var(--bar-h)); } /* W25 rest: above the bar */
+  body:has(#nogps:not([hidden])) .csearch { visibility: hidden; } /* on a short screen it reaches the top */
+}
+
+/* reduced motion, and the Calm chart setting: fades only, nothing loops. W76 look: body.calm alone (app/main.js calmWanted), not the media query, so Settings › Motion › Full reaches the CSS */
+body.calm .bpill { animation-duration: var(--t-press), var(--t-press); transform: none; }
+body.calm #locate.searching .i, body.calm .tally.pop .i { animation: none; }
+body.calm #locate.lost .i { animation: none; opacity: 0.5; } /* W21 flight: still, and dim */
+/* W21 flight: in Free, a --you chevron at the screen's edge points to a ship off the screen (app/youarrow.js) */
+#youarrow { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; color: var(--you); filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--shade) 80%, transparent)); }
+#youarrow svg { display: block; fill: currentColor; stroke: var(--void); stroke-width: 1.5; stroke-linejoin: round; }
+#youarrow .ly { position: absolute; left: 50%; top: 50%; white-space: nowrap; font: 600 max(11px, 0.75rem)/1 var(--font-display); letter-spacing: 0.02em; text-shadow: 0 0 3px var(--void), 0 0 2px var(--void); } /* W26 peek: the LY to the ship, upright beside the chevron (app/youarrow.js) */ /* W142 remscale */
+/* W21 flight: snackbars a little more opaque than --glass-card (the token's in design/tokens.css) */
+body #snack, body .nsnack, body .csnack { background: var(--glass-snack); }
+.bpill.radiation { --hue: var(--caution); } /* W54 flight: the rain ahead */
+.bpill.radiation .d, .bpill.off .d { color: var(--caution-words, var(--caution)); } /* W186 palette: a warning's words (Plain's ink by day), its marks the yellow */

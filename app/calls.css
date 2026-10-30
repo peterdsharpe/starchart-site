@@ -1,0 +1,3 @@
+/* Sound (wave 18's Calls; W28 settings, app/calls.js, design/app-ui/SPEC.md §38). W177 buttons2 (SPEC §312): the chooser a long
+   press on the sound button opened is gone; a tap steps Off, Basic and Detailed, and its icon shows which (app.css). */
+#sound, #compass, #bar .tab { -webkit-touch-callout: none; } /* a long press is ours, not the browser's */

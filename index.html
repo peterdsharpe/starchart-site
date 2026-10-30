@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en" data-flight="parked"><!-- W25 rest: bar, the bar's height from the first frame; W190 screenstate: data-flight, app/screen.js's (was class="bar") -->
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><!-- W154 nozoom (SPEC §273): no page zoom; the map keeps its pinch -->
+<meta name="text-scale" content="scale"><!-- W142 remscale (SPEC §256): Android Chrome scales the root font size by the phone's text size, in place of a page zoom; the UI's type is rem -->
+<!-- Only this site, for now. The live feeds (NWS, bike share, radar) come later and will be listed here and in About. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://docs.google.com https://api-v3.mbta.com https://mesonet.agron.iastate.edu https://api.weather.gov; worker-src 'self'; media-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<!-- W29 comets: connect-src https://api-v3.mbta.com, the live trains (app/comets.js) -->
+<!-- W52 weather: connect-src https://mesonet.agron.iastate.edu, the rain radar's tiles and its newest frame's time (app/weather.js); the picture is a blob: image -->
+<!-- W102 winter: connect-src https://api.weather.gov, the NWS's winter alerts for three fixed zones (app/weather-winter.js) -->
+<meta name="referrer" content="no-referrer">
+<title>Starchart</title>
+<meta name="description" content="A star chart for SCUL pilots.">
+<meta name="theme-color" content="#07060d">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes"><!-- W22 pwa: the standard name; the apple- one stays for older iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Starchart">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="design/brand/favicon-skullnaut.svg" data-plain-href="design/brand/favicon.svg" type="image/svg+xml"><!-- W69 velocipede: the tab's icon by Words, the Skullnaut in SCUL and Spark in Plain, since W99 (app/first.js swapWords) -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-06338e0ba01f.png">
+<link rel="stylesheet" href="chart/vendor/maplibre-gl.css">
+<link rel="stylesheet" href="design/tokens.css">
+<link rel="stylesheet" href="app/app.css">
+<link rel="stylesheet" href="app/settings.css">
+<script src="app/theme.js"></script>
+<script src="app/words-first.js"></script><!-- W73 a11y: in Plain, the page's words are Plain's from the first frame (SPEC §113) -->
+<script src="app/boot.js" defer></script><!-- W47 firstload: a start whose files the network dropped loads again; defer: it never holds the first paint, and still runs before the modules (their errors come in order) -->
+<link rel="stylesheet" href="app/fx.css">
+<link rel="stylesheet" href="app/course.css"><!-- W17 course -->
+<link rel="stylesheet" href="app/log.css"><!-- W17 log -->
+<link rel="stylesheet" href="app/calls.css"><!-- W18 controls -->
+<link rel="stylesheet" href="app/scale.css"><!-- W21 scale -->
+<link rel="stylesheet" href="app/install.css"><!-- W22 pwa -->
+<link rel="stylesheet" href="app/pretty.css"><!-- W22 pretty -->
+<link rel="stylesheet" href="app/fromto.css"><!-- W23 fromto -->
+<link rel="stylesheet" href="app/hints.css"><!-- W23 touch -->
+<link rel="stylesheet" href="app/states.css"><!-- W23 touch -->
+<link rel="stylesheet" href="app/downloads.css"><!-- W26 downloads -->
+<link rel="stylesheet" href="app/launch.css"><!-- W28 launch -->
+<link rel="stylesheet" href="app/comets.css"><!-- W29 comets -->
+<link rel="stylesheet" href="app/welcome.css"><!-- W35 welcome -->
+<link rel="stylesheet" href="app/feedback.css"><!-- W48 feedback -->
+<link rel="stylesheet" href="app/hexload.css"><!-- W47 firstload -->
+<link rel="stylesheet" href="app/layers.css"><!-- W50 layers -->
+<link rel="stylesheet" href="app/turns.css"><!-- W53 turns -->
+<link rel="stylesheet" href="app/weather.css"><!-- W52 weather -->
+<link rel="stylesheet" href="app/around.css"><!-- W54 course -->
+<link rel="stylesheet" href="app/starred.css"><!-- W67 places -->
+<link rel="stylesheet" href="app/hud.css"><!-- W56 hud: the readout and Land as the parked bar -->
+<link rel="stylesheet" href="app/delight.css"><!-- W73 delight: the rolling digits and the theme sweep (SPEC §124) -->
+<link rel="stylesheet" href="app/mission.css"><!-- W73 mission -->
+<link rel="stylesheet" href="app/changelog.css"><!-- W98 changelog -->
+<link rel="stylesheet" href="app/home.css"><!-- W89 home: the parked screen, the search at the top and the round row at the bottom (SPEC §183) -->
+<link rel="stylesheet" href="app/motion.css"><!-- W69 motion: last, it retimes the rest (SPEC §107) -->
+<script src="chart/vendor/pmtiles.js"></script>
+<!-- the big modules start loading with the page, not after main.js arrives (motion-9) -->
+<!-- W74 start: the welcome's modules (app/first.js and all it imports) too, first, so the card waits for one round trip, not four -->
+<link rel="modulepreload" href="app/first.js"><link rel="modulepreload" href="app/welcome.js"><link rel="modulepreload" href="app/lingo-mode.js"><link rel="modulepreload" href="app/resume.js"><link rel="modulepreload" href="app/tips.js"><link rel="modulepreload" href="app/duration.js"><link rel="modulepreload" href="app/tip.js"><link rel="modulepreload" href="app/dom.js">
+<link rel="modulepreload" href="chart/vendor/maplibre-gl.mjs">
+<link rel="modulepreload" href="chart/prototype/chart.js">
+<link rel="modulepreload" href="chart/prototype/events.js">
+</head>
+<body>
+<!--
+  Starchart 0.1 (Klingon), flight mode. URL parameters, all optional:
+    sim=demo        fly the demo mission instead of using GPS
+    speed=<n>       the demo's time multiplier (default 1)
+    muted=1         no audio
+    lingo=scul|meatspace   (for tests: the Words setting for this visit, until it is picked; W60 a)
+    calm=1          no chart animation
+    perf=1          the frame overlay
+  The screen: design/app-ui/SPEC.md.
+-->
+<div id="map" role="main" aria-label="Star chart" data-plain-aria-label="Bike map"></div><!-- W73 a11y: the main landmark; Plain's name -->
+<div id="hexload" aria-hidden="true"><i class="wave"></i><i class="last"></i></div><!-- W47 firstload: the start's hexes, until the chart's first view is drawn (app/hexload.css); W69 boot: the shockwave, and the hand-off's last ring -->
+
+<!-- loading: a thin bar under the top edge, and the boot's lines at the ship's spot from app/fx.js (SPEC §10) -->
+<div id="progress" role="progressbar" aria-label="Loading the chart" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5"><i id="progress-bar"></i></div>
+
+<!-- The bar (app/log.js), from the first frame (W25 rest). W89 home (SPEC §183): Chart, Log and Settings, three equal tabs; Settings opens the full-screen Settings, as the gear did (its id stays "about"), and Sound went to the round row above the bar -->
+<nav id="bar" aria-label="Fort" data-plain-aria-label="Chart, Log and Settings"><button class="tab" id="tab-chart"><i class="i i-fold-chart"></i><span>Chart</span></button><button class="tab" id="tab-log"><i class="i i-black-box"></i><span>Log</span></button><button class="tab" id="about"><i class="i i-gear"></i><span>Settings</span></button></nav>
+<!-- W89 home: the round row, parked, centred above the bar, left to right: weather (#wxchip), Layers, location (#locate), Sound, and the compass's slot (app/home.css); in flight they keep their columns -->
+<!-- W190 testinvariants (SPEC §333): data-round marks every round button, here and app/mission.js's long-haul button: app/tip.js's controls a bubble keeps clear of, and the tests, read the mark, never a list of ids -->
+<button id="sound" data-round aria-label="Sound: Detailed directions"><i class="i i-sound"></i></button><!-- W177 buttons2 (SPEC §312): a tap steps Off, Basic and Detailed, its icon and name the mode (main.js); W75 chrome's rim gear is gone with the hold -->
+<button id="getapp" data-round class="btn" aria-label="Install the app" aria-haspopup="dialog" hidden><img src="design/brand/favicon.svg" alt="" width="34" height="34"></button><!-- W150 welcome2 (SPEC §270): in a browser tab only, parked, atop the column; opens the install guide (app/install.js) -->
+<button id="compass" data-round class="btn" aria-label="Compass: tap for north up" hidden><span id="dial" class="dial"><span class="n">N</span><i class="i i-compass"></i></span></button>
+<!-- W50 layers: the Layers button at the top right (W58 clean: in the corner, the compass under it), and its card, the chart's optional layers (app/layers.js, SPEC §62) -->
+<button id="layers" data-round class="btn" aria-label="Layers" aria-haspopup="dialog" aria-expanded="false" aria-controls="layerspick"><i class="i i-layers"></i></button>
+<button id="overview" data-round class="btn" aria-label="Overview: the rest of the course" data-plain-aria-label="Overview: the rest of the route" aria-pressed="false" hidden><i class="i i-overview"></i></button><!-- W54 flight: frames the rest of the course in flight, and back (SPEC §70); W73 a11y: Plain's name -->
+<section id="layerspick" role="dialog" aria-labelledby="layers-title" hidden>
+  <button class="x" aria-label="Close"><i class="i i-close"></i></button><!-- W92 panels: first, so it floats at the top and stays there as the card scrolls (layers.css) -->
+  <h2 id="layers-title">Layers</h2>
+  <!-- W55 layers2: Google Maps' toggle tiles, each a picture of what it shows, drawn here and coloured in app/layers.css (SPEC §71) -->
+  <div class="tiles">
+  <button class="tile" id="layer-lanes" aria-pressed="true"><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W59 routes: the streets' bike lanes, bright and dim by their comfort; name and long press from app/layers.js WORDS -->
+    <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
+    <path class="ln" d="M-2 20H66"/><path class="ln dim" d="M47-2V66"/><path class="lp" d="M19.2-2V66M22.8-2V66"/></svg></span><span></span></button>
+  <span class="tilebox"><button class="tile" id="layer-quality" aria-pressed="false"><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W90 comfort: the streets in the comfort scale (W156 qualitysteps: its steps, as app/layers.css); W173 quality3: every street on the continuum, two quiet ones green, a road running from green through yellow and orange to red (app/comfort-along.js QUALITY_STOPS, the stops at their scores, 42 to 12), a bike lane in blue on top; inked by day; off by default; name and long press from app/layers.js WORDS -->
+    <defs><linearGradient id="q-ramp" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="64" y2="0"><stop offset="0" class="q-green"/><stop offset="0.333" class="q-yellow"/><stop offset="0.667" class="q-orange"/><stop offset="1" class="q-red"/></linearGradient></defs>
+    <rect class="g" width="64" height="64"/><path class="qe" d="M-2 20H66M-2 45H66M47-2V66M21-2V66"/><path class="q q3" d="M-2 20H66"/><path class="q q3" d="M47-2V66"/><path class="q qr" d="M-2 45H66"/><path class="q q8" d="M21-2V66"/></svg></span><span></span></button><button class="tinfo" id="layer-quality-info" aria-label="What makes a starpath ship-friendly" data-plain-aria-label="What makes a road bike friendly"><i class="i i-about"></i></button></span><!-- W140 dircomfort: his ⓘ, the factors (app/layers.js WORDS.qualityWhy), at the picture's top right -->
+  <button class="tile" id="layer-comets" aria-pressed="true" data-more="Live T trains from the MBTA, and their comet tracks." data-plain-more="Live T trains from the MBTA, and their lines."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W95 cometlook: as the map draws them; W144 tlines: thick see-through bands, a tunnel a little lighter, and a comet on its line with a longer tail narrowing behind it; W150 mapink: thinner bands, a bigger head, 0.1.65's tail -->
+    <defs><linearGradient id="comet-tail" gradientUnits="userSpaceOnUse" x1="45.6" y1="17" x2="24.5" y2="39.6"><stop class="ts" offset="0"/><stop class="ts" offset="1" stop-opacity="0"/></linearGradient></defs><!-- W95 cometlook; W144 tlines: 1.5 times as long; W150 mapink: 0.1.65's again -->
+    <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
+    <path class="ti gn" d="M-2 36C18 37 40 41 66 50"/><path class="tr gn" d="M-2 36C18 37 40 41 66 50"/><path class="tg" d="M-2 36C18 37 40 41 66 50"/><path class="ti o tun" d="M13-2C17 18 21 36 26 66"/><path class="tr o tun" d="M13-2C17 18 21 36 26 66"/><path class="tg" d="M13-2C17 18 21 36 26 66"/><path class="ti r" d="M-2 59C14 51 24 41 32 31S50 11 66 6"/><path class="tr r" d="M-2 59C14 51 24 41 32 31S50 11 66 6"/><path class="tg" d="M-2 59C14 51 24 41 32 31S50 11 66 6"/><!-- W95 cometlook: the Orange Line in a tunnel; W173 mapstyle2: each a track, its ties (ti), its rails (tr) and the ground between them (tg), as the map's -->
+    <path class="tl" d="M43.4 14.2 41 16.5 38.8 18.8 36.7 21.3 34.7 23.8 32.8 26.3 31 29 29.3 31.6 27.7 34.1 26 36.7 24.5 39.6 27.3 37.9 29.7 35.9 32 33.7 34.2 31.5 36.4 29.4 38.6 27.3 40.8 25.2 43.1 23.3 45.4 21.4 47.8 19.7Z"/><!-- W95 cometlook: the tail, narrowing to a point down the line; W144 tlines: along the Red Line; W150 mapink: 0.1.65's length again -->
+    <circle class="cg" cx="45.6" cy="17" r="7"/><circle class="ch" cx="45.6" cy="17" r="4.4"/><circle class="cc" cx="45.1" cy="16.5" r="2"/></svg><!-- W150 mapink: the head 1.3 times, as the map's --></span><span data-plain="Trains">Comets</span></button>
+  <button class="tile" id="layer-terrain" aria-pressed="true" data-more="Hill tint, steep ground, and 3D when tilted."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect class="g" width="64" height="64"/><path class="st" d="M0 45H64M21 0V64"/>
+    <path class="h1" d="M-2 66V38C10 30 22 22 34 23S54 32 66 29V66Z"/><path class="h2" d="M4 66V50C14 40 24 33 35 34S52 42 62 44V66Z"/><path class="h3" d="M16 66C21 55 29 46 37 46S48 56 51 66Z"/>
+    <path class="hc" d="M16 30l-2 4.4M22 27l-1.3 4.6M28 25.2l-.6 4.8M34 24.6v4.8M40 25.2l.6 4.8M46 27l1.3 4.6M24 39.5l-1.8 4.2M30 36.4l-.8 4.6M36 35.6l.4 4.6M42 37.2l1.4 4.4"/></svg></span><span>Terrain</span></button>
+  <button class="tile" id="layer-places" aria-pressed="true" data-more="The pink places you pay at (Lunas, Fuel Depots, Steering Dampeners) and the grey dots up close. Space Docks, free stops and Derby Arenas always show."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect class="g" width="64" height="64"/><path class="st" d="M0 34H64M30 0V64"/><!-- W94 bizicons: what the tile hides, drawn as the map draws it: two shops (W157 icons3: a pink disc, a white drawing: a bag, a fork and knife; a pink name) and a place (a grey dot and name) -->
+    <rect class="pd" x="2.4" y="4.4" width="19.2" height="19.2" rx="3.84"/><path class="pws" d="M10.2 11.6V10.4a1.8 1.8 0 0 1 3.6 0V11.6"/><path class="pw" d="M8.2 11.2H15.8L15.3 18.6H8.7Z"/><rect class="pd" x="23" y="11.5" width="22" height="5" rx="2"/><!-- W157 icons3: a shop as the map draws it now, a pink disc and a white bag; W173 icons6: the rounded square again (rx 14 of 50); W192 icons7: rx 10 of 50 -->
+    <rect class="pd" x="33.4" y="24.4" width="19.2" height="19.2" rx="3.84"/><path class="pws" d="M40 29.2V32.6Q40 34.6 41.4 34.6V39.6M41.4 29.2V32.4M42.8 29.2V32.6Q42.8 34.6 41.4 34.6M45.6 34V39.6"/><path class="pw" d="M45.6 29Q47.8 30.8 47.1 34.4H45.6Z"/><rect class="pd" x="40" y="44.5" width="20" height="5" rx="2"/><!-- W157 icons3: a place to eat, a white fork and knife -->
+    <path class="lh" d="M10 54H10.1M18 54H44"/><path class="lb" d="M10 54H10.1M18 54H44"/></svg></span><span>Places</span></button><!-- W94 bizicons -->
+  <button class="tile" id="layer-weather" aria-pressed="false" data-more="Rain radar and the next two hours."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W52 weather: off by default -->
+    <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
+    <path class="w1" d="M4 41C0 27 14 11 31 12S62 21 60 37 45 59 28 57 7 53 4 41Z"/><path class="w2" d="M17 38C15 29 23 22 32 23S48 29 47 38 37 49 28 48 18 45 17 38Z"/><path class="w3" d="M25 36C24 32 28 29 32 29.5S39 33 38 37 33 42 30 41.5 25.5 39 25 36Z"/><path class="wr" d="M22 15l-2.5 6M42 15l-2.5 6M9 30l-2.5 6M55 26l-2.5 6M10 44l-2.5 6M53 42l-2.5 6M38 50l-2.5 6M25 25l-2.5 6M39 25l-2.5 6M20 35l-2.5 6M46 33l-2.5 6M26 41l-2.5 6M42 41l-2.5 6M31 30l-2.5 6M36 33l-2.5 6"/></svg><!-- W112 weatherlook: the streaks --><!-- W177 weatherlook: dashes slanted as the map's, denser to the middle --></span><span>Weather</span></button>
+  <!-- W122 homerow (SPEC §230): no Anchorages tile (the racks show by themselves from z16) and no Systems tile (the towns' glow is SCUL's, never Plain's) -->
+  </div>
+</section>
+<!-- W52 weather: parked with the Weather layer on, the line at your spot; a tap opens the small sheet with the time slider (app/weather.js, SPEC §66) -->
+<button id="wxchip" data-round class="wxchip" aria-haspopup="dialog" aria-expanded="false" aria-controls="wxsheet"><i class="i i-wx-boot"></i><span class="t">Weather</span></button><!-- W55 weather2: its icon follows its words --><!-- W89 home: a circle in the row from the first frame, the layer on or off; its words for a screen reader and the sheet (app/home.css) -->
+<section id="wxsheet" role="dialog" aria-labelledby="wx-title" hidden>
+  <button class="x" aria-label="Close"><i class="i i-close"></i></button><!-- W92 panels: first, so it stays at the top as the sheet scrolls (weather.css) -->
+  <h2 id="wx-title"><i class="i i-wx-looking"></i><span class="t"></span></h2><!-- W55 weather2: the chip's icon -->
+  <p id="wx-alert" class="alert" hidden></p><!-- W102 winter: the NWS's winter alert and its end -->
+  <p id="wx-when" class="when">Now</p>
+  <div class="scrub"><div id="wx-track" class="track" aria-hidden="true"></div><!-- W58 clean: the track, wet or dry at your spot by the minute, under a see-through slider -->
+  <input type="range" id="wx-slider" min="-60" max="120" step="1" value="0" aria-label="Time"><!-- W55 weather2: a minute a step -->
+  <div id="wx-marks" class="marks" aria-hidden="true"></div></div><!-- W58 clean: every 10 min, the clock's time at :00 and :30, and Now -->
+  <p id="wx-note" class="note"></p>
+  <p id="wx-key" class="key"><span><canvas aria-hidden="true"></canvas>Light</span><span><canvas aria-hidden="true"></canvas>Steady</span><span><canvas aria-hidden="true"></canvas>Heavy</span></p><!-- W112 weatherlook: the steps on the chart (SPEC §223), drawn by weather.js -->
+  <p class="credit">NOAA NWS via Iowa Environ. Mesonet</p><!-- W58 clean: About keeps the full credit -->
+</section>
+
+<div id="banner" role="status" aria-live="polite"></div>
+<div id="scale" aria-hidden="true"><span></span><i></i></div><!-- W21 scale: the light-years scale (app/scale.js) -->
+
+<!-- the right column, bottom up: location, then the tallies in flight -->
+<button id="hifive" data-round class="btn tally" aria-label="Hi-five" hidden><i class="i i-hifive"></i><span id="hifive-n" class="badge">0</span></button>
+<button id="cup" data-round class="btn tally" aria-label="Cup crush" hidden><i class="i i-cup"></i><span id="cup-n" class="badge">0</span></button>
+<button id="locate" data-round class="btn searching" aria-label="Location: searching"><i class="i"></i></button>
+<div id="nofix" hidden>No GPS signal yet.</div><!-- W73 a11y: no role="status": say() -->
+<div id="dlnote" hidden>The offline chart</div><!-- W73 a11y: no role="status": say() --><!-- W26 downloads: the heads-up before a big download on mobile data (app/downloads.js) -->
+<p id="say" class="sr" role="status" aria-live="polite"></p><!-- W73 a11y: the one live region for the words that come and go (app/tip.js say()) -->
+<p id="loctip" popover="manual" hidden></p><!-- W73 a11y: no live region: say() --><!-- W21 locate; W24 quiet: the one bubble, for every control (app/tip.js) -->
+
+<!-- bottom left: Launch when parked, the flight readout in flight, Landed with Undo after; W56 hud: in flight the readout and Land take the bar's place (app/hud.css); W173 navflow: Landed and Undo in the readout, End's place -->
+<!-- W28 launch: parked, one bar holds the search ("Where to?", app/course.js puts its field first) and Launch -->
+<!-- W47 firstload: Where to? is here from the first frame; app/course.js wires it once the chart is in, and until then a tap says the search is getting ready -->
+<!-- W73 a11y: a region landmark, as the bar's nav is; its field an ARIA combobox from the first frame (app/course.js wires it) -->
+<div id="gobar" role="region" aria-label="Where to, or Launch" data-plain-aria-label="Where to, or Record"><div class="csearch"><i class="i i-search"></i><input type="search" placeholder="Where to?" enterkeyhint="search" autocomplete="off" aria-label="Search" role="combobox" aria-autocomplete="list" aria-expanded="false"><button class="x" aria-label="Close the search"><i class="i i-close"></i></button></div><button id="launch" data-plain="Record"><i class="i i-launch"></i>Launch</button></div><!-- W88 ridemodes: with no destination, Plain's says what it does, Record, with a record mark (app/launch.css); a planned course's card keeps Start -->
+<div id="readout" role="group" aria-label="Flight" data-plain-aria-label="Ride" hidden>
+  <button id="land" aria-label="Land" data-plain-aria-label="End"><i class="i i-land"></i><span class="lbl" data-plain="End">Land</span></button><!-- W28 launch: its word, as Launch has (audit 2) -->
+  <div class="warp"><span class="lbl" data-plain="mph">Warp</span><b id="warp" data-hud="warp">0</b><small class="nofix">No signal</small></div><!-- W25 rest: No fix; W150 gpshelp: No signal -->
+  <div class="pair">
+    <div><b id="ly" data-hud="ly">0.00</b><span class="lbl" data-plain="mi">LY</span></div>
+    <div><b id="mins" data-hud="minutes">0</b><span class="lbl" id="mins-l">min</span></div><!-- W73 polish: min, lower case as mph and mi (ART §4) --><!-- W86 ride: on a course the arrival clock, "12 min left" under it (app/main.js) -->
+    <div class="left"><b id="left" data-hud="left">0</b><span class="lbl">min left</span></div><!-- W88 ridemodes: on a course, the minutes left, big beside the arrival clock (app/hud.css #readout.to) -->
+  </div>
+  <div id="snack" hidden><!-- W73 a11y: no role="status": app/tip.js say() reads it --><!-- W173 navflow (SPEC §300), her note 1: inside the bar, in the numbers' place; End becomes Undo -->
+    <div class="msg"><div class="t" data-plain="Ride ended">Landed</div><div id="timer"></div></div><!-- W73 polish: the word and Undo only; the sticker has the number -->
+    <button id="undo" aria-label="Undo landing" data-plain-aria-label="Undo the end"><i class="i i-undo"></i>Undo</button><!-- W73 a11y: Plain's name -->
+  </div>
+</div>
+
+<section id="nogps" class="sheet" role="dialog" aria-labelledby="nogps-title" hidden>
+  <!-- the sheets' heads stay at the top while the rest scrolls, so the × is always in reach (W16) -->
+  <div class="top">
+  <div class="handle" aria-hidden="true"></div>
+  <button id="nogps-close" class="x" aria-label="Close"><i class="i i-close"></i></button>
+  <h2 id="nogps-title"><i class="i i-locate-off"></i>No location</h2>
+  </div>
+  <p id="nogps-why"></p>
+  <ol id="nogps-steps"></ol><!-- W150 gpshelp: the steps for the cause (app/fixnote.js noGpsHelp) -->
+  <button id="nogps-again" class="again">Try again</button>
+  <button id="nogps-where" class="where"><i class="i i-search"></i>Where to?</button> <!-- W40 flight: search needs no position -->
+</section>
+
+<dialog id="about-sheet" class="sheet" aria-labelledby="about-title">
+  <div class="top">
+  <div class="handle" aria-hidden="true"></div>
+  <div class="head"><button id="about-back" class="back" aria-label="Back to the flight" data-plain-aria-label="Back to the ride"><i class="i i-back"></i></button><h2 id="about-title">Settings</h2></div><!-- W69 velocipede; W88 settings3: no icon by the title (her note: "we don't need a dedicated icon") --><!-- W133 settings4 (SPEC §244): a tab, so no ×; the back arrow only in flight, where the bar is away (settings.css) -->
+  </div>
+
+  <!-- W28 settings: a short list of real choices; W88 settings3 (SPEC §175): in titled sections, open, with no More page. W133 settings4
+       (SPEC §244): a row its title can't explain has one short line under it, no (i) or long press; everything technical is in
+       Developer, folded, at the bottom (SPEC §38) -->
+  <h3>Appearance</h3><!-- W88 settings3 -->
+  <div class="group">
+  <div class="row stack"><i class="i i-theme"></i><div class="txt">Theme</div><!-- W73 dark: By the sun; W133 settings4: no (i), its choices say it -->
+    <div id="theme" class="seg" role="radiogroup" aria-label="Theme">
+      <button role="radio" data-v="dark" aria-checked="false">Dark</button><button role="radio" data-v="light" aria-checked="false" data-plain="Light">Daystar</button><button role="radio" data-v="sun" aria-checked="true">By the&nbsp;sun</button><!-- W73 dark: sun; "By / the sun", two lines at 320 px, where it took three --><!-- W124 settings3: no "system" choice (her note 6; app/theme.js migrates a stored one) -->
+    </div></div>
+  <div class="row stack"><i class="i i-hand"></i><div class="txt">Buttons<small>The side for your thumb</small></div><!-- W133 settings4 --><!-- W122 homerow (SPEC §230; her note: "a setting in the appearance for left-handed and right handed users") -->
+    <div id="set-hand" class="seg" role="radiogroup" aria-label="Buttons">
+      <button role="radio" data-v="left" aria-checked="false">Left</button><button role="radio" data-v="right" aria-checked="true">Right</button>
+    </div></div>
+  <!-- W60 a: Words, SCUL or Plain (app/lingo-mode.js, SPEC §84); W88 settings3: first, in Appearance; W63 rider: and the marker (§91); W192 uitabs (SPEC §339, her row 8): right above Avatar, whose look it sets -->
+  <div class="row stack"><i class="i i-lingo"></i><div class="txt">Words<small>The club's lingo, or everyday words</small></div><!-- W133 settings4: its line, not an (i) -->
+    <div id="set-lingo" class="seg" role="radiogroup" aria-label="Words">
+      <button role="radio" data-v="meatspace" aria-checked="true">Plain</button><button role="radio" data-v="scul" aria-checked="false">SCUL</button><!-- W160 logsettings (SPEC §286, her note 18): Plain on the left -->
+    </div></div>
+  <div class="row stack"><i class="i i-pilot"></i><div class="txt" data-plain="Avatar">Pilot</div><!-- W88 settings3: no long press, the name says it --><!-- W86 avatar: the marker's colour, app/avatar.js (SPEC §173); W101 avatars: the avatar itself (SPEC §197) -->
+    <div id="set-avatar" class="avatars" role="radiogroup" aria-label="Pilot"></div></div>
+  </div>
+  <!-- W133 settings4 (SPEC §244): no Accessibility section and no Calm motion switch: the phone's reduced motion or Battery saver calms the motion -->
+  <h3 id="sound-h">Sound and vibration</h3><!-- W88 settings3: "Sound" where nothing can buzz (app/settings.js) -->
+  <div class="group">
+  <div class="row stack"><i class="i i-sound"></i><div class="txt">Directions</div><!-- W157 landmarks (SPEC §279, her note): its line under the choices, the chosen one's --><!-- W144 settings5 (SPEC §257, her note 1): its line, what Detailed adds --><!-- W133 settings4: no (i), its choices say it --><!-- W128 navcalls (SPEC §237): Off, Basic, Detailed --><!-- W73 dark: sunset --><!-- W88 settings3: Plain's says what All sounds adds; W113 settings2: no mile call in Plain (since 0.1.53) --><!-- W86 settings: the buttons' sounds only with chatter (app/calls.js TAPS); Plain's All sounds -->
+    <div id="set-sound" class="seg" role="radiogroup" aria-label="Directions">
+      <button role="radio" data-v="off" aria-checked="false">Off</button><button role="radio" data-v="directions" aria-checked="false">Basic</button><button role="radio" data-v="all" aria-checked="true">Detailed</button>
+    </div><small class="mode-line" data-v="off">No sound</small><small class="mode-line" data-v="directions">Turns and hazards</small><small class="mode-line" data-v="all">Adds landmarks and places</small></div><!-- W157 landmarks -->
+  <label class="row" id="haptic-turns-row" hidden><i class="i i-haptics"></i><span class="txt">Vibrate at turns</span><!-- W157 avatars5 (her note 7): its line, three lines (W166 haptics2: four, with "on silent: none"), one a buzz, under the switch too (app/settings.css) --><!-- W144 settings5 (her note 3): the off-course buzzes; no "buzz", the title says it; two lines at 320 px --><!-- W133 settings4 --><!-- W69 motion: Android only --><!-- W86 settings: was Buzz the turns --><!-- W88 settings3: in Sound, from More --><!-- W113 settings2: before Voice -->
+    <input type="checkbox" id="haptic-turns" role="switch"><small data-plain="Left: one long buzz&#10;Right: two short buzzes&#10;Off route: many short buzzes&#10;Phone on Vibrate, not Silent">Port: one long buzz
+Starboard: two short buzzes
+Off course: many short buzzes
+Droid on Vibrate, not Silent</small></label><!-- W166 haptics2 (SPEC §293): Chrome never buzzes with the ringer on silent, and can't tell the page -->
+  <div class="row stack" id="voice-row"><i class="i i-voice"></i><!-- W133 settings4: no (i) --><div class="txt">Voice</div><!-- W97 voices: app/voices.js fills it -->
+    <div id="set-voice" class="voices" role="radiogroup" aria-label="Voice"></div></div>
+  </div>
+  <h3>Power</h3><!-- W124 settings3 (her note 7): Riding became Power and Routing; no Don't log tiny rides (a tiny ride goes by itself, with Keep on the bar: app/log.js dropTiny) -->
+  <div class="group">
+  <label class="row"><i class="i i-wake"></i><span class="txt">Keep the screen on<small id="ab-wake"></small></span><!-- W133 settings4: its line, While you ride, or why it can't (app/main.js showWake) --><!-- W86 settings: on the first page (was More's) -->
+    <input type="checkbox" id="wake" role="switch" checked></label>
+  <label class="row"><i class="i i-battery"></i><span class="txt">Battery saver<small data-plain="Smoother on old phones">Smoother on old droids</small></span><!-- W113 settings2: it calms the motion too; W133 settings4 (her note 4): its line -->
+    <input type="checkbox" id="saver" role="switch"></label>
+  </div>
+  <h3>Routing</h3><!-- W124 settings3: Pace last -->
+  <div class="group">
+  <div id="fav-fold"><details class="cat" id="starred-fold"><summary class="row"><i class="i i-star"></i><span class="txt"><span class="t"></span><small></small></span><span class="val">›</span></summary><div class="group" id="starred-list"></div></details></div><!-- W88 favorites: the starred places, app/starred.js mountStarredRow (SPEC §176); #fav-fold is the settings3 lane's container; W113 settings2: before Avoided -->
+  <details class="cat" id="avoid-fold"><summary class="row"><i class="i i-avoid"></i><span class="txt"><span class="t"></span><small></small></span><span class="val">›</span></summary><div class="group" id="avoid-list"></div></details><!-- W73 avoid: its words are app/avoid-logic.js's WORDS (app/avoid.js); W80 avoidmap: always there, the registry; W88 settings3: no long press or (i), its list says how to add one -->
+  <label class="row"><i class="i i-comet"></i><!-- W133 settings4: no (i), its title says it --><span class="txt" data-plain="Consider trains in routing">Consider comets in routing</span><!-- W62 cometcard: W128 small3: on by default; on, the timetable comes at once (app/transit.js) --><!-- W68 settings2: Consider, not Take (SPEC §100) -->
+    <input type="checkbox" id="transit" role="switch"></label>
+  <div class="row" id="pace-row"><i class="i i-pace"></i><div class="txt"><span class="t"></span><small></small></div><!-- W59 pace: its words are app/settings.js's WORDS -->
+    <div class="seg pace" role="group"><button type="button">−</button><output aria-live="polite"></output><button type="button">+</button></div></div>
+  </div>
+  <h3 data-plain="Offline maps">Offline charts</h3><!-- W88 settings3: one fold, its line what is stored (app/downloads.js offlineLine) -->
+  <div class="group">
+  <details class="cat" id="offline-fold"><summary class="row"><i class="i i-chart"></i><span class="txt"><span class="t"></span><small></small></span><span class="val">›</span></summary><div class="group">
+  <div class="row" id="dl-row"><i class="i i-chart"></i><div class="txt"><span class="t"></span><small class="pl"></small><small class="st"></small></div><button class="dlnow" hidden></button></div><!-- W26 downloads; W40 settings: at the top level, the way back once the notice is hidden for good --><!-- W86 settings: the chart's row as a map pack's, its name and places (app/downloads.js BASE) -->
+  <template id="pack-row"><div class="row pack-row"><i class="i i-chart"></i><div class="txt"><span class="t"></span><small class="pl"></small><small class="st"></small></div><span class="pk-btns"><button class="dlnow" hidden></button><button class="dlnow" hidden></button></span></div></template><!-- W82 packui: a row per map pack, after the chart's (app/downloads.js mountPackRows) -->
+  </div></details>
+  </div>
+  <h3>App</h3><!-- W88 settings3: Check for updates, out of Developer. W168 settings8 (SPEC §295, her note): what you do; Send feedback comes after Install (app/feedback.js); Check for updates last, just over What's new -->
+  <div class="group">
+  <button class="row" id="install"><!-- W88 settings3: no long press, its guide says it --><!-- W55 layers2: its line went to the long press; W22 pwa: Install, filled by app/install.js; W28 settings: only while not installed; W47 install: it opens the guide -->
+    <i class="i i-install"></i><span class="txt"><span class="t">Install Starchart</span><small></small></span><span class="val">›</span></button>
+  <button class="row unhide" id="backup-save"><i class="i i-download"></i><span class="txt">Back up<small data-plain="On this phone, never uploaded">On this droid, never uploaded</small></span></button><!-- W147 backup (SPEC §263, her notes 3 and 5): the Log, the settings, the starred places and the streets (app/log.js) -->
+  <button class="row unhide" id="backup-restore"><i class="i i-undo"></i><span class="txt">Restore</span></button><!-- W147 backup: its file's line, then Replace -->
+  <button class="row unhide" id="check-update"><i class="i i-scan"></i><span class="txt">Check for updates</span></button><!-- W168 settings8: the last of App, a row from What's new; W147 backup (her 12:56 note): was under What's new; W46 updates: app/main.js; SPEC §57; W88 settings3: not a developer's, and no long press: its answer says it -->
+  </div>
+  <h3>About</h3><!-- W168 settings8 (SPEC §295): what you read -->
+  <div class="group">
+  <details class="deeper" id="about-fold">
+    <summary class="row"><i class="i i-about"></i><span class="txt">Starchart</span><span class="val">›</span></summary><!-- W168 settings8: About is the title, so the row says what it is about --><!-- W133 settings4 (her note 1): no version here, What's new has it -->
+    <p class="lede" data-plain="A bike and pedestrian navigator for Greater Boston, made by arclight and pancake.">A star chart for SCUL pilots: a bike and pedestrian navigator for Greater Boston, made by arclight and pancake.</p><!-- W73 logsafe: Plain's own lede; W147 small6: its makers, by their handles -->
+    <p class="privacy" data-plain="Your location never leaves this phone.">Your location never leaves this droid.</p><!-- W76 privacy (D1): back, as the tiles no longer tell our host where the rider is (app-privacy.spec) -->
+    <div class="note" id="ab-hosts">No accounts, no analytics, no trackers.</div><!-- W192 uitabs (SPEC §339, her row 6): "It talks only to:", its hosts a list (app/main.js about) -->
+    <p class="note" id="ab-repo" hidden>The source: <a href="https://github.com/peterdsharpe/starchart" rel="noreferrer">github.com/peterdsharpe/starchart</a>.</p><!-- W74 integrity (D2): the repo is private, so the link 404s; delete `hidden` when it goes public -->
+  </details>
+  <button class="row unhide" id="ab-changes"><i class="i i-changes"></i><span class="txt">What's new<small id="ab-changes-v"></small></span><span class="val">›</span></button><!-- W98 changelog: About's version line opens the list (app/changelog.js); W113 settings2: a row of App, out of About; W133 settings4: the one place the version shows (the commit is Developer's); W168 settings8: in About again -->
+  <details class="deeper" id="credits-fold"><!-- arclight, 2026-10-20: "make credits and licenses under about a folder"; W113 settings2 (her note 12): a fold of App, out of About; W168 settings8: in About again -->
+    <summary class="row"><i class="i i-credits"></i><span class="txt">Credits and licences</span><span class="val">›</span></summary>
+    <ul class="credits"><!-- W133 settings4 (SPEC §244, her notes 1 and 9): every credit and licence, in few words -->
+      <li>Map data © <a href="https://www.openstreetmap.org/copyright" rel="noreferrer">OpenStreetMap contributors</a>, ODbL, as are the chart's tiles.</li>
+      <li>Elevation: SRTM (NASA, USGS), public domain.</li>
+      <li>Beyond the chart's edge: <a href="https://www.naturalearthdata.com/" rel="noreferrer">Natural Earth</a>, public domain.</li><!-- W51 edge -->
+      <li id="credit-racks">Bike racks: OpenStreetMap, and <a href="https://github.com/cambridgegis/cambridgegis_data" rel="noreferrer">City of Cambridge GIS</a> under the <a href="https://opendatacommons.org/licenses/pddl/1-0/" rel="noreferrer">PDDL 1.0</a>.</li><!-- W56 parking -->
+      <li>Live trains and their schedules: real-time data provided by MassDOT and the MBTA (MBTA V3 API, GTFS), under <a href="https://www.mass.gov/doc/developers-license-agreement-11132009/download" rel="noreferrer">MassDOT's license</a>. Not connected with or endorsed by MassDOT or the MBTA; times can be wrong.</li><!-- W29 comets; W61 transit -->
+      <li id="credit-massport">Shuttle times: Massport.</li><!-- W192 sltimes (SPEC §341): its data licence asks that the times say they are supplied by Massport; no logo (LICENSES/Massport-data.txt) -->
+      <li>Rain radar: NOAA National Weather Service NEXRAD, public domain, via the <a href="https://mesonet.agron.iastate.edu/" rel="noreferrer">Iowa Environmental Mesonet</a> (Iowa State University). The forecast made from it can be wrong.</li><!-- W52 weather -->
+      <li>Winter alerts: National Weather Service (api.weather.gov), public domain.</li><!-- W102 winter -->
+      <li>Pothole reports: City of Boston 311, <a href="https://data.boston.gov/dataset/311-service-requests" rel="noreferrer">data.boston.gov</a>, PDDL.</li><!-- W23 comfort -->
+      <li>Crash records: <a href="https://data.boston.gov/dataset/vision-zero-crash-records" rel="noreferrer">Boston</a>, <a href="https://data.cambridgema.gov/d/gb5w-yva3" rel="noreferrer">Cambridge</a> (PDDL) and <a href="https://data.somervillema.gov/d/mtik-28va" rel="noreferrer">Somerville</a> (ODbL, as are the crossings made from them).</li><!-- W128 crashes; W139 int: in settings4's few words -->
+      <li>MapLibre GL JS and PMTiles: BSD-3-Clause.</li>
+      <li>QR codes: Project Nayuki's <a href="https://www.nayuki.io/page/qr-code-generator-library" rel="noreferrer">QR Code generator library</a>, MIT.</li><!-- W54 course -->
+      <li>Voices: Kokoro-82M by hexgrad, Apache-2.0.</li><!-- W133 settings4: every voice is a Kokoro preset (design/sound/voice/lines.json) -->
+      <li>Fonts: Antonio, Atkinson Hyperlegible Next, Noto Sans and Space Mono (OFL); Permanent Marker (Apache 2.0).</li><!-- W185 placenames: Noto Sans, the map names' fallback letters -->
+      <li>SCUL's lingo: the club's public glossary at scul.org. Its names and terms are the club's own.</li>
+      <li>Starchart: code GPL-3.0-or-later; art, rules and proposed terms CC BY-SA 4.0.</li>
+    </ul>
+  </details>
+  <details class="deeper" id="disclaimer-fold"><!-- arclight, 2026-10-20: a disclaimer of warranty; W113 settings2: a fold of App; W168 settings8: in About -->
+    <summary class="row"><i class="i i-disclaimer"></i><span class="txt">Disclaimer</span><span class="val">›</span></summary>
+    <p class="note">Starchart is provided as is, without warranty of any kind, express or implied, including warranties of accuracy, merchantability and fitness for a particular purpose.</p>
+    <p class="note">Routes, map data, rain and train times can be wrong or out of date. Ride at your own risk: watch the road, and follow its signs and the law.</p>
+    <p class="note">As far as the law allows, Starchart's makers aren't liable for any loss or harm from using it.</p>
+  </details>
+  </div>
+  <h3>Developer</h3><!-- W168 settings8 (SPEC §295, her note): its own one-row section, at the very bottom -->
+  <div class="group">
+  <details class="deeper dev" id="dev"><!-- W113 settings2: folded, out of About; W168 settings8: out of App -->
+    <summary class="row"><i class="i i-dev"></i><span class="txt">Developer tools</span><span class="val">›</span></summary><!-- W168 settings8: her words -->
+    <dl class="mono">
+      <dt>Commit</dt><dd id="ab-commit"></dd>
+      <dt>Built</dt><dd id="ab-built"></dd>
+      <dt>Bundle</dt><dd id="ab-bundle"></dd>
+      <dt>Screen</dt><dd id="ab-screen"></dd><!-- W18 controls -->
+      <dt>Ship</dt><dd id="ab-ship"></dd><!-- W39 ship: WebGL losses, and the ship's recoveries -->
+    </dl>
+    <p class="note">To check a download, compare the bundle hash with the one in this release's <code>build.json</code>.</p>
+    <div class="group">
+    <label class="row"><i class="i i-fps"></i><span class="txt">Show frame rate</span>
+      <input type="checkbox" id="showfps" role="switch"></label>
+    <div class="row stack"><i class="i i-fps"></i><div class="txt">Frame rate<small id="fps-held"></small></div><!-- W56 perf: app/framerate.js -->
+      <div id="frame-rate" class="seg" role="radiogroup" aria-label="Frame rate">
+        <button role="radio" data-v="auto" aria-checked="true">Auto</button><button role="radio" data-v="60" aria-checked="false">60</button><button role="radio" data-v="30" aria-checked="false">30</button>
+      </div></div>
+    <div class="row"><i class="i i-compass"></i><div class="txt">Compass and GPS<small id="ab-source"></small><small id="ab-compass"></small></div></div>
+    </div>
+    <div class="group"><!-- the chart on this droid: what is stored (app/about.js adds the rest); W40 settings: the download's row is at the top -->
+    <div class="row"><i id="ab-store-i" class="i i-download"></i><div class="txt"><span id="ab-store-t">Chart</span><small id="ab-store">—</small></div><span id="ab-store-v" class="val"></span></div>
+    <div class="row"><i class="i i-chart"></i><div class="txt">Data<small id="ab-data">—</small><small id="ab-quota">—</small></div></div>
+    </div>
+    <div class="group">
+    <button class="row unhide" id="tips-again"><!-- W88 settings3: no long press, a button has no (i) --><i class="i i-undo"></i><span class="txt">Show tips again</span></button>
+    </div>
+    <div class="group"><!-- W46 updates: app/main.js; SPEC §57; W88 settings3: Check for updates went to App -->
+    <button class="row unhide" id="reload-code"><!-- W88 settings3: no long press, a button has no (i) --><i class="i i-undo"></i><span class="txt">Reload the app's code</span></button>
+    </div>
+    <div class="group"><!-- W113 settings2 (her note 16): every map icon and its meaning, in the current words; app/legend.js fills it when it opens -->
+    <details class="cat" id="legend-fold"><summary class="row"><i class="i i-places"></i><span class="txt">Icon legend</span><span class="val">›</span></summary><div class="legend"></div></details>
+    </div>
+  </details>
+  </div>
+
+</dialog>
+
+
+<!-- W35 welcome: the first open's card, once ever (app/welcome.js, SPEC §49) -->
+<dialog id="welcome" aria-labelledby="welcome-title" tabindex="-1">
+  <form method="dialog">
+  <button class="nx" value="close" aria-label="Close"><i class="i i-close"></i></button><!-- W92 panels: first, so it stays at the top as the card scrolls (welcome.css) -->
+  <div class="head"><img src="design/brand/favicon-skullnaut.svg" data-plain-src="design/brand/favicon.svg" alt="" width="40" height="40"><h2 id="welcome-title">Starchart</h2></div><!-- W69 velocipede: the mark by Words -->
+  <p class="lede" data-plain="A bike and pedestrian navigator for Greater Boston.">A star chart for SCUL pilots: a bike and pedestrian navigator for Greater Boston.</p><!-- W147 small6: her 12:54 row -->
+  <ul>
+    <li><i class="i i-search"></i><span data-plain="Search for a place to get directions.">Search for a place to set a course.</span></li>
+    <li id="welcome-rec"><i class="i i-launch"></i><span data-plain="Or just record a ride.">Or just launch a flight.</span></li><!-- W160 smallui (SPEC §287, her note 14): search and record as two rows, the record with Record's own mark (app/welcome.css); W166 walkui (her note 1): "Or just", under the search's directions, one line at 320 px -->
+    <li class="scul-words"><i class="i i-lingo"></i><span>It speaks SCUL: a street is a <b>starpath</b>, a traffic light a <b>pulsar</b>, a bike path a <b>wormhole</b>, and a mile a <b>light year</b>.
+      <span class="more">New to SCUL? Read the lingo at <a href="https://scul.org/lingo" target="_blank" rel="noreferrer">scul.org/lingo</a>.</span></span></li><!-- W130 plaindefault: in SCUL only -->
+    <li><i class="i i-here"></i><span data-plain="Your location never leaves this phone.">Your location never leaves this droid.</span></li><!-- W76 privacy (D1): back, as on About -->
+    <li id="welcome-set"><i class="i i-gear"></i><span>Customize appearance, voice and more.</span></li><!-- W150 welcome2 (SPEC §270): no install row and no SCUL offer; Settings has them (Words first); W166 walkui (her note 1): her words, one line from 390 px -->
+  </ul>
+  <div class="end"><button class="go" value="start">Start</button>
+  <p class="by">made with &lt;3 by arclight and pancake</p></div><!-- W147 small6: its makers -->
+  </form>
+</dialog>
+
+<!-- W47 install: the install guide, full screen, from Settings' Install row and the Starchart button (app/install.js, SPEC §58) -->
+<dialog id="install-guide" class="sheet" aria-labelledby="install-guide-title">
+  <div class="top">
+  <form method="dialog"><button class="back" aria-label="Back"><i class="i i-back"></i></button></form><!-- W133 settings4 (SPEC §244): a sub-page's one back arrow, no × -->
+  <div class="head"><h2 id="install-guide-title">Install Starchart</h2></div>
+  </div>
+  <div class="ig-body"></div>
+</dialog>
+
+<!-- W98 changelog: what each version changed, full screen, from About's What's new and the note after an update (app/changelog.js, SPEC §194) -->
+<dialog id="changelog" class="sheet" aria-labelledby="changelog-title">
+  <div class="top">
+  <form method="dialog"><button class="back" aria-label="Back"><i class="i i-back"></i></button></form><!-- W133 settings4 (SPEC §244): a sub-page's one back arrow, no × -->
+  <div class="head"><h2 id="changelog-title">What's new</h2></div>
+  </div>
+  <div class="cl-list"></div>
+</dialog>
+
+<!-- W48 feedback: Settings › Send feedback, a full-screen page over Settings (app/feedback.js, SPEC §60); W133 settings4: one back arrow, no × -->
+<dialog id="feedback" class="sheet" aria-labelledby="fb-title">
+  <div class="top">
+  <button id="fb-back" class="back" aria-label="Back to Settings"><i class="i i-back"></i></button>
+  <h2 id="fb-title">Send feedback</h2>
+  </div>
+  <form id="fb-form" autocomplete="off">
+  <label for="fb-msg" class="ask">What happened, or what would you change?</label>
+  <textarea id="fb-msg" maxlength="200000" rows="6" spellcheck="true" autocapitalize="sentences"></textarea>
+  <div class="under"><span class="mic"><i class="i i-mic"></i>Dictation works too.</span><small id="fb-count" hidden></small></div>
+  <label for="fb-name" class="ask name">Name or contact (optional)</label><!-- W128 small3: remembered from the last send that had one (app/feedback.js NAME) -->
+  <input id="fb-name" type="text" maxlength="200" autocapitalize="words" spellcheck="false" enterkeyhint="done">
+  <div class="group">
+  <label class="row"><i class="i i-dev"></i><span class="txt">Attach what the app was doing<small data-plain="The screen, the phone and the recent log. Never your location.">The screen, the droid and the recent log. Never your location.</small></span>
+    <input type="checkbox" id="fb-attach" role="switch" checked></label>
+  <details id="fb-what"><summary class="row"><i class="i i-about"></i><span class="txt">What goes with it</span><span class="val">›</span></summary>
+    <p class="ver">Version: <span id="fb-ver"></span></p>
+    <pre id="fb-pre" tabindex="0"></pre>
+  </details>
+  </div>
+  <p class="warn">This goes to a feedback sheet that arclight reads. It isn't private, so leave out anything you'd keep to yourself.</p><!-- W128 small3: was "anything personal", beside a name field; W140 words -->
+  <input id="fb-hp" name="website" class="hp" tabindex="-1" aria-hidden="true">
+  <button id="fb-send" class="go" type="button">Send</button>
+  <p id="fb-status" role="status"></p>
+  </form>
+</dialog>
+
+<pre id="perf" hidden></pre>
+<pre id="fps" hidden aria-hidden="true"></pre><!-- W20 chrome: Show frame rate (app/framerate.js) -->
+
+<script type="module" src="app/first.js"></script><!-- W47 firstload: the welcome, before main.js's files are in -->
+<script type="module" src="app/main.js"></script>
+</body>
+</html>

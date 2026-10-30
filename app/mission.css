@@ -1,0 +1,41 @@
+/* W73 mission (app/mission.js, SPEC §122): Burn up and the long-haul screen's button, in flight, at the top left, in
+   Layers' row (under the turn card while a course shows it), so the chart above the readout stays the chart's for a tap
+   (BRIEF §7.8); and the long-haul screen itself */
+.btn.mission { left: var(--ml); top: calc(var(--top) + var(--card-h, 0px)); z-index: 2; }
+body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) > .btn.mission { visibility: hidden; } /* as Layers */
+/* the in-flight GPS notice (app.css: #nofix, in this corner in flight) one row down, under them, never hidden by them */
+body:has(#readout:not([hidden])):has(> #burnup:not([hidden])) #nofix { top: calc(var(--top) + var(--card-h, 0px) + 44px + 8px); }
+/* in a short landscape on a course, the long-haul button goes up beside the turn card (course.css: its landscape width, the
+   same min()), in the first of the three slots the card leaves at the right (Overview and Layers have the others), and the
+   notice keeps app.css's place under the card: under a tall card (170 px) the left column has no row to spare above the
+   banner's pills */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 640px) {
+  /* W191 appleft (SPEC §334): the long-haul button's place here went: W177 buttons2 put it in the column (app/home.css), in every state (#8) */
+  body:has(#readout:not([hidden])):has(> .cturn:not([hidden])):has(> #burnup[hidden]) #nofix { top: calc(var(--top) + var(--card-h, 0px)); }
+}
+#burnup { width: auto; /* W191 appleft (SPEC §334): its place is app/home.css's (--far-*), either hand (#8) */ padding: 0 16px 0 12px; display: flex; gap: 8px; border-radius: var(--r-pill);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.125rem); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#longhaul .lbl { display: none; } /* its name is its aria-label; the button is the icon */
+.i-hangar { -webkit-mask-image: url("../design/glyphs/ui/hangar.svg"); mask-image: url("../design/glyphs/ui/hangar.svg"); }
+.i-amoled { -webkit-mask-image: url("../design/glyphs/ui/amoled.svg"); mask-image: url("../design/glyphs/ui/amoled.svg"); }
+
+/* The long-haul screen: black in every theme, so an OLED phone lights only the numbers. Its colours are Dark's own
+   (design/tokens.css: --void AMOLED, --stardust, --phosphor), dimmed, since Daystar's would light the whole screen. */
+#haul { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh;
+  padding: calc(env(safe-area-inset-top) + 16px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 16px) calc(env(safe-area-inset-left) + 16px);
+  background: var(--fixed-black); color: var(--dark-stardust); font-family: var(--font-display); font-weight: 700; letter-spacing: var(--track-display); text-align: center; }
+#haul[hidden] { display: none; }
+#haul .ly b { display: block; font-size: min(30vw, 30vh); line-height: 1; color: color-mix(in srgb, var(--dark-phosphor) 62%, var(--fixed-black)); font-variant-numeric: tabular-nums; } /* W185 colours: the tokens */
+[data-lingo="meatspace"] #haul .ly b { color: color-mix(in srgb, var(--dark-harbour) 62%, var(--fixed-black)); } /* W185 colours; W171 palette: Plain's, Dark's --harbour dimmed (§299) */
+#haul .lbl { display: block; margin-top: 2px; font-size: max(11px, 1.125rem); text-transform: uppercase; opacity: 0.8; } /* W142 remscale */
+#haul .pair { display: flex; gap: max(12vw, 48px); }
+#haul .pair b { display: block; font-size: min(17vw, 12vh); line-height: 1; font-variant-numeric: tabular-nums; }
+#haul .turn { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; max-width: 100%; }
+#haul .turn[hidden] { display: none; }
+#haul .turn .arrow { width: 44px; height: 44px; filter: brightness(0.7); }
+#haul .turn .dist { font-size: calc(30px + (1rem - 16px) * 1.5); white-space: nowrap; } /* W142 remscale */
+#haul .turn .road { flex-basis: 100%; font-size: max(11px, 1.125rem); } /* under the distance: the whole street, never cut */ /* W142 remscale */
+#haul .back { position: absolute; left: calc(env(safe-area-inset-left) + 16px); right: calc(env(safe-area-inset-right) + 16px); bottom: calc(env(safe-area-inset-bottom) + 16px); width: fit-content; margin-inline: auto; min-height: 44px;
+  padding: 0 12px; border: 0; background: none; color: inherit; font: inherit; font-size: max(11px, 1rem); text-transform: none; letter-spacing: 0; opacity: 0.8; text-wrap: balance; } /* W177 buttons2 (SPEC §312), her note 5: the line at the foot, centred, in words (was a small Chart pill); a tap anywhere goes back (mission.js); the screen's width less 16 px a side, centred (at left 50 % it had half and wrapped at 320 px) */
+#haul .back:active { transform: none; }
+body[data-open~="ride-preview"] .btn.mission { visibility: hidden; } /* a preview opened in flight covers them */

@@ -1,0 +1,268 @@
+/* W89 home (design/app-ui/SPEC.md §183): the parked screen, framed by a top bar and a bottom bar, its sides free.
+   arclight and his wife, 2026-10-23: the search "should already be placed at the top in line with where the search bar
+   would then be during the search itself", and the five round buttons "laid at the bottom of the screen … centralized in a
+   spot that's easily recognizable across screens … accessible both for right-handed and left-handed people".
+   - Top: Where to?, in its glass, at the box the open search takes, so a tap opens the results under it with no move.
+   - Bottom, above the tabs: one centred row of five equal circles, left to right weather, Layers, location, Sound and the
+     compass. Location is in the middle, under either thumb; Layers and Sound, the next most used, beside it; weather and
+     the compass, the least, at the ends. The compass's slot is held while the chart is north up, so nothing moves when
+     it comes (it fades and grows in place, app.css #compass.hide).
+   - Launch (Plain: Record) is the primary action, so it is in the bottom third (BRIEF §7.8): centred just above the row; in a
+     short landscape, at the row's right end, on its line.
+   - The tabs: Chart, Log and Settings, three equal (app/log.css; the gear went into the bar as Settings).
+   In flight the row's buttons keep their columns (app.css, layers.css); everything here is parked (:root[data-flight="parked"]) unless said.
+   W122 homerow (SPEC §230): the row is now a column on the thumb's side (Settings › Buttons), top to bottom the compass (always
+   shown, greyed north up), weather, Layers, Sound and location; Launch beside the location button on its line; the scale and
+   the plain credit in the bottom corners. The bullets above are W89's, kept as history.
+   W157 homerow3 (SPEC §278; her note: "The record button should always be at the center of the screen … At the very bottom the
+   gps, then the compass above it. At the very top the layers, then the weather, then below it the sound. The circle to download
+   the app should be on the opposite side at the bottom"): the column splits in two on the Buttons side, Layers, weather and Sound
+   under the search, the compass over location at the foot; Record centred between the Starchart button and location.
+   Last of the chrome's sheets, before app/motion.css. */
+:root {
+  --dot: 48px; /* a circle: a primary control's 48 px (BRIEF §7.8) */
+  --dgap: 12px; /* between circles: 8 px is the floor */
+  --foot: calc(var(--bar-h) + 4px); /* W122 homerow: the scale's and the credit's line, in the corners just above the tabs */
+  --dock-b: max(var(--rail), calc(var(--bar-h) + 26px)); /* the column's foot, over the credit's line (W122 homerow; W89: 12 px above the tabs) */
+  --go-b: var(--dock-b); /* W122 homerow: Launch on the location button's line (W89: 10 px above the row) */
+  --gow: max(140px, calc(4.25rem + 60px)); /* W122 homerow: Launch's width, fixed, so its place beside the location button is known; W142 remscale: 140 px, and wider for its word at a larger text size */
+  --cx: calc(100% - var(--mr) - var(--dot)); /* W122 homerow: the column's left edge: at the right, the thumb's side (Settings › Buttons) */
+  --gx: calc(50% - var(--gw) / 2); /* W157 homerow3: Record's left edge, centred (W122: 12 px inside the location button) */
+  --gw: min(var(--gow), calc(100% - 2 * (var(--m) + var(--dot) + 8px))); /* W157 homerow3: its width, 8 px clear of the circles either side (a larger text takes its padding first) */
+  --ox: var(--ml); /* W157 homerow3: the opposite side's circle (the Starchart button) */
+  --tx: var(--cx); /* W157 homerow3: the top group's left edge, on the Buttons side */
+  --top-g: calc(var(--top) + 48px + var(--dgap)); /* W157 homerow3: the top group's first circle, under the search */
+  --tsx: 0px; --tsy: calc(var(--dot) + var(--dgap)); /* W157 homerow3: from one circle of the top group to the next: down */
+  --above: calc(var(--go-b) + 48px + 8px); /* what sat above the old bottom bar (Landed's Undo, notices) now sits above Launch */
+  --side-b: var(--foot); /* W122 homerow: the scale and the credit, in the bottom corners (W89: at the sides of Launch) */
+  --sbox: auto; /* the search's width: the whole top, inside the margins; a column on a wide or short screen (below) */
+}
+/* W187 handside (SPEC §324; his note: "if I'm operating in left-handed mode … If I then choose a destination such that a route is
+   shown, the buttons jump back to the right"): the Buttons side (Settings › Buttons, <html data-hand>, app/theme.js) is decided
+   here once, as these variables, and every state's rule places by them, never by data-hand again, so no state can forget the left
+   (the preview's Layers and compass kept W58's right). Right: --far-* puts a thing at the other side's margin (--far-a aligns its
+   lines there), --colw-* is the column's room at each edge for what runs across the chart, --sl and --sr a side column's edges. */
+:root { --far-l: var(--ml); --far-r: auto; --far-a: flex-start; --colw-l: 0px; --colw-r: var(--col); --sl: 0px; --sr: auto;
+  --tl: var(--ml); --tr: calc(100% - var(--tx) + var(--dgap)); } /* --tl, --tr: the room beside the top group, for its cards */
+/* W191 appleft (SPEC §334): the rest of the twins, told here too. --cr-*: the credit in the Buttons' corner (its edges, its words' float and
+   margins; --crx and --crm by state, below); --tb-*: a tally's −1 and +1 on the chart's side of it; --ro-*: the readout's grid on a course,
+   Land at the Buttons' end; --bl, --br: a notice beside the column on the Buttons' side, as wide as its words (--bo by state, below);
+   --nfr: the room the in-flight GPS notice leaves (app.css) */
+:root { --cr-l: auto; --cr-r: calc(env(safe-area-inset-right) + var(--crx)); --cr-f: right; --cr-ml: 0px; --cr-mr: var(--crm);
+  --bl: auto; --br: calc(var(--mr) + var(--bo)); --nfr: 100px;
+  --tb-l: auto; --tb-r: 100%; --tb-m: 0 6px 0 0; --ro-cols: auto 1fr 1fr auto; --ro-areas: "warp eta left land" "ly eta left land"; } /* W191 appleft */
+:root[data-hand="left"] { --cx: var(--ml); --ox: calc(100% - var(--mr) - var(--dot)); /* W122 homerow: Buttons on the left: mirrored; W157 homerow3: Record stays centred */
+  --far-l: auto; --far-r: var(--mr); --far-a: flex-end; --colw-l: var(--col); --colw-r: 0px; --sl: auto; --sr: 0px;
+  --tl: calc(var(--tx) + var(--dot) + var(--dgap)); --tr: var(--mr); /* W187 handside */
+  --cr-l: calc(env(safe-area-inset-left) + var(--crx)); --cr-r: auto; --cr-f: left; --cr-ml: var(--crm); --cr-mr: 0px; /* W191 appleft */
+  --bl: calc(var(--ml) + var(--bo)); --br: auto; --nfr: var(--col); /* W191 appleft */
+  --tb-l: 100%; --tb-r: auto; --tb-m: 0 0 0 6px; --ro-cols: auto auto 1fr 1fr; --ro-areas: "land warp eta left" "land ly eta left"; } /* W191 appleft */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root { --dgap: 8px; } /* W122 homerow: the column's five fit a 375 px landscape */
+}
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) {
+  :root { --top-g: var(--top); } /* W157 homerow3: the search is a column opposite the Buttons (W187 handside: in either hand), so the top group has the corner */
+}
+
+/* ---- the top: Where to? -------------------------------------------------------------------- */
+#gobar { display: contents; } /* its field goes to the top and Launch to the row; the region stays, as one landmark */
+#gobar .csearch { position: fixed; z-index: 3; left: var(--ml); right: var(--mr); top: var(--top); width: var(--sbox); height: 48px; padding: 0 4px 0 14px; gap: 10px;
+  border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-pill); background: var(--glass-btn); box-shadow: var(--lift); color: var(--stardust); }
+#gobar .csearch input { font-size: max(11px, 1.0625rem); font-weight: 600; color: var(--starlight); text-shadow: 0 0 2px var(--halo), 0 0 1px var(--halo); } /* W142 remscale */
+#gobar .csearch input::placeholder { color: var(--starlight); opacity: 0.86; }
+@media (max-width: 359px) { #gobar .csearch input { font-size: max(11px, 1.0625rem); } } /* W142 remscale */
+@media (hover: hover) and (pointer: fine) { #gobar .csearch:hover { filter: none; } }
+/* open: the same box, so nothing moves; only its ground goes solid for the results under it (launch.css) */
+body[data-open~="search"] #gobar .csearch { left: var(--ml); right: var(--mr); top: var(--top); width: var(--sbox); padding: 0 4px 0 14px; }
+/* a wide screen (W77 desktop) and a short landscape: a column at the left, the field its top, the results under it; W187 handside
+   (SPEC §324): every side column opposite the Buttons, so with Buttons on the left at the right, the search's, the preview's and the
+   turn card's alike, and search → preview → ride never switches sides */
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) {
+  :root { --scol: min(380px, max(46vw, 320px)); --pcol: var(--scol); --sbox: calc(var(--scol) - var(--ml) - var(--m)); } /* the search's column and the preview's (--pcol: fromto.css .pvbar, course.css .cpreview); W190 screenstate: told here only */
+  #gobar .csearch, body[data-open~="search"] #gobar .csearch { left: var(--far-l); right: var(--far-r); } /* W187 handside: at the other side's margin */
+  .cresults:not(.cfromto) { left: var(--sl); right: var(--sr); width: var(--scol); border-right: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); } /* W187 handside: sl, sr */
+  /* W187 handside: at the right, a side column's edge, its rounded corner and its wider padding go to the chart's side (their places are
+     --sl and --sr: course.css .cpreview, fromto.css .pvbar and .cfromto) */
+  :root[data-hand="left"] .cresults:not(.cfromto) { border-right: 0; border-left: var(--hairline) solid var(--glass-edge); }
+  :root[data-hand="left"] .pvbar { padding-right: var(--mr); padding-left: calc(var(--m) + 4px); border-right: 0; border-left: 1px solid color-mix(in srgb, var(--course) 70%, transparent); }
+  :root[data-hand="left"] .cpreview { padding-right: var(--mr); padding-left: calc(var(--m) + 4px); border-right: 0; border-left: 1px solid color-mix(in srgb, var(--course) 70%, transparent); border-radius: 0 0 0 var(--r-l); }
+}
+@media (min-width: 900px) and (min-height: 561px) { :root[data-hand="left"] :is(.cfromto, .cfromto.idle) { border-right: 0; border-left: var(--hairline) solid var(--glass-edge); } } /* W187 handside: the editor's column */
+@media (min-width: 900px) and (min-height: 561px) { :root { --scol: 440px; --pcol: 420px; } } /* W77 desktop's columns: the search's and the editor's, the preview's */
+/* the preview's From/To bar takes the top in the search's place: its first row where the field was (fromto.css) */
+
+/* ---- the bottom: the column of circles, on the thumb's side --------------------------------- */
+/* W122 homerow (SPEC §230; her note: "the round buttons … should be to the side of the screen … a setting in the appearance
+   for left-handed and right handed users"): one column at the right (Settings › Buttons: the left), top to bottom the Starchart button in a tab (W150), the compass,
+   weather, Layers, Sound and location, the most used nearest the thumb; Launch beside the location button, at the bottom */
+:root[data-flight="parked"] body > :is(#wxchip, #locate, #sound), :root[data-flight="parked"] body:not([data-open~="preview"]) > :is(#layers, #compass) { position: absolute; z-index: 2; top: auto; right: auto; left: var(--cx); width: var(--dot); height: var(--dot);
+  margin: 0; padding: 0; place-items: center; justify-content: center; gap: 0; box-sizing: border-box; border-radius: 50%; /* no display here: the hiding rules keep theirs */
+  background: var(--glass-btn); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); } /* W122 homerow: left, the column's edge */
+:root[data-flight="parked"] body > #locate { bottom: var(--dock-b); } /* W122 homerow */
+:root[data-flight="parked"] body:not([data-open~="preview"]) > #compass { bottom: calc(var(--dock-b) + (var(--dot) + var(--dgap))); } /* W157 homerow3: just above location; always there, greyed while north is up (app.css) */
+:root[data-flight="parked"] body:not([data-open~="preview"]) > #layers { left: var(--tx); top: var(--top-g); bottom: auto; } /* W157 homerow3: the top group's first, under the search (nobulb, SPEC §320: again, the bulb gone) */
+:root[data-flight="parked"] body > #wxchip { left: calc(var(--tx) + var(--tsx)); top: calc(var(--top-g) + var(--tsy)); bottom: auto; min-height: 0; max-width: none; } /* W157 homerow3: under Layers */
+:root[data-flight="parked"] body > #sound { left: calc(var(--tx) + 2 * var(--tsx)); top: calc(var(--top-g) + 2 * var(--tsy)); bottom: auto; } /* W157 homerow3: under the weather */
+:root[data-flight="parked"] body:not([data-open~="preview"]) > #compass .dial { width: var(--dot); height: var(--dot); }
+/* W150 welcome2 (SPEC §270): the Starchart button, the app's round icon in a circle like the others, while parked, in a browser
+   tab only (app/install.js). W157 homerow3: at the foot on the side opposite Buttons, level with Record (W150: atop the column) */
+body > #getapp { display: none; } /* W150 welcome2: parked only */
+:root[data-flight="parked"] body:not([data-open~="preview"]) > #getapp { display: grid; position: absolute; z-index: 2; top: auto; right: auto; left: var(--cx); bottom: calc(var(--dock-b) + 2 * (var(--dot) + var(--dgap))); /* W157 homerow3; W177 buttons2 (SPEC §312), her note 4: "the circle with the app icon should appear above the compass" (W157: at the foot, opposite) */
+  width: var(--dot); height: var(--dot); margin: 0; padding: 0; place-items: center; box-sizing: border-box; border-radius: 50%; } /* W150 welcome2 */
+#getapp img { display: block; width: 34px; height: 34px; } /* W150 welcome2 */
+/* W160 smallui (SPEC §287, her note 17): the icon fills its circle, with no glass frame round it; its own disc's edge is the button's
+   (favicon.svg clips to r 15.4 of 16, so 1 px more each way meets the circle), and the lift stays */
+:root[data-flight="parked"] body > #getapp { overflow: hidden; background: none; border: 0; }
+:root[data-flight="parked"] body > #getapp img { width: calc(100% + 2px); height: calc(100% + 2px); margin: -1px; }
+:root[data-flight="parked"] body > :is(#wxchip, #sound) .i { width: 24px; height: 24px; }
+:root[data-flight="parked"] body > #sound { color: var(--starlight); }
+:root[data-flight="parked"] body > #sound[data-mode="off"] { color: var(--stardust); } /* W177 buttons2: data-mode (was aria-pressed) */
+/* the preview: Layers and the compass keep their place under its From/To bar, as before; W187 handside (SPEC §324): in the Buttons
+   column, 48 px circles a step apart as in every other state, parked, in flight and on foot (W58's rules put them at the right in
+   either hand, 44 px: layers.css, fromto.css); in a landscape and on a wide screen at the top, the sheet being a side column */
+:root body[data-open~="preview"] > :is(#layers, #compass) { --pvt: calc(var(--card-h, 0px) + var(--pvbar-h, 0px) + 8px); position: absolute; z-index: 2; right: auto; left: var(--tx); /* the top group's column, Layers' in every state */ width: var(--dot); height: var(--dot); }
+:root body[data-open~="preview"] > #layers { top: var(--pvt); }
+:root body[data-open~="preview"] > #compass { top: calc(var(--pvt) + var(--step)); }
+:root body[data-open~="preview"] > #compass .dial { width: var(--dot); height: var(--dot); }
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { :root body[data-open~="preview"] > :is(#layers, #compass) { --pvt: var(--top); } }
+/* a course or place sheet, the search and the Log cover the row */
+body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]):not([data-open~="preview"]) > :is(#layers, #compass, #getapp), body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) > :is(#sound, #locate) { visibility: hidden; }
+:root[data-flight="parked"] body:has(#nogps:not([hidden])) > :is(#wxchip, #layers, #locate, #sound, #compass, #getapp) { visibility: hidden; } /* the no-location sheet over the row: Try again and Where to? are its own, as the search and Launch hide under it (launch.css) */
+
+.i-wx-off, .i-wx-boot { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.8 19.5h9.6a3.6 3.6 0 0 0 .3-7.2A5.2 5.2 0 0 0 6.6 13a3.25 3.25 0 0 0 .2 6.5z'/%3E%3Cpath d='M13.9 6.6a3.7 3.7 0 0 1 6.4 3.9M17.4 1.9v1.3M22.1 6.7h-1.3M20.8 3.2l-.9.9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.8 19.5h9.6a3.6 3.6 0 0 0 .3-7.2A5.2 5.2 0 0 0 6.6 13a3.25 3.25 0 0 0 .2 6.5z'/%3E%3Cpath d='M13.9 6.6a3.7 3.7 0 0 1 6.4 3.9M17.4 1.9v1.3M22.1 6.7h-1.3M20.8 3.2l-.9.9'/%3E%3C/svg%3E"); } /* W173 uismall: i-wx-boot, the first frame's, is this with the layer off, else the radar's sweep (weather.css) */ /* W89 home: the row's weather with the layer off: a cloud and a sun, no rain (the wx set's line, weather.css) */
+/* weather: the radar's state as the circle's icon (weather.css), its words for a screen reader and in its sheet. With the
+   layer off it is a plain cloud, dim, and a tap turns the layer on and opens the sheet (app/weather.js) */
+:root[data-flight="parked"] body > #wxchip .t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:root[data-flight="parked"] body > #wxchip .i { width: 24px; height: 24px; }
+:root[data-flight="parked"] body > #wxchip.off .i { color: var(--stardust); }
+:root[data-flight="parked"] body > #wxchip:not(.off) .i { color: var(--starlight); }
+:root[data-flight="parked"] body > #wxchip.wet .i { color: var(--caution); }
+:root[data-flight="parked"] body > #wxchip[aria-expanded="true"] { visibility: visible; color: var(--phosphor); border-color: var(--phosphor-dim); } /* the sheet is above it now, not in its place */
+#wxchip.wet::after { content: ""; position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--caution); box-shadow: 0 0 0 2px var(--void); } /* rain now or soon: a dot as well as the colour (BRIEF §7.2) */
+:root[data-lingo="meatspace"][data-theme="light"] #wxchip.wet::after { box-shadow: 0 0 0 1px var(--pal-ink), 0 0 0 3px var(--void); } /* W186 palette: by day her faint yellow takes her thin ink edge */
+
+/* ---- Launch: beside the location button, on its line (W122 homerow; W89: centred above the row) ---- */
+#gobar #launch { position: absolute; z-index: 2; left: var(--gx); bottom: var(--go-b); width: var(--gw); /* W157 homerow3: gw */ justify-content: center; height: 48px; padding: 0 max(0px, calc(12px - (var(--gow) - var(--gw)) / 2)); gap: 8px; font-size: 1.3125rem; /* W122 homerow: gx, its width */ /* W142 remscale */ /* W157 homerow3: capped, its padding goes first */
+  border: var(--hairline) solid color-mix(in srgb, var(--starlight) 30%, var(--phosphor)); border-radius: var(--r-pill);
+  box-shadow: var(--lift), var(--glow-m) color-mix(in srgb, var(--phosphor) 45%, transparent); }
+#gobar #launch .i { width: 24px; height: 24px; }
+
+/* ---- what sat above the old bottom bar: above Launch now ----------------------------------- */
+:root[data-flight="parked"] #snack, :root[data-flight="parked"] .nsnack, body:not([data-open~="log"]) #log-snack { bottom: var(--above); }
+body:not([data-open~="log"]) #log-snack { left: calc(var(--ml) + var(--colw-l)); right: calc(var(--mr) + var(--colw-r)); } /* W122 homerow: clear of the column; W191 appleft: on its side (--colw) */
+:root { --bo: var(--col); } :root:not([data-flight="parked"]) { --bo: calc(48px + 8px); } /* W191 appleft: beside the column, parked; in flight app.css #fps's */
+:root[data-flight="parked"] #nofix { left: var(--bl); right: var(--br); } /* W122 homerow: clear of the column; W191 appleft (SPEC §334): on its side, as wide as its words in either hand */
+:root[data-flight="parked"] #fps { bottom: var(--above); } /* W122 homerow */
+#fps { left: var(--bl); right: var(--br); } /* W191 appleft: as #nofix, in every state */
+.fcard { left: calc(var(--ml) + var(--col)); right: calc(var(--mr) + var(--col)); bottom: var(--above); margin: 0 auto; max-width: 360px; } /* W157 homerow3: centred over Record, clear of the compass and the Starchart button either side (W122: its right edge Launch's) */
+.fcard::after { right: calc(50% - 6px); } /* its tail on Launch's middle (W157 homerow3: both centred) */
+/* W122 homerow: Buttons on the left: clear of the column there (W187 handside: #snack and .nsnack by --colw, app.css; W191 appleft: #log-snack
+   by --colw, #nofix and #fps by --bl and --br, which also stop them stretching across the chart with Buttons on the left) */
+#dlnote { top: calc(var(--top) + 48px + 8px); } /* under the search */
+#dlnote { left: calc(var(--ml) + var(--colw-l)); max-width: min(340px, calc(100vw - var(--ml) - var(--mr) - max(52px, var(--colw-l)))); } /* W157 homerow3: Buttons on the left: clear of the top group; W191 appleft (SPEC §334): by --colw, both hands (at the right, 52 px for the circles, as downloads.css) */
+:root[data-flight="parked"] #loadword { top: min(calc(62% + 52px), calc(100% - var(--go-b) - 48px - 8px - 28px)); } /* "Charting…" 8 px above Launch, at 320 × 568 too */
+@media (orientation: landscape) and (max-height: 500px) { :root[data-flight="parked"] #loadword { top: auto; } } /* above the ship there (app.css) */
+/* W122 homerow (SPEC §230; her note: "the scale ruler can still be at the bottom left of the screen while the open street maps
+   writing could be at the bottom right … I don't think you need the clickable copyright button, which is confusing"): the
+   scale in the corner away from the column, and "OpenStreetMap" in plain small words in the column's corner, under the
+   location button, always shown; a hold opens Settings › App › Credits (app/main.js). Both rise over Landed's Undo. */
+#scale { left: var(--far-l); right: var(--far-r); align-items: var(--far-a); } /* W187 handside (SPEC §324): the scale in the corner opposite the Buttons in every state; the states set its bottom only (Landed's Undo moved it onto the Starchart button with Buttons on the left) */
+[data-flight="parked"] #scale { bottom: var(--side-b); }
+/* W191 appleft (SPEC §334): the credit's offset from its corner and its words' margin, by state (its side is the hand's, above) */
+:root { --crx: 0px; --crm: var(--m); }
+:root:has(#readout:not([hidden])) { --crx: 56px; --crm: calc(var(--m) + 16px); } /* in flight, beside the location button (below) */
+:root:not([data-flight="parked"])[data-lingo="scul"]:has(#readout:not([hidden])) { --crx: calc(56px + var(--step)); } /* and SCUL's tallies' column */
+[data-flight="parked"] .maplibregl-ctrl-bottom-right, [data-flight="parked"] .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { left: var(--cr-l); right: var(--cr-r); bottom: var(--side-b); } /* W122 homerow: in the corner (W89: the line above Launch's); W191 appleft: cr */
+[data-flight="parked"] body:has(#snack:not([hidden])) #scale, [data-flight="parked"] body:has(#snack:not([hidden])) .maplibregl-ctrl-bottom-right, [data-flight="parked"] body:has(#snack:not([hidden])) .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { bottom: calc(var(--above) + 56px + 6px); }
+[data-flight="parked"] .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open], [data-flight="parked"] body:has(#demo-chip:not([hidden])) .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open] { float: var(--cr-f); max-width: none; margin: 0 var(--cr-mr) 0 var(--cr-ml); } /* W122 homerow: its edge the column's (W191 appleft: either hand's) */
+:root[data-flight="parked"] #nofix { bottom: var(--above); } /* W122 homerow: above Launch (was above the ©'s 44 px target) */
+/* in flight, where the readout leaves no room beside it, the © goes above the readout, just left of the right column, and opens
+   there (hud.css put it at the left); W171 flightbar: in a landscape too, where it sat under the location button, now beside the bar */
+body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open] { float: var(--cr-f); margin: 0 var(--cr-mr) 0 var(--cr-ml); } /* W191 appleft: cr */
+body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right, body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { left: var(--cr-l); right: var(--cr-r); bottom: calc(var(--card) + 64px + 6px); } /* W191 appleft: cr (56 px: --crx) */
+
+/* ---- W122 homerow: Buttons on the left, in flight: the right column mirrored, Land beside the location button there --- */
+/* W191 appleft (SPEC §334): its column's own left-hand places went (location, the tallies, Sound): W177's rules below place them in
+   every flight state but a preview, which hides them (app.css, course.css) */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root[data-hand="left"]:not([data-flight="parked"]) #banner { max-width: min(420px, calc(50vw - var(--ml) - var(--col) - 88px)); } /* W132 homerow2: it starts --col further right, so it still ends 88 px left of mid-screen, clear of the ship (app.css) */
+}
+.tally::before { left: var(--tb-l); right: var(--tb-r); margin: var(--tb-m); } /* W122 homerow: the −1 and +1 on the chart's side; W191 appleft: tb, either hand */
+:root[data-hand="left"] #land { order: -1; /* W122 homerow: Land at the readout's left end, under the location button (W171 flightbar: the readout spans the screen, hud.css) */ border-radius: var(--r-pill) var(--r-xs) var(--r-xs) var(--r-pill); margin: 0 2px 0 0; } /* W122 homerow: Launch's twin, mirrored */
+/* W122 homerow: on a course, Land the grid's first column with Buttons on the left; W191 appleft (SPEC §334): the grid's areas named
+   (app/hud.css), the hand's template its variables' (above); the credit above the readout, just beside the column, its too */
+
+/* ---- the cards the row opens rise from above it -------------------------------------------- */
+/* W157 homerow3: they hang beside the top group, from its top line, clear of it and above Record (W122: they rose from above Launch) */
+:root[data-flight="parked"] #layerspick { top: var(--top-g); left: var(--tl); right: var(--tr); /* W187 handside: tl, tr */ bottom: auto; margin: 0 auto; width: min(340px, calc(100vw - var(--ml) - var(--mr) - var(--col))); /* W157 homerow3 */
+  max-height: calc(100dvh - var(--top-g) - var(--above)); overflow-y: auto; transform-origin: top center; } /* W157 homerow3 */
+:root[data-flight="parked"] #wxsheet { top: var(--top-g); left: var(--tl); right: var(--tr); /* W187 handside: tl, tr */ bottom: auto; max-width: 480px; margin: 0 auto; /* W157 homerow3 */
+  max-height: calc(100dvh - var(--top-g) - var(--above)); transform-origin: top center; } /* W157 homerow3 */
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { /* W157 homerow3: the search's column has the top opposite the Buttons, so the cards start beside it */
+  :root { --tl: var(--scol); } :root[data-hand="left"] { --tr: var(--scol); } /* W187 handside: its side, either hand */
+}
+@media (orientation: landscape) and (max-height: 500px) { /* W157 homerow3: too short to hang beside the search's column, so the cards rise from above Record, as W122's */
+  :root[data-flight="parked"] :is(#layerspick, #wxsheet) { top: auto; bottom: var(--above); max-height: calc(100dvh - var(--top) - var(--above)); transform-origin: bottom center; }
+  :root[data-flight="parked"] :is(#layerspick, #wxsheet) { left: calc(var(--ml) + var(--colw-l)); right: calc(var(--mr) + var(--colw-r)); } /* W187 handside: colw */
+}
+
+/* ---- the Settings tab: the download's ring round its gear (app.css #about::after) ---------- */
+#tab-chart, #tab-log, #bar #about { flex: 1 1 0; }
+#about { --lw: 3.9em; }
+#bar #about::after { left: calc(50% - (7px + var(--lw)) / 2); top: calc(var(--bar-box) / 2); width: 40px; height: 40px; translate: -50% -50%; }
+
+/* ---- W177 buttons2 (SPEC §312): the round buttons in flight where they are parked; two columns in a landscape ------------ */
+/* Her notes 5 and 7, 2026-10-27: "During a ride, circle buttons should be in the same size and position as they are when browsing
+   the map … In ride mode, the app install icon should never be displayed. In ride mode, the "whole route view" button should be
+   displayed above the compass … put the speed/miles button above the view full route button … If the screen is put in landscape
+   mode, the button should be arranged into two columns on the button side of the screen, with the bottom buttons on the
+   outermost side of the screen."
+   - In flight (not :root[data-flight="parked"]): 48 px circles on the Buttons side, as parked. The top group (Layers and Sound; the
+     weather circle is parked only) from its parked line, or under the turn card; the foot from the location button (8 px over
+     the ride's bar, W171 flightbar) up: the compass, Overview's slot on a course (held while Overview hides, so nothing moves),
+     and the long-haul screen's button. SCUL's tallies stand beside the foot, the chart's side, so --col is two columns there.
+   - A landscape 560 px tall or less: the foot is the outer column and the top group the inner one, beside it. */
+:root { --ix: calc(var(--cx) - var(--dot) - var(--dgap)); --top-f: max(var(--top-g), calc(var(--top) + var(--card-h, 0px))); --step: calc(var(--dot) + var(--dgap)); }
+:root[data-hand="left"] { --ix: calc(var(--cx) + var(--dot) + var(--dgap)); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > :is(#layers, #sound, #compass, #locate, #overview, #longhaul, #hifive, #cup) { right: auto; bottom: auto; left: var(--cx); width: var(--dot); height: var(--dot); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #compass .dial { width: var(--dot); height: var(--dot); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #sound .i { width: 24px; height: 24px; }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #layers { left: var(--tx); top: var(--top-f); } /* nobulb (SPEC §320): the top group's first again */
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #sound { left: calc(var(--tx) + var(--tsx)); top: calc(var(--top-f) + var(--tsy)); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #locate { top: auto; bottom: var(--colb); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #compass { top: auto; bottom: calc(var(--colb) + var(--step)); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #overview { top: auto; bottom: calc(var(--colb) + 2 * var(--step)); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #longhaul { top: auto; bottom: calc(var(--colb) + 2 * var(--step)); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]):is(:has(#readout.to), :has(> .cturn:not([hidden]))) > #longhaul { bottom: calc(var(--colb) + 3 * var(--step)); } /* above Overview's slot, on a course; W187 handside: a walk's too, whose readout has no ETA (it sat on Overview) */
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > :is(#hifive, #cup) { left: var(--ix); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #cup { top: auto; bottom: calc(var(--card) + 64px + 8px); }
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #hifive { top: auto; bottom: calc(var(--card) + 64px + 8px + var(--step)); }
+:root:not([data-flight="parked"])[data-lingo="scul"] { --col: calc(2 * var(--step)); } /* the tallies' column too */
+/* Layers' card in flight hangs beside the top group, as parked, under the turn card, and ends above the ride's bar */
+:root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #layerspick { --ct: max(var(--top-f), calc(var(--top) + var(--card-h, 0px))); top: var(--ct); left: var(--ml); right: calc(100% - var(--tx) + var(--dgap)); margin: 0 0 0 auto;
+  width: min(340px, calc(100vw - var(--ml) - var(--mr) - var(--col))); max-height: calc(100dvh - var(--ct) - var(--card) - 64px - 8px); transform-origin: top right; }
+:root[data-hand="left"]:not([data-flight="parked"]) body:not([data-open~="preview"]) > #layerspick { left: calc(var(--tx) + var(--dot) + var(--dgap)); right: var(--mr); margin: 0 auto 0 0; transform-origin: top left; }
+/* SCUL's credit above the ride's bar clears the tallies' column too (W191 appleft: --crx, above) */
+#burnup { left: var(--far-l); right: var(--far-r); } /* Burn up has the top corner opposite Buttons (the long-haul button went to the foot); W191 appleft: far, either hand */
+/* W191 appleft: the in-flight GPS notice clear of the column on its side, and inside the margin (--col is two columns in SCUL): app.css, by --colw-l and --nfr */
+@media (orientation: portrait) and (max-height: 640px) { :root { --dgap: 8px; } } /* seven circles in one column at 360 x 640 */
+@media (orientation: portrait) and (max-height: 600px), (orientation: portrait) and (max-width: 359px) {
+  :root[data-flight="parked"] body:not([data-open~="preview"]) > #getapp { left: var(--ox); bottom: var(--dock-b); } /* no room over the compass (at 320 px a peek found none beside a column of seven): W157's place, at the foot opposite */
+}
+@media (orientation: portrait) and (max-height: 700px) {
+  :root:not([data-flight="parked"]) body:not([data-open~="preview"]):is(:has(#readout.to), :has(> .cturn:not([hidden]))) > #longhaul { left: var(--ox); /* W187 handside: is */ top: calc(var(--top) + var(--card-h, 0px)); bottom: auto; } /* on a course, no room over Overview under a turn card with its next turn (168 px): the top corner opposite, under the card */
+  :root:not([data-flight="parked"]) body:not([data-open~="preview"]):is(:has(#readout.to), :has(> .cturn:not([hidden]))):has(> #longhaul:not([hidden])) #nofix { /* W187 handside: is */ top: calc(var(--top) + var(--card-h, 0px) + var(--step)); } /* the GPS notice (app.css: under the card in flight) a row down, clear of it on either hand, as mission.css's under Burn up */
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  :root { --tx: var(--ix); --tsx: 0px; --tsy: var(--step); --col: calc(2 * var(--step)); --top-f: var(--top-g); }
+  :root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #layerspick { width: min(500px, 74vw, calc(100vw - var(--ml) - var(--mr) - var(--col))); } /* six a row (layers.css) */
+  :root:not([data-flight="parked"]) body:not([data-open~="preview"]) > #cup { bottom: calc(var(--card) + 64px + 8px); }
+}
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) {
+  /* the turn card, its next turn and its list: a side column, opposite the Buttons (W187 handside: on a wide screen too; W122 homerow:
+     with Buttons on the left at the right, mirrored, so the columns have the left); its width is course.css's */
+  :root { --cardw: min(440px, calc(100vw - var(--ml) - var(--mr) - 3 * (44px + 8px))); --cardl: var(--ml); } /* W190 screenstate: the turn card's width, told here only (W73's three 44 px slots, as it was) */
+  :root[data-hand="left"] { --cardl: calc(100vw - var(--mr) - var(--cardw)); }
+  .cturn, .cturns-fly { left: var(--cardl); }
+  .cthen { left: calc(var(--cardl) + 12px); }
+}

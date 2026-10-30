@@ -1,0 +1,149 @@
+{
+  "_comment": "The Lingo Layer. One file decides how Starchart speaks SCUL. The tile pipeline reads `strip` and `overrides` to make base names; the style generator reads `kinds` to write every map label. Edit, rebuild the style (chart/style/build.sh), and the whole chart changes. Templates: {name} = OSM name, {base} = lingo-ready base name, {ref} = road number. Voice: one line per slot; plain variants in a slot are split by \" | \" and take turns (chart/prototype/events.js voiceFor). Status: official = in the club glossary; club = pilots use it in mission reports; proposed = coined by Starchart from official words, and the club may veto it.",
+  "version": 1,
+  "strip": {
+    "street": {
+      "_comment": "Generic street words, longest first. Only a trailing word is removed, and only once.",
+      "suffix": ["Street Extension", "Avenue Extension", "Road Extension", "Drive Extension", "Lane Extension", "Court Extension", "Place Extension", "St Extension", "Memorial Drive", "Street", "Avenue", "Road", "Drive", "Boulevard", "Lane", "Place", "Court", "Terrace", "Parkway", "Highway", "Way", "Circle", "Row", "Square", "Park", "Plaza", "Wharf", "Turnpike", "Expressway", "Extension", "Path", "Alley", "Mall", "Crossing", "Point", "St.", "St", "Ave.", "Ave", "Rd.", "Rd", "Dr.", "Dr", "Blvd.", "Blvd", "Pkwy.", "Pkwy", "Sq.", "Sq"],
+      "prefix": ["The ", "Avenue ", "Rue "],
+      "keep_if_single_word": true
+    },
+    "path": {
+      "suffix": ["Commuter Bikeway", "Community Path Extension", "Community Path", "Community Trail", "Multi-Use Path", "Multi-use Path", "Shared Use Path", "Bike Path", "Bikepath", "Bicycle Path", "Bike Trail", "Rail Trail", "Linear Park", "Bikeway", "Greenway", "Pathway", "Path", "Trail", "Walk", "Connector", "Esplanade"],
+      "prefix": ["The ", "Dr. "]
+    },
+    "water": {
+      "_comment": "W21: a pond mapped with a brook's or river's name (Reed Brook) drops that word too.",
+      "suffix": ["Reservoir", "Ponds", "Pond", "Lakes", "Lake", "Basin", "Lagoon", "Harbor", "Bay", "Channel", "Pool", "Cove", "River", "Brook", "Creek", "Stream", "Canal"],
+      "prefix": ["The "]
+    },
+    "river": {
+      "suffix": ["River Basin", "River", "Brook", "Creek", "Canal", "Stream", "Channel", "Run"],
+      "prefix": ["The "]
+    },
+    "square": {
+      "suffix": ["Square", "Sq.", "Sq", "Plaza", "Corner", "Circle", "Rotary", "Roundabout", "Center", "Centre"],
+      "prefix": ["The "]
+    },
+    "bridge": {
+      "suffix": ["Footbridge", "Foot Bridge", "Pedestrian Bridge", "Bridge", "Overpass", "Viaduct"],
+      "prefix": ["The "]
+    },
+    "place": {
+      "suffix": ["Residential Historic District", "Historic District"],
+      "prefix": ["City of ", "Town of "]
+    },
+    "dock": {
+      "_comment": "W21: a Bluebikes station named for the dock (Honan Library Dock) is the Klingon Dock Honan Library.",
+      "suffix": ["Dock", "- Bluebikes"],
+      "prefix": []
+    },
+    "station": {
+      "suffix": ["Station", "Busway", "Bus Station"],
+      "prefix": []
+    },
+    "airport": {
+      "_comment": "W192 airportsearch: Logan International Airport is the club's Logan Starport.",
+      "suffix": ["International Airport", "Regional Airport", "Municipal Airport", "Airport"],
+      "prefix": []
+    },
+    "park": {
+      "_comment": "A park's generic word (W19: every kind leads with its own name and carries its lingo word). W21: the words that say park again after Terraform (\"Saint Peters Field Terraform\" is the Saint Peters Terraform). A base that is the name of a town or neighbourhood keeps the whole name (keep_place_names): Dorchester Park is the Dorchester Park Terraform. Common, Commons and Garden stay: the word is the name (Boston Common, the Public Garden).",
+      "suffix": ["Conservation Area", "Conservation Land", "Recreation Area", "Athletic Fields", "Athletic Field", "Soccer Fields", "Play Area", "Playground", "Playfield", "Reservation", "Tot Lot", "Fields", "Field", "Woods", "Green", "Park"],
+      "prefix": ["The "],
+      "keep_place_names": true
+    },
+    "none": { "suffix": [], "prefix": [] }
+  },
+  "quadrants": {
+    "_comment": "Which OSM places become quadrants (chart/pipeline/Starchart.java isQuadrant). A historic district mapped as a place keeps its base name (\"Spring Hill Historic District\" is the Spring Hill Quadrant), unless that base names one street (\"Pleasant Street Historic District\" is a street, not a quadrant), or a quadrant of the same base name lies within near_m. A place whose name ends with a drop_suffix is a building, not a quadrant. A zoning district (Malden Gaming District) is not a neighbourhood either. Names that are the name stay whole: Financial District, Leather District.",
+    "drop_suffix": ["Apartments", "Towers and Court", "Gaming District"],
+    "near_m": 1500
+  },
+  "overrides": [
+    { "name": "Dr. Paul Dudley White Bike Path", "base": "Paul Dudley White", "why": "The rules leave the honorific." },
+    { "name": "Minuteman Commuter Bikeway", "base": "Minuteman", "why": "Club usage: pilots fly the Minuteman Wormhole." },
+    { "name": "Somerville Community Path", "base": "Community Path", "why": "Pilots and civilians alike call it the Community Path." },
+    { "name": "Southwest Corridor Park", "base": "Southwest Corridor", "why": "The park is the path." },
+    { "name": "Charles River Bike Path", "base": "Charles River", "why": "'Charles Wormhole' loses the river." },
+    { "name": "Massachusetts Turnpike", "base": "Mass Pike", "why": "Nobody says Massachusetts Transport Lane." },
+    { "name": "John F. Kennedy Street", "base": "JFK", "why": "Shorter on a handlebar, and what Cambridge calls it." },
+    { "name": "Commonwealth Avenue", "base": "Comm Ave", "why": "Every Bostonian says Comm Ave; 'Starpath Commonwealth' sounds like a bank." },
+    { "name": "Massachusetts Avenue", "base": "Massachusetts", "why": "The glossary example: Starpath Massachusetts." },
+    { "name": "Jamaicaway", "base": "Jamaicaway", "why": "Already one word." },
+    { "name": "Arborway", "base": "Arborway", "why": "Already one word." },
+    { "name": "Riverway", "base": "Riverway", "why": "Already one word." },
+    { "name": "Fenway", "base": "Fenway", "why": "Already one word." },
+    { "name": "The Fenway", "base": "Fenway", "why": "Drop the article." },
+    { "name": "Park Drive", "base": "Park Drive", "why": "'Starpath Park' is a different place." },
+    { "name": "Mall Road", "base": "Mall Road", "why": "'Starpath Mall' reads as a shop." },
+    { "name": "Broadway", "base": "Broadway", "why": "No generic word to drop." },
+    { "name": "Park Drive Extension", "base": "Park Drive", "why": "As Park Drive." },
+    { "name": "Hunnewell Field Playground", "base": "Hunnewell", "why": "Two park words; Hunnewell Field is the Hunnewell Terraform." },
+    { "name": "FIt Trail Park and Playground", "base": "FIt Trail", "why": "Two park words; the rule would leave \"FIt Trail Park and\"." },
+    { "name": "Victoria Circle Rotary", "base": "Victoria", "why": "Two rotary words." },
+    { "name": "Lexington Battle Green", "base": "Lexington Battle Green", "why": "The Green is the name." },
+    { "name": "Dedham Town Green", "base": "Dedham Town Green", "why": "The Green is the name." },
+    { "name": "Town Green", "base": "Town Green", "why": "\"Town Terraform\" names nothing." },
+    { "name": "Town Field", "base": "Town Field", "why": "\"Town Terraform\" names nothing." },
+    { "name": "Town Conservation Land", "base": "Town Conservation Land", "why": "\"Town Terraform\" names nothing." },
+    { "name": "City of Lynn Conservation Land", "base": "City of Lynn Conservation Land", "why": "\"City of Lynn Terraform\" reads as all of Lynn." },
+    { "name": "Well Field", "base": "Well Field", "why": "\"Well Terraform\" names nothing." },
+    { "name": "Sea Green", "base": "Sea Green", "why": "\"Sea Terraform\" names nothing." }
+  ],
+  "kinds": {
+    "system":            { "label": "{base} System", "status": "official", "strip": "place", "cadet": "{name}", "plain": "{name}", "codex": "a town or city", "voice": ["Now entering the {base} System. | Entering the {base} System. | The {base} System. | Welcome to the {base} System."], "plain_voice": ["Entering {name}."] },
+    "quadrant":          { "label": "{base} Quadrant", "status": "club", "strip": "place", "cadet": "{name}", "plain": "{name}", "codex": "a neighbourhood", "voice": ["{base} Quadrant. | Entering the {base} Quadrant. | Now in the {base} Quadrant. | This is the {base} Quadrant."], "plain_voice": ["{name}."] },
+    "galaxy":            { "label": "Galaxy {abbr}", "status": "official", "strip": "none", "cadet": "{name}", "plain": "{name}", "codex": "a state", "voice": ["Leaving Galaxy {abbr}."], "plain_voice": ["Leaving {name}."] },
+    "universe":          { "label": "The {name} Universe", "status": "official", "strip": "none", "cadet": "{name}", "plain": "{name}", "codex": "a country", "voice": [] },
+    "sector":            { "label": "Sector {ref}", "status": "official", "strip": "none", "cadet": "ZIP {ref}", "plain": "{ref}", "codex": "a zip code", "voice": [] },
+    "constellation":     { "label": "{base} Constellation", "status": "official", "strip": "square", "cadet": "{name}", "plain": "{name}", "codex": "a square", "voice": ["Approaching the {base} Constellation. | The {base} Constellation. | {base} Constellation ahead. | Coming up on the {base} Constellation."], "plain_voice": ["Approaching {name}."] },
+    "starpath":          { "label": "Starpath {base}", "status": "official", "strip": "street", "cadet": "{name}", "plain": "{name}", "codex": "a street", "voice": ["Onto Starpath {base}."], "plain_voice": ["Onto {name}."] },
+    "transport_lane":    { "label": "{ref} Transport Lane", "label_noref": "{base} Transport Lane", "status": "proposed", "strip": "street", "cadet": "{name}", "plain": "{name}", "codex": "a car-only road; no-fly (official: transport is a car or truck)", "voice": ["Transport lane ahead."], "plain_voice": ["Highway ahead."] },
+    "wormhole":          { "label": "{base} Wormhole", "status": "official", "strip": ["path", "street"], "cadet": "{name}", "plain": "{name}", "plain_unnamed": "Bike path", "unnamed": "Wormhole", "codex": "a bike path", "voice": ["Entering the {base} Wormhole. | Onto the {base} Wormhole. | The {base} Wormhole. | Into the {base} Wormhole.", "Leaving the {base} Wormhole. | Off the {base} Wormhole. | Out of the {base} Wormhole. | End of the {base} Wormhole."], "plain_voice": ["Onto the {name}.", "End of the bike path."] },
+    "space_walk":        { "label": "{name}", "status": "proposed", "strip": "path", "cadet": "footpath", "plain": "{name}", "codex": "a footpath; walk your ship (\"spacewalk\" is club slang)", "voice": ["Space walk ahead."], "plain_voice": ["Footpath ahead."] },
+    "shielded_starpath": { "label": "Starpath {base}", "status": "proposed", "strip": "street", "cadet": "protected bike lane", "plain": "{name}", "codex": "a protected bike lane; drawn as a double cyan line", "voice": [] },
+    "laned_starpath":    { "label": "Starpath {base}", "status": "proposed", "strip": "street", "cadet": "painted bike lane", "plain": "{name}", "codex": "a painted bike lane; drawn dashed", "voice": [] },
+    "shared_starpath":   { "label": "Starpath {base}", "status": "proposed", "strip": "street", "cadet": "sharrows", "plain": "{name}", "codex": "sharrows; drawn as faint dots", "voice": [] },
+    "hyper_wormhole":    { "label": "Hyper-Wormhole {base}", "status": "official", "strip": ["bridge", "path"], "cadet": "{name}", "plain": "{name}", "plain_unnamed": "Footbridge", "unnamed": "Hyper-Wormhole", "codex": "a footbridge", "voice": ["Engaging Hyper-Wormhole {base}."], "plain_voice": ["{name}."] },
+    "hyperspace_byway":  { "label": "Hyperspace Byway {base}", "status": "official", "strip": ["bridge", "street"], "cadet": "{name}", "plain": "{name}", "plain_unnamed": "Bridge", "unnamed": "Hyperspace Byway", "codex": "a bridge", "voice": ["Engaging Hyperspace Byway {base}."], "plain_voice": ["{name}."] },
+    "black_hole":        { "label": "{base} Black Hole", "status": "official", "strip": "square", "cadet": "rotary", "plain": "{name}", "unnamed": "Black Hole", "plain_unnamed": "Rotary", "codex": "a rotary. You can orbit them, but never go inside one.", "voice": ["Black hole ahead.", "{base} Black Hole ahead."], "plain_voice": ["Rotary ahead.", "Rotary ahead."] },
+    "pulsar":            { "label": "Pulsar", "status": "official", "strip": "none", "cadet": "traffic light", "plain": "Traffic light", "codex": "a traffic light. To transit a pulsar is to cross at a light.", "voice": ["Pulsar ahead."], "plain_voice": ["Traffic light ahead."] },
+    "stop":              { "label": "Stop sign", "status": "proposed", "strip": "none", "cadet": "", "plain": "Stop sign", "codex": "a stop sign. The club has no word for one, so it keeps its own name in every mode", "voice": [] },
+    "asteroid_belt":     { "label": "{base} Asteroid Belt", "status": "official", "strip": "river", "cadet": "{name}", "plain": "{name}", "codex": "a river", "voice": ["Crossing the {base} Asteroid Belt."], "plain_voice": ["Crossing the {name}."] },
+    "heavy_nebula":      { "label": "The {base} Nebula", "status": "official", "strip": "water", "cadet": "{name}", "plain": "{name}", "codex": "a pond, lake or the sea", "voice": ["The {base} Nebula."], "plain_voice": ["{name}."] },
+    "deep_space":        { "label": "Deep Space", "status": "official", "strip": "none", "cadet": "woods or trail", "plain": "{name}", "plain_unnamed": "Woods", "codex": "woods and unpaved trails", "voice": ["Entering deep space."], "plain_voice": ["Unpaved trail ahead."] },
+    "space_dust":        { "label": "Space Dust", "status": "official", "strip": "none", "cadet": "gravel", "plain": "Gravel", "codex": "a gravel or sand surface", "voice": ["Space dust ahead."], "plain_voice": ["Gravel ahead."] },
+    "comet_station":     { "label": "{base} Comet Station", "status": "proposed", "strip": "station", "cadet": "{name} station", "plain": "{name}", "plain_unnamed": "Train station", "codex": "a train or subway station", "voice": [] },
+    "comet_trail":       { "label": "", "status": "proposed", "strip": "none", "cadet": "", "plain": "", "codex": "a railway line: a comet track", "voice": [] },
+    "sandworm_nest":     { "label": "Sandworm Nest", "status": "club", "strip": "station", "cadet": "bus stop", "plain": "{name}", "plain_unnamed": "Bus stop", "codex": "a bus stop or station", "voice": [] },
+    "starport":          { "label": "{base} Starport", "status": "club", "strip": "airport", "cadet": "{name}", "plain": "{name}", "plain_unnamed": "Airport", "codex": "an airport (club usage: Logan Starport)", "voice": [] },
+    "starport_terminal": { "label": "{name}", "status": "proposed", "strip": "none", "cadet": "airport terminal", "plain": "{name}", "plain_unnamed": "Airport terminal", "codex": "an airport terminal. The club has no word for one, so it keeps its own name in every mode", "voice": [] },
+    "heavy_nebula_transport": { "label": "Heavy Nebula Transport", "status": "official", "strip": "none", "cadet": "ferry", "plain": "{name}", "plain_unnamed": "Ferry", "codex": "a ferry route", "voice": [] },
+    "luna":              { "label": "Luna {name}", "status": "official", "strip": "none", "cadet": "shop", "plain": "{name}", "codex": "a shop", "voice": [] },
+    "refueling_station": { "label": "Refueling Station {name}", "status": "official", "strip": "none", "cadet": "convenience store", "plain": "{name}", "codex": "a convenience store", "voice": [] },
+    "fuel_depot":        { "label": "Fuel Depot {name}", "status": "proposed", "strip": "none", "cadet": "café", "plain": "{name}", "codex": "a café (official: fuel is coffee)", "voice": [] },
+    "grenade_depot":     { "label": "Grenade Depot {name}", "status": "proposed", "strip": "none", "cadet": "donut shop", "plain": "{name}", "codex": "a donut shop (official: a grenade is a donut)", "voice": ["Grenade depot nearby."], "plain_voice": ["Donut shop nearby."] },
+    "steering_dampener": { "label": "Steering Dampener {name}", "status": "proposed", "strip": "none", "cadet": "bar", "plain": "{name}", "codex": "a bar or pub (official: steering dampener is alcohol)", "voice": [] },
+    "ice_cream":         { "label": "Luna {name}", "status": "club", "strip": "none", "cadet": "ice cream", "plain": "{name}", "codex": "ice cream", "voice": [] },
+    "tardis":            { "label": "Tardis", "status": "official", "strip": "none", "cadet": "toilet", "plain": "Toilet", "codex": "a public toilet. It's smellier on the inside!", "voice": [] },
+    "space_dock":        { "label": "Space Dock {name}", "status": "official", "strip": "none", "cadet": "bike shop", "plain": "{name}", "codex": "a bike shop", "voice": [] },
+    "gantry":            { "label": "Gantry", "status": "official", "strip": "none", "cadet": "bike repair stand", "plain": "Repair stand", "codex": "a bicycle repair stand", "voice": [] },
+    "anchorage":         { "label": "Anchorage", "status": "proposed", "strip": "none", "cadet": "bike parking", "plain": "Bike parking", "codex": "bike parking (official: drop anchor is to lock up)", "voice": [] },
+    "klingon_dock":      { "label": "Klingon Dock {base}", "unnamed": "Klingon Dock", "status": "proposed", "strip": "dock", "cadet": "Bluebikes", "plain": "{name}", "plain_unnamed": "Bluebikes station", "codex": "a Bluebikes station", "voice": [] },
+    "coolant":           { "label": "Coolant", "status": "proposed", "strip": "none", "cadet": "drinking water", "plain": "Water", "codex": "drinking water: a pilot's coolant (the club's fuel is coffee)", "voice": [] },
+    "plasma":            { "label": "Plasma", "status": "official", "strip": "none", "cadet": "air pump", "plain": "Air", "codex": "air for your tires (official: plasma is inner tube air)", "voice": [] },
+    "st_outpost":        { "label": "ST Outpost", "status": "proposed", "strip": "none", "cadet": "police", "plain": "Police", "codex": "a police station (official: ST is police)", "voice": [] },
+    "meat_repair":       { "label": "Meat Repair Facility", "status": "club", "strip": "none", "cadet": "{name}", "plain": "{name}", "plain_unnamed": "Hospital", "codex": "a hospital", "voice": [] },
+    "hamburger_helper":  { "label": "Hamburger Helper", "status": "official", "strip": "none", "cadet": "first-aid kit", "plain": "First aid", "codex": "a first-aid kit", "voice": [] },
+    "aed":               { "label": "AED", "status": "proposed", "strip": "none", "cadet": "defibrillator", "plain": "AED", "plain_unnamed": "AED", "codex": "a defibrillator. It reads AED in every mode, because an emergency device keeps its real name", "voice": [] },
+    "temple_of_knowledge": { "label": "Temple of Knowledge", "status": "proposed", "strip": "none", "cadet": "{name}", "plain": "{name}", "plain_unnamed": "Library", "codex": "a library", "voice": [] },
+    "shore_leave":       { "label": "Shore Leave", "status": "club", "strip": "none", "cadet": "playground", "plain": "Playground", "codex": "a playground", "voice": ["Shore leave nearby."], "plain_voice": ["Playground nearby."] },
+    "derby_arena":       { "label": "Derby Arena", "status": "club", "strip": "none", "cadet": "parking lot", "plain": "Parking", "codex": "a big parking lot, where pilots play Derby", "voice": [] },
+    "terraform":         { "label": "{base} Terraform", "status": "proposed", "strip": "park", "cadet": "park", "plain": "{name}", "codex": "a park", "voice": [] },
+    "buoy_field":        { "label": "Buoy Field", "status": "proposed", "strip": "none", "cadet": "construction", "plain": "Construction", "codex": "cones and construction (official: a bouy is a road cone)", "voice": ["Buoy field ahead."], "plain_voice": ["Construction ahead."] },
+    "fort":              { "label": "Fort {base}", "status": "official", "strip": "none", "cadet": "{name}", "plain": "{plain}", "codex": "your Fort", "voice": ["Fort {base} in sight."], "plain_voice": [] },
+    "lore":              { "label": "{name}", "status": "club", "strip": "none", "cadet": "{plain}", "plain": "{plain}", "codex": "a SCUL landmark", "voice": [] },
+    "g_well":            { "label": "", "status": "official", "strip": "none", "cadet": "hill", "plain": "Hill", "codex": "a hill. Posi g-well downhill (▼), negi g-well uphill (▲).", "voice": ["Negi g-well ahead.", "Posi g-well."], "plain_voice": ["Steep climb ahead.", "Downhill."] }
+  }
+}

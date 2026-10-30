@@ -1,0 +1,52 @@
+/* W67 places (design/app-ui/SPEC.md §97): a starred place's small chalk star, at the end of its quick pick and its row in
+   Where to? (app/course.js), so the pilot's own places stand out from the recent ones. Chalk is the hue of your own marks. */
+/* W157 icons3 (SPEC §276), her note: "Favorites should have yellow star as an icon": a favourite's star is yellow wherever it marks
+   one (the map, app/starred.js; the search rows; the Favourites list; the peek once set), the funk spectrum's yellow (--pulsar's Dark
+   value) in both themes, with a thin ink edge by day, where yellow fades on the pale ground. Its five points tell it from the
+   traffic light's lamps and the ride quality's yellow street. (A token's job: tokens.json could carry it as "favourite".) */
+:root { --fav: var(--fixed-favourite); --fav-edge: transparent; } /* W157 icons3; W185 colours: the token */
+:root[data-theme="light"] { --fav-edge: var(--starlight); } /* W157 icons3 */
+/* W166 icons4 (SPEC §292), her note 9: "Give a black outline to the favorites icon in light mode only, including in the settings." By day
+   every favourite star has a full ink outline, about 1 px outside the yellow: a stroke under the fill for the inline SVGs (the peek's,
+   the search rows'), and for the CSS stars --fav-ring, four 1 px drop-shadows. A filter is drawn before a mask, so W157's drop-shadow
+   on the masked stars was cut away with it; those draw the yellow star as an image (FAV_IMG's fill is --fav's) and keep no mask.
+   None by night. */
+/* W173 uismall (SPEC §302), her note 2: "The outlines of the favorites icon display cleanly in the map, but not in the settings": the
+   four 1 px shadows were a ring of shifted copies, notched at the points at 2.63x. The CSS stars (Settings' Favourites row, the search
+   rows' mark) are now the map's own drawing (app/starred.js star()): STAR_D in yellow on its 1.63-unit round-joined rim, the ink's
+   (--starlight by day, #151a21, Daystar's chrome ink) under the fill, as a vector, its tips and rim on the box's edge as the map's fill its cell. None by night. */
+:root { --fav-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1.565 1.985 20.87 20.87'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z' fill='%23fadf28'/%3E%3C/svg%3E"); } /* W173 uismall */
+:root[data-theme="light"] { --fav-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1.565 1.985 20.87 20.87'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z' fill='%23fadf28' stroke='%23151a21' stroke-width='1.63' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E"); } /* W173 uismall */
+.cresults button.starred::after { content: ""; flex: none; width: 14px; height: 14px; margin-left: 2px; /* W157 icons3: yellow, was chalk; W166 icons4: the ring by day */
+  background: var(--fav-img) center / contain no-repeat; } /* W166 icons4: FAV_IMG, was a mask; W173 uismall: the map's star, its rim drawn (was a filter of four shadows) */
+.cresults li button.starred::after, .cresults.idle:not(.cfromto) .picks button.starred::after { margin: 0 6px 0 auto; }
+/* W88 favorites (SPEC §176): Where to?'s quick picks in groups, Starred (Plain: Favorites) then Recent, each under a small
+   heading, and a star on each place's row, as on its peek: outlined in stardust, filled in chalk once starred. The star
+   says it, so the row's own small star goes. */
+.cresults .picks .phead { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding-top: 10px; font: 600 max(11px, 0.8125rem) var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--stardust); } /* W88 favorites */ /* W142 remscale */
+.cresults.idle .picks .phead .pclear { flex: none; height: 44px; padding: 0 0 0 16px; border: 0; border-radius: 0; background: none; color: var(--starlight); font: 600 max(11px, 0.9375rem) var(--font-body); letter-spacing: 0; text-transform: none; text-decoration: underline dotted var(--stardust); text-underline-offset: 4px; } /* W88 favorites: Clear, the recent places */ /* W142 remscale */
+.cresults .picks .prow { display: flex; align-items: stretch; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); } /* W88 favorites: a place's pick and its star */
+.cresults.idle .picks .prow > button:first-child { flex: 1 1 auto; min-width: 0; border-bottom: 0; } /* W88 favorites */
+.cresults.idle .picks .prow > button:first-child > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; } /* W88 favorites */
+.cresults .rstar, .cresults.idle .picks .prow > .rstar { flex: none; width: 48px; min-height: 0; height: auto; display: grid; place-items: center; margin-right: -8px; padding: 0; border: 0; border-radius: 0; background: none; color: var(--stardust); } /* W88 favorites: 48 px wide, the row's height */
+.cresults li:has(> .rstar) { display: flex; align-items: stretch; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); } /* W88 favorites: a result and its star */
+.cresults li > button:has(+ .rstar) { flex: 1 1 auto; min-width: 0; border-bottom: 0; } /* W88 favorites */
+.cresults li > .rstar { border-bottom: 0; } /* W88 favorites */
+.cresults .rstar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; } /* W88 favorites */
+.cresults .rstar[aria-pressed="true"], .cresults.idle .picks .prow > .rstar[aria-pressed="true"] { color: var(--fav); } /* W88 favorites; W157 icons3: yellow, was chalk */
+.cresults .rstar[aria-pressed="true"] svg { fill: currentColor; } /* W88 favorites */
+:root[data-theme="light"] .cresults .rstar[aria-pressed="true"] svg { stroke: var(--fav-edge); stroke-width: 2.4; paint-order: stroke; } /* W157 icons3: the ink edge by day; W166 icons4: under the fill, 1.2 of 24 outside it (was 1.4 over it) */
+#starred-fold > summary .i-star { background: var(--fav-img) center / contain no-repeat; -webkit-mask: none; mask: none; } /* W157 icons3: the Favourites list's row, the filled yellow star (log.css .i-star-on's); W166 icons4: FAV_IMG and the ring by day, was a mask; W173 uismall: the map's star, its rim in the drawing (was --fav-ring's four shadows) */
+.cresults :is(.prow, li) > button.starred:has(+ .rstar)::after { content: none; } /* W88 favorites */
+body[data-open~="search"] .csnack { z-index: 8; } /* W88 favorites: an Undo over the search (Clear, or a star taken off) */
+/* W88 favorites: Settings' list, as Avoided streets' (app/settings.css #avoid-list) */
+#starred-fold > summary small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* W88 favorites */
+#starred-list .row.fav { gap: 10px; } /* W88 favorites */
+#starred-list .row.fav > img { flex: none; width: 28px; height: 28px; } /* W88 favorites: the place's own icon */
+#starred-list .row.fav .txt { min-width: 0; } /* W88 favorites */
+#starred-list .row.fav button { flex: none; min-width: 44px; height: 44px; display: grid; place-items: center; padding: 0 10px; margin-right: -10px; border: 0; background: none; color: var(--starlight); font: 600 max(11px, 1rem) var(--font-body); } /* W88 favorites */ /* W142 remscale */
+#starred-list .row.fav svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; } /* W88 favorites */
+#starred-list .row.fav .undo { color: var(--phosphor); } /* W88 favorites */
+#starred-list .row.fav.gone .txt { color: var(--stardust); text-decoration: line-through; } /* W88 favorites */
+#starred-list .row.fav-how { color: var(--stardust); font-size: max(11px, 0.9375rem); } /* W88 favorites: "Tap ☆ by a place in the search or on the map." */ /* W142 remscale */
+#starred-list .row.fav-how .i { display: inline-block; width: 20px; height: 20px; margin: 0 2px; vertical-align: -4px; } /* W88 favorites: the star, in the line */

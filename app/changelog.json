@@ -1,0 +1,931 @@
+{
+  "next": [],
+  "versions": [
+    {
+      "version": "0.1.88",
+      "release": "Jewel Box",
+      "date": "2026-10-29",
+      "notes": [
+        {
+          "scul": "Search puts Logan International Airport first for \"logan\", and no longer lists a skybridge's address as a starpath (\"Terminal B\").",
+          "plain": "Search puts Logan International Airport first for \"logan\", and no longer lists a skybridge's address as a street (\"Terminal B\")."
+        },
+        {
+          "scul": "Search finds parks an address had hidden: Medford's The Green, Winthrop Square, Science Park, Shipyard Park and Metcalf Square.",
+          "plain": "Search finds parks an address had hidden: Medford's The Green, Winthrop Square, Science Park, Shipyard Park and Metcalf Square."
+        }
+      ]
+    },
+    {
+      "version": "0.1.87",
+      "release": "Hyades",
+      "date": "2026-10-29",
+      "notes": [
+        {
+          "scul": "Logan and its terminals are in search, and Silver Line and airport shuttle stops show their next sandworms (shuttle times: Massport).",
+          "plain": "Logan and its terminals are in search, and Silver Line and airport shuttle stops show their next buses (shuttle times: Massport)."
+        },
+        {
+          "scul": "Sandworm times wear the MBTA's bus yellow, the Silver Line grey and the shuttles blue; free places are round, paid places square.",
+          "plain": "Bus times wear the MBTA's bus yellow, the Silver Line grey and the shuttles blue; free places are round, paid places square."
+        },
+        {
+          "scul": "Dark's starpaths are one solid grey, bike racks give way to other icons, and buildings fade in as you zoom.",
+          "plain": "Terrain starts off, Dark's streets are one solid grey, bike racks give way to other icons, and buildings fade in as you zoom."
+        },
+        {
+          "scul": "The Log has Overview and All flights sections, and the Settings tab returns where you were, with a second tap to its top.",
+          "plain": "The Arrow is the first avatar, the Log has Overview and All rides sections, and the Settings tab returns where you were."
+        },
+        {
+          "scul": "About lists the hosts Starchart talks to, Words sits above Avatar, and Never's sign is a crisp X.",
+          "plain": "About lists the hosts Starchart talks to, Words sits above Avatar, and Never's sign is a crisp X."
+        }
+      ]
+    },
+    {
+      "version": "0.1.86",
+      "release": "Coathanger",
+      "date": "2026-10-29",
+      "notes": [
+        {
+          "scul": "Search knows famous places from a few letters (\"faneu\" for Faneuil Hall), lists each place once, and shows its house number.",
+          "plain": "Search knows famous places from a few letters (\"faneu\" for Faneuil Hall), lists each place once, and shows its house number."
+        },
+        {
+          "scul": "Switching Words recolours the chart's avoided streets and unpaved stretches at once.",
+          "plain": "Switching Words recolours the map's avoided streets and unpaved stretches at once."
+        }
+      ]
+    },
+    {
+      "version": "0.1.85",
+      "release": "Cigar Galaxy",
+      "date": "2026-10-29",
+      "notes": [
+        {
+          "scul": "A space walk resumed after a reload shows the walker and keeps its course.",
+          "plain": "A walk resumed after a reload shows the walker and keeps its route."
+        },
+        {
+          "scul": "First-time tips wait while Layers or Weather is open, and Send feedback names the panel you had open and the voice you hear.",
+          "plain": "First-time tips wait while Layers or Weather is open, and Send feedback names the panel you had open and the voice you hear."
+        },
+        {
+          "scul": "A change to the droid's reduced motion reaches every animation at once, and if the chart's style fails to load, picking a theme tries again.",
+          "plain": "A change to the phone's reduced motion reaches every animation at once, and if the map's style fails to load, picking a theme tries again."
+        }
+      ]
+    },
+    {
+      "version": "0.1.84",
+      "release": "Cartwheel Galaxy",
+      "date": "2026-10-29",
+      "notes": [
+        {
+          "scul": "A course card's comet or sandworm leg lists its next three departures, and says Leave by when you'd reach the stop early.",
+          "plain": "A route card's train or bus leg lists its next three departures, and says Leave by when you'd reach the stop early."
+        },
+        {
+          "scul": "Tap a Sandworm Nest for its next sandworms by route, from the timetable on your droid, live where the MBTA predicts.",
+          "plain": "Tap a bus stop for its next buses by route, from the timetable on your phone, live where the MBTA predicts."
+        }
+      ]
+    },
+    {
+      "version": "0.1.83",
+      "release": "Beehive Cluster",
+      "date": "2026-10-29",
+      "notes": [
+        {
+          "scul": "New chart colours: the course and its pins in purple, paid places as orange squares. SCUL keeps its green and its glow.",
+          "plain": "A new look in Plain: your route and its pins in purple, paid places as orange squares, and flat buttons with no glow."
+        },
+        {
+          "scul": "Place names are bold, in ink, beside their icons, and a flight shows a few names along the course ahead.",
+          "plain": "Place names are bold, in ink, beside their icons, and a ride shows a few names along the route ahead."
+        },
+        {
+          "scul": "Chart data from October 28: no gas station's air shows as a bike pump, and corner search works in chart packs.",
+          "plain": "Map data from October 28: no gas station's air shows as a bike pump, and corner search works in map packs."
+        },
+        {
+          "scul": "Back up all flights has an arrow and asks on a solid card, and T stations' rings run to the edge in the line's colour.",
+          "plain": "Back up all rides has an arrow and asks on a solid card, and T stations' rings run to the edge in the line's colour."
+        }
+      ]
+    },
+    {
+      "version": "0.1.82",
+      "release": "Veil Nebula",
+      "date": "2026-10-28",
+      "notes": [
+        {
+          "scul": "With Buttons left, the buttons stay on the left on every screen, the course preview too, and in landscape the side panels sit on the right.",
+          "plain": "With Buttons left, the buttons stay on the left on every screen, the route preview too, and in landscape the side panels sit on the right."
+        },
+        {
+          "scul": "With Buttons left, the scale stays put after a flight, and Overview frames the course in landscape.",
+          "plain": "With Buttons left, the scale stays put after a ride, and Overview frames the route in landscape."
+        },
+        {
+          "scul": "The course line and Ship-friendly starpaths now rate each street the same way, so their colours agree.",
+          "plain": "The route line and Bike-friendly roads now rate each street the same way, so their colours agree."
+        },
+        {
+          "scul": "Search lists footbridges as Hyper-Wormholes, and Vibrate at turns says what works: Droid on Vibrate, not Silent.",
+          "plain": "Search lists footbridges as footbridges, and Vibrate at turns says what works: Phone on Vibrate, not Silent."
+        }
+      ]
+    },
+    {
+      "version": "0.1.81",
+      "release": "Trifid Nebula",
+      "date": "2026-10-28",
+      "notes": [
+        {
+          "scul": "Search finds a place from its first letters (\"minut\" for the Minuteman, \"fresh p\" for Fresh Pond), a corner typed with a slash, and \"farm\" Pemberton Farms.",
+          "plain": "Search finds a place from its first letters (\"minut\" for the Minuteman, \"fresh p\" for Fresh Pond), a corner typed with a slash, and \"farm\" Pemberton Farms."
+        },
+        {
+          "scul": "A corner of a road with a frontage road shows once, and a kind's words half typed (\"bike sh\", \"post o\") list that kind.",
+          "plain": "A corner of a road with a frontage road shows once, and a kind's words half typed (\"bike sh\", \"post o\") list that kind."
+        },
+        {
+          "scul": "The lightbulb button is gone from the chart: the theme is set in Settings, under Theme.",
+          "plain": "The lightbulb button is gone from the map: the theme is set in Settings, under Theme."
+        }
+      ]
+    },
+    {
+      "version": "0.1.80",
+      "release": "Rosette Nebula",
+      "date": "2026-10-28",
+      "notes": [
+        {
+          "scul": "Search finds street corners: type \"mass ave and prospect st\", \"comm ave & harvard ave\" or \"beacon at park\".",
+          "plain": "Search finds street corners: type \"mass ave and prospect st\", \"comm ave & harvard ave\" or \"beacon at park\"."
+        },
+        {
+          "scul": "A wormhole or a river found by search is measured and plotted to its nearest point, and \"wormhole\" or \"grocery\" lists the nearest ones first.",
+          "plain": "A bike path or a river found by search is measured and routed to its nearest point, and \"bike path\" or \"grocery\" lists the nearest first."
+        },
+        {
+          "scul": "Search rows show a supermarket's cart, a bakery's and a pharmacy's icons, as the chart draws them.",
+          "plain": "Search rows show a supermarket's cart, a bakery's and a pharmacy's icons, as the map draws them."
+        }
+      ]
+    },
+    {
+      "version": "0.1.79",
+      "release": "Ring Nebula",
+      "date": "2026-10-28",
+      "notes": [
+        {
+          "scul": "Sound steps Off, Basic and Detailed with one tap, a lightbulb button switches day and night, and the round buttons keep their places in a flight.",
+          "plain": "Sound steps Off, Basic and Detailed with one tap, a lightbulb button switches day and night, and the round buttons keep their places in a ride."
+        },
+        {
+          "scul": "On a course the chart shows only its own pulsars and stop signs, none while browsing, and all-way stops get their own sign and words.",
+          "plain": "On a route the map shows only its own traffic lights and stop signs, none while browsing, and all-way stops get their own sign and words."
+        },
+        {
+          "scul": "T lines are one line until you zoom in, then tracks with closer ties, and station names wait for street zoom.",
+          "plain": "T lines are one line until you zoom in, then tracks with closer ties; station names wait for street zoom, and 3D draws no T underground."
+        },
+        {
+          "scul": "Rain on the weather layer is drawn as dashes you can see, and traffic cones take the course's orange.",
+          "plain": "Rain is drawn as dashes you can see, cones take the route's orange, Robot speaks with Lodestar's voice, and Warm is now Classic."
+        },
+        {
+          "scul": "Bigger tab names with the whole tab shaded, and Send is ready again at once with a Sent! bubble.",
+          "plain": "Bigger tab names with the whole tab shaded, and Send is ready again at once with a Sent! bubble."
+        }
+      ]
+    },
+    {
+      "version": "0.1.78",
+      "release": "Pelican Nebula",
+      "date": "2026-10-28",
+      "notes": [
+        {
+          "scul": "Search finds a place by its address (21 Nichols Ave is La Bodega) and its other names; an exact name comes first: the Prudential Center before its plazas.",
+          "plain": "Search finds a place by its address (21 Nichols Ave is La Bodega) and its other names; an exact name comes first: the Prudential Center before its plazas."
+        },
+        {
+          "scul": "Search reads local short names (JP, Southie, the Pru, Comm Ave), forgives small typos, and weighs nearness before the kind of place.",
+          "plain": "Search reads local short names (JP, Southie, the Pru, Comm Ave), forgives small typos, and weighs nearness before the kind of place."
+        },
+        {
+          "scul": "Search rows show whole names, one shape of second line and the map's own icons for places, and search is ready sooner after the first start.",
+          "plain": "Search rows show whole names, one shape of second line and the map's own icons for places, and search is ready sooner after the first start."
+        }
+      ]
+    },
+    {
+      "version": "0.1.77",
+      "release": "Pacman Nebula",
+      "date": "2026-10-27",
+      "notes": [
+        {
+          "scul": "Search finds the places the chart draws from building outlines, like La Bodega in Watertown, Star Market and the Hynes, and named fields and greens.",
+          "plain": "Search finds the places the map draws from building outlines, like La Bodega in Watertown, Star Market and the Hynes, and named fields and greens."
+        }
+      ]
+    },
+    {
+      "version": "0.1.76",
+      "release": "Lagoon Nebula",
+      "date": "2026-10-27",
+      "notes": [
+        {
+          "scul": "Land ends the course and the flight together, with its Undo right in the bar; on a course the chart fades the stretch you've flown instead of your trail.",
+          "plain": "End stops the route and the recording together, with Undo right in the bar; on a route the map fades the part you've ridden instead of your GPS trail."
+        },
+        {
+          "scul": "One colour scale on courses, their cards and Ship-friendly starpaths: blue for lanes and wormholes, then green through red, with red kept for the worst.",
+          "plain": "One colour scale on routes, their cards and Bike-friendly roads: blue for bike lanes and paths, then green through red, with red kept for the worst."
+        },
+        {
+          "scul": "Drag a course preview up for arrive-by times, coolant and groceries along the way and the turns; slide a finger along its heights to find each spot.",
+          "plain": "Drag the route preview up for arrive-by times, water and groceries along the way and the turns; slide a finger along its heights to find each spot."
+        },
+        {
+          "scul": "Comet stations in coloured rings with Comets off too, T lines as tracks, stop signs only on a course, plasma for bikes only, and rounded square shops.",
+          "plain": "Stations in coloured rings, rotaries as roundabout signs, T lines as tracks, stop signs only on a route, air pumps for bikes only, and rounded square shops."
+        },
+        {
+          "scul": "Weather turns a radar sweep while it looks, the search chip names what it shows, and a station tap shows its trains even with Comets off.",
+          "plain": "Weather turns a radar sweep while it loads, the search chip names what it shows, and a station tap shows its trains even with Trains off."
+        }
+      ]
+    },
+    {
+      "version": "0.1.75",
+      "release": "Iris Nebula",
+      "date": "2026-10-27",
+      "notes": [
+        {
+          "scul": "Plain words take a new blue palette; SCUL keeps the club's green.",
+          "plain": "A new blue look: blue accents, pale blue highlights and a blue launch screen."
+        },
+        {
+          "scul": "Place icons are a little larger, repair stands show with the other places as a wrench, construction is a traffic cone, and towns have a skyline.",
+          "plain": "Place icons are a little larger, repair stands show with the other places as a wrench, construction is a traffic cone, and towns have a skyline."
+        },
+        {
+          "scul": "A comet station on two lines shows both roundels side by side in full colour, and the legend lists the starred star.",
+          "plain": "A T station on two lines shows both roundels side by side in full colour, and the legend lists the favourites star."
+        },
+        {
+          "scul": "In a flight the bar spans the screen with Locate above it, and walking dots are as wide as a ride's line.",
+          "plain": "During a ride the bar spans the screen with Locate above it, and walking dots are as wide as a ride's line."
+        }
+      ]
+    },
+    {
+      "version": "0.1.74",
+      "release": "Horsehead Nebula",
+      "date": "2026-10-26",
+      "notes": [
+        {
+          "scul": "Settings' last part splits in three: App for what you do, About for what you read, and Developer tools on its own at the end.",
+          "plain": "Settings' last part splits in three: App for what you do, About for what you read, and Developer tools on its own at the end."
+        }
+      ]
+    },
+    {
+      "version": "0.1.73",
+      "release": "Flame Nebula",
+      "date": "2026-10-26",
+      "notes": [
+        {
+          "scul": "Starpath names on the chart are shorter (St, Ave, Sq) with the kind word easy to read at night, and on a course off-course stops and pulsars dim.",
+          "plain": "Street names on the map are shorter (St, Ave, Sq) with the kind word easy to read at night, and on a route the stop signs and lights off it dim."
+        },
+        {
+          "scul": "Hospitals and first aid are medical red, the legend shows only what the chart draws, the starred star has a dark edge by day, and Locate stands out.",
+          "plain": "Hospitals and first aid are medical red, the legend shows only what the map draws, the favourites star has a dark edge by day, and Locate stands out."
+        },
+        {
+          "scul": "Buzzes are long enough to feel, off course is unmistakable, and Settings says a phone on silent doesn't vibrate.",
+          "plain": "Buzzes are long enough to feel, off route is unmistakable, and Settings says a phone on silent doesn't vibrate."
+        },
+        {
+          "scul": "Walks and flights draw their course alike, no message is cut short, and the welcome card's lines are simpler.",
+          "plain": "Walks and rides draw their route alike, no message is cut short, and the welcome card's lines are simpler."
+        }
+      ]
+    },
+    {
+      "version": "0.1.72",
+      "release": "Eskimo Nebula",
+      "date": "2026-10-26",
+      "notes": [
+        {
+          "scul": "The Offline chart row's new lines read cleanly in both word modes.",
+          "plain": "The Offline map row's new lines say map, as the rest of Plain words do."
+        }
+      ]
+    },
+    {
+      "version": "0.1.71",
+      "release": "Dumbbell Nebula",
+      "date": "2026-10-26",
+      "notes": [
+        {
+          "scul": "Where a tab can't store the chart, as in Safari's Private Browsing, the Offline chart row says so and what to do instead of retrying in vain.",
+          "plain": "Where a tab can't store the map, as in Safari's Private Browsing, the Offline map row says so and what to do instead of retrying in vain."
+        },
+        {
+          "scul": "A stalled chart download restarts when you come back to Starchart, and on an iPhone tab the row shows how to keep the chart on the home screen.",
+          "plain": "A stalled map download restarts when you come back to Starchart, and on an iPhone tab the row shows how to keep the map on the home screen."
+        }
+      ]
+    },
+    {
+      "version": "0.1.70",
+      "release": "Crab Nebula",
+      "date": "2026-10-26",
+      "notes": [
+        {
+          "scul": "Rough flying shows only the less bikeable starpaths, in yellow and red, bright by day. Wormholes and lanes stay in their own layer.",
+          "plain": "Stressful streets shows only the less bikeable streets, in yellow and red, bright by day. Bike lanes stay in their own layer."
+        },
+        {
+          "scul": "A calmer chart: bright cyan lanes with no glow, drawn on the side of the starpath they're on, and no centre lines or transport tunnels.",
+          "plain": "A calmer map: bright cyan bike lanes with no glow, drawn on the side of the street they're on, and no centre lines or car tunnels."
+        },
+        {
+          "scul": "Comet stations show at street level with Comets off, starpath names read clearly at night, and the Arrow is rounder and solid.",
+          "plain": "T stations show at street level with transit off, street names read clearly at night, and the Arrow is rounder and solid."
+        },
+        {
+          "scul": "Back up all flights sits beside the Log's title, Back up and Restore ask first, Pace suggests in one line, and By the sun is the default.",
+          "plain": "Back up all rides sits beside the Log's title, Back up and Restore ask first, Pace suggests in one line, and By the sun is the default."
+        },
+        {
+          "scul": "Robot sounds colder and metallic, route options switch quietly, Battery saver turns terrain off, and Send shows its progress.",
+          "plain": "Robot sounds colder and metallic, route options switch quietly, Battery saver turns terrain off, and Send shows its progress."
+        }
+      ]
+    },
+    {
+      "version": "0.1.69",
+      "release": "Cone Nebula",
+      "date": "2026-10-26",
+      "notes": [
+        {
+          "scul": "Places to pay are round pink icons with one white drawing, food is one fork and knife, and Klingon Docks are grey like sandworm nests.",
+          "plain": "Places to pay are round pink icons with one white drawing, food is one fork and knife, and Bluebikes docks are grey like bus stops."
+        },
+        {
+          "scul": "Starred places wear a yellow star, pilot colours are bolder, and the Arrow is the Locate button's arrow.",
+          "plain": "Favourites wear a yellow star, avatar colours are bolder and red by default, and the Arrow is the Locate button's arrow."
+        },
+        {
+          "scul": "Launch sits centred above the tabs. Layers, Weather and Sound move to the top, and the compass sits over Locate.",
+          "plain": "Record sits centred above the tabs. Layers, Weather and Sound move to the top, and the compass sits over Locate."
+        },
+        {
+          "scul": "Detailed directions, now the default, name a pulsar, stop sign, sandworm nest or park at a turn.",
+          "plain": "Detailed directions, now the default, name a traffic light, stop sign, bus stop or park at a turn."
+        },
+        {
+          "scul": "The heading beam stays narrow, and Vibrate at turns spells out its three buzzes.",
+          "plain": "The heading beam stays narrow, and Vibrate at turns spells out its three buzzes."
+        }
+      ]
+    },
+    {
+      "version": "0.1.68",
+      "release": "Cat's Eye Nebula",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "Search places an address OpenStreetMap lacks between its known neighbours, marked approximate, and a place not on the chart gets a link to add it.",
+          "plain": "Search places an address OpenStreetMap lacks between its known neighbours, marked approximate, and a place not on the map gets a link to add it."
+        },
+        {
+          "scul": "Ride quality comes in a few clear colours: blue for bike lanes, none for average streets, then yellow, orange and red for worse ones.",
+          "plain": "Ride quality comes in a few clear colours: blue for bike lanes, none for average streets, then yellow, orange and red for worse ones."
+        },
+        {
+          "scul": "A tapped bike lane's words read cleanly, Undo after Cancel keeps a course file's path, and Walk and T plans work in Safari's private tabs.",
+          "plain": "A tapped bike lane's words read cleanly, Undo after Cancel keeps a route file's path, and Walk and T plans work in Safari's private tabs."
+        }
+      ]
+    },
+    {
+      "version": "0.1.67",
+      "release": "Bubble Nebula",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "Plain words get a Robot voice, a voice's preview plays alone and quietly, and Settings backs up and restores everything in one file.",
+          "plain": "Plain words get a Robot voice, a voice's preview plays alone and quietly, and Settings backs up and restores everything in one file."
+        },
+        {
+          "scul": "The tab bar stays outside a flight and a pinch no longer zooms the page. The welcome card points to Settings, and Install is a round button in a browser tab.",
+          "plain": "The tab bar stays outside a ride and a pinch no longer zooms the page. The welcome card points to Settings, and Install is a round button in a browser tab."
+        },
+        {
+          "scul": "Ride quality fills the street's full width in new colours, the course you pick stands out, and the ship's lamps suit the theme.",
+          "plain": "Ride quality fills the street's full width in new colours, the route you pick stands out, and the bike's lamps suit the theme."
+        },
+        {
+          "scul": "With no GPS signal, Starchart shows the steps for your droid. The Log's All flights maps them all, and Pace moved to Settings.",
+          "plain": "With no GPS signal, Starchart shows the steps for your phone. The Log's All rides maps them all, and Pace moved to Settings."
+        },
+        {
+          "scul": "Bluebikes are pink and street names darker. Comet tails follow the tracks, shared stations show every line's colour, and the Arrow is a clean chevron.",
+          "plain": "Bluebikes are pink and street names darker. Train tails follow the tracks, shared stations show every line's colour, and the Arrow is a clean chevron."
+        }
+      ]
+    },
+    {
+      "version": "0.1.66",
+      "release": "Boomerang Nebula",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "The Log's box has Week, Month and Life. Life shows your next star class right there, and the flight count opens their map.",
+          "plain": "The Log's box has Week, Month and Life. Life shows your next milestone right there, and the ride count opens their map."
+        },
+        {
+          "scul": "Comet tracks are one thick, see-through line per T line, with the comets riding on it and longer tails.",
+          "plain": "T lines are one thick, see-through line each, with the trains riding on it and longer tails."
+        },
+        {
+          "scul": "Your pilot's colour paints the ship too. Locate says what it does, and Directions says what Detailed adds.",
+          "plain": "Your avatar's colour paints the bike too. Locate says what it does, and Directions says what Detailed adds."
+        },
+        {
+          "scul": "Voices show their size, Vibrate at turns names the off-course buzzes, and large text fits small droids better.",
+          "plain": "Voices show their size, Vibrate at turns names the off-route buzzes, and large text fits small phones better."
+        }
+      ]
+    },
+    {
+      "version": "0.1.65",
+      "release": "Vela",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "Text follows your droid's text size, chart labels included. Big text grows gently, and the flight's numbers stay compact.",
+          "plain": "Text follows your phone's text size, map labels included. Big text grows gently, and the ride's numbers stay compact."
+        },
+        "At large text sizes, From and To take the full width, long names wrap between words, and nothing slides off the screen."
+      ]
+    },
+    {
+      "version": "0.1.64",
+      "release": "Ursa Minor",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "A course's colours follow your direction: uphill on a busy starpath reads worse, downhill where you keep pace with transports reads fine.",
+          "plain": "A route's colours follow your direction: uphill on a busy street reads worse, downhill where you keep pace with cars reads fine."
+        },
+        {
+          "scul": "Courses keep off busy starpaths whose bike lane runs the other way, and sharrows on busy starpaths count for less.",
+          "plain": "Routes keep off busy streets whose bike lane runs the other way, and sharrows on busy streets count for less."
+        },
+        {
+          "scul": "A tap on a starpath shows just that starpath. On a bike route, tap Part of … to light the whole route.",
+          "plain": "A tap on a street shows just that street. On a bike route, tap Part of … to light the whole route."
+        },
+        {
+          "scul": "Flying in Layers has a small ⓘ listing what the score reads. Shorter words across the app.",
+          "plain": "Ride quality in Layers has a small ⓘ listing what the score reads. Shorter words across the app, and the destination pin has no star."
+        }
+      ]
+    },
+    {
+      "version": "0.1.63",
+      "release": "Taurus",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "Directions are Basic or Detailed now. A long starpath hears its turn again, Detailed adds “Still on course.”, and off course buzzes till you're back.",
+          "plain": "Directions are Basic or Detailed now. A long road hears its turn again, Detailed adds “Still on track.”, and going off the route buzzes till you're back."
+        },
+        {
+          "scul": "Comet plans can take a sandworm with a bike rack when it's clearly quicker, and high-crash crossings are called out ahead.",
+          "plain": "Train trips can take a bus with a bike rack when it's clearly quicker, and high-crash crossings are called out ahead."
+        },
+        {
+          "scul": "Burble is now Critter, saying every word. In plain words, SCUL's pictures get everyday icons, and every star has five points.",
+          "plain": "The Burble voice is now Critter, saying every word. Plain words get their own icons, like a police badge, and every star has five points."
+        },
+        {
+          "scul": "Settings is a tab, with a short line under a row instead of info buttons. No Calm motion switch: motion calms when your droid asks, or with Battery saver.",
+          "plain": "Settings is a tab, with a short line under a row instead of info buttons. No Calm motion switch: motion calms when your phone asks, or with Battery saver."
+        },
+        {
+          "scul": "Tap a starpath to Prefer, Avoid or Never it. A course's preview is one clean line, and Daystar has one bike blue.",
+          "plain": "Tap a street to Prefer, Avoid or Never it. A route's preview is one clean line, and Light mode has one bike blue."
+        }
+      ]
+    },
+    {
+      "version": "0.1.62",
+      "release": "Sagitta",
+      "date": "2026-10-25",
+      "notes": [
+        {
+          "scul": "New riders start in plain words. Club pilots switch with Use SCUL words on the welcome card, or in Settings › Words.",
+          "plain": "New riders start in plain words. SCUL members switch with Use SCUL words on the welcome card, or in Settings › Words."
+        },
+        {
+          "scul": "Space walks are saved to the Log with a walker mark, kept out of your light years.",
+          "plain": "Walks are saved to the Log with a walker mark, kept out of your bike miles."
+        },
+        {
+          "scul": "Send feedback has an optional name field, and Consider comets in routing is on by default.",
+          "plain": "Send feedback has an optional name field, trains are considered in routing by default, and past rides no longer show on the map."
+        },
+        {
+          "scul": "A course's preview draws its lines a little wider.",
+          "plain": "Route previews draw their lines a little wider."
+        },
+        {
+          "scul": "Anchorages show from one zoom closer, so the chart stays clear; with the buttons on the left, the pills keep clear of your ship in landscape.",
+          "plain": "Bike racks show from one zoom closer, so the map stays clear; with the buttons on the left, the pills keep clear of you in landscape."
+        }
+      ]
+    },
+    {
+      "version": "0.1.61",
+      "release": "Reticulum",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "The round buttons stand in one column on your thumb's side (Settings › Buttons), with Launch beside them.",
+          "plain": "The round buttons stand in one column on your thumb's side (Settings › Buttons), with Record beside them."
+        },
+        {
+          "scul": "One-way streets show small arrows, lit streets glow brighter on the dark chart, and comet stations take their line's colour.",
+          "plain": "One-way streets show small arrows, lit streets glow brighter on the dark map, T stations take their line's colour, and traffic lights look real."
+        },
+        {
+          "scul": "Flying has new colours, one scale per theme: brighter is better on Dark, darker on Daystar.",
+          "plain": "Ride quality has new colours, one scale per theme: brighter is better on Dark, darker on Light."
+        },
+        {
+          "scul": "A flight with a course lands by itself at the end, with Undo. A tiny flight goes by itself, with Keep, but never one with a GPS gap.",
+          "plain": "A ride with a route ends by itself when you arrive, with Undo. A tiny ride goes by itself, with Keep, but never one with a GPS gap."
+        },
+        {
+          "scul": "Settings has new Power and Routing sections. Pick a ship, then its colour. The Arrow has no beam.",
+          "plain": "Settings has new Power and Routing sections. Pick a bike, then its colour. The Arrow has no beam."
+        }
+      ]
+    },
+    {
+      "version": "0.1.60",
+      "release": "Orion",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Show on the chart glides out to the nearest few when none are in view, and kinds complete as you type: \"post\" offers Post offices.",
+          "plain": "Show on the map glides out to the nearest few when none are in view, and kinds complete as you type: \"post\" offers Post offices."
+        },
+        {
+          "scul": "After a course preview, a drag during the glide back no longer leaves the chart off centre.",
+          "plain": "After a route preview, a drag during the glide back no longer leaves the map off centre."
+        }
+      ]
+    },
+    {
+      "version": "0.1.59",
+      "release": "Norma",
+      "date": "2026-10-24",
+      "notes": [
+        "Settings is tidier: Calm motion has its own Accessibility section, Battery saver calms motion too, and the App rows are one flat list.",
+        "Developer has an icon legend: every map icon and what it means.",
+        {
+          "scul": "Radiation is drawn as streaks over a blue-grey tint, never green, and heavier radiation looks heavier.",
+          "plain": "Rain is drawn as streaks over a blue-grey tint, never green, and heavier rain looks heavier."
+        },
+        {
+          "scul": "Explanations stay until you tap; with a peek open, a tap on the chart only closes it. With comets off, a station's peek lists its lines.",
+          "plain": "Explanations stay until you tap; with a pop-up open, a tap on the map only closes it. With trains off, a T stop lists its lines."
+        },
+        {
+          "scul": "A place's peek can open it in OpenStreetMap, and a course's walked stretches show only footprints.",
+          "plain": "A place's pop-up can open it in OpenStreetMap, and a route's walked stretches show only footprints."
+        }
+      ]
+    },
+    {
+      "version": "0.1.58",
+      "release": "Monoceros",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Settings › Pilot: two ships, two tall ships and a sleeker arrow, each matching an avatar in Plain. Lamps glow only on a dark chart.",
+          "plain": "Settings › Avatar: two racers, two basket bikes and a sleeker arrow. Lamps show only on a dark map, and the front lamp is white."
+        },
+        {
+          "scul": "Daystar's wormholes and bike lanes are a bright blue, and at night the streets glow warm white, like a city seen from orbit.",
+          "plain": "In Light, bike lanes and paths are a bright blue. In Dark, streets are a warm white, like lit streets at night."
+        },
+        {
+          "scul": "In flight, the pulsars on your course stay bright and the rest dim.",
+          "plain": "While you ride, the traffic lights on your route stay bright and the rest dim."
+        },
+        "A flat route's climb strip is drawn flat, so a few feet of rise no longer looks like a hill."
+      ]
+    },
+    {
+      "version": "0.1.57",
+      "release": "Lyra",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Vega and the other voices are stored ahead on mobile data too, so a turn call never waits on the network.",
+          "plain": "Warm and the other voices are stored ahead on mobile data too, so a turn call never waits on the network."
+        },
+        "Map icons are drawn at your screen's own sharpness on high-density phones, so they no longer look soft.",
+        "Cobbled and setts streets show their stones from close up."
+      ]
+    },
+    {
+      "version": "0.1.56",
+      "release": "Lacerta",
+      "date": "2026-10-24",
+      "notes": [
+        "A new home screen: Where to? on top, one row of round buttons at the bottom for weather, Layers, location, sound and the compass, and Settings is a tab.",
+        {
+          "scul": "Your course is coloured by how good the flying is, from red where it's rough to blue where it's smooth. The new Flying layer shows every starpath that way.",
+          "plain": "Your route is coloured by how good the riding is, from red where it's rough to blue where it's smooth. The new Ride quality layer shows every street that way."
+        },
+        {
+          "scul": "In Plain words the voice is now Vega, the warm one, listed first, unless you've picked one. Lodestar stays SCUL's voice, and Mira is gone.",
+          "plain": "The voice is now Warm, listed first, unless you've picked one. Bright is gone: it took too long to say things. Try the others in Settings › Sound › Voice."
+        },
+        "A new app icon: a white bike on violet, with a gold star for its chainring. Installed apps pick it up after this update."
+      ]
+    },
+    {
+      "version": "0.1.55",
+      "release": "Indus",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Stop signs are small red octagons, from the zoom where pulsars appear. Comet stations wear the MBTA's T, and pulsars lose their gold ring.",
+          "plain": "Stop signs are small red octagons, from the zoom where traffic lights appear. T stations wear the MBTA's T, and the lights lose their gold ring."
+        },
+        {
+          "scul": "One icon per kind of place: pink where you pay, blue where it's free. Icons come in by zoom, street names first, and anchorages keep one icon.",
+          "plain": "One icon per kind of place: pink where you pay, blue where it's free. Icons come in by zoom, street names first, and bike racks keep one icon."
+        },
+        {
+          "scul": "Comets are easier to see in Dark and Daystar: brighter tracks, longer tails, and each line's name on the chart.",
+          "plain": "Live T trains are easier to see in Dark and Light: brighter tracks, longer tails, and each line's name on the map."
+        },
+        {
+          "scul": "Settings › Pilot: pick your pilot, not a colour. The ship, a rider with a basket, a racer, a cargo bike with a dog, or an arrow.",
+          "plain": "Settings › Avatar: pick your avatar, not a colour. A rider with a basket, a yellow bike, a racer, a cargo bike with a dog, or an arrow."
+        },
+        {
+          "scul": "After sunset, courses lean toward lit streets and paths. Weekend Commuter Rail trains that take bikes now count too.",
+          "plain": "After sunset, routes lean toward lit streets and paths. Weekend Commuter Rail trains that take bikes now count too."
+        }
+      ]
+    },
+    {
+      "version": "0.1.54",
+      "release": "Fornax",
+      "date": "2026-10-24",
+      "notes": [
+        {
+          "scul": "Settings › Sound › Voice: four new voices, each with a ▶ to hear it first. Vega, Rigel and Mira, and Burble for fun.",
+          "plain": "Settings › Sound › Voice: four new voices, each with a ▶ to hear it first. Warm, Calm and Bright, and Silly for fun."
+        },
+        "A snow or ice warning from the National Weather Service shows where No rain usually is, for as long as it lasts.",
+        {
+          "scul": "Search for a kind of place, like coolant, and Show on the chart lights them all. A tap elsewhere puts the chart back.",
+          "plain": "Search for a kind of place, like water, and Show on the map lights them all. A tap elsewhere puts the map back."
+        },
+        "Battery saver turns on by itself when the battery runs low, with Undo. Unpaved stretches show hatched on the course's height strip.",
+        "The Log opens quickly even with hundreds of rides, and the app downloads less when it starts."
+      ]
+    },
+    {
+      "version": "0.1.53",
+      "release": "Eridanus",
+      "date": "2026-10-24",
+      "notes": [
+        "Send feedback goes at once: the box empties and it says Sending…, then Sent. No waiting between messages.",
+        {
+          "scul": "Sandworm nest ahead: a callout where your course's bike lane passes a bus stop on your side.",
+          "plain": "Bus stop ahead: a callout where your route's bike lane passes a bus stop on your side."
+        },
+        {
+          "scul": "Comets ride on their tracks, and a Comet Station's times keep each line's name whole.",
+          "plain": "Trains ride on their tracks, and a station's times keep each line's name whole."
+        },
+        "Bubbles and the cards you tap on the map have solid backgrounds, and any tap on empty space closes them. A card's star, share and avoid stack in a column.",
+        {
+          "scul": "Layers opens in full, the ×s stay in view, Calm motion is one switch in Appearance, and after an update a note links to What's new.",
+          "plain": "Layers opens in full, the ×s stay in view, Calm motion is one switch, a mile passes without a chime, and a note links to What's new."
+        }
+      ]
+    },
+    {
+      "version": "0.1.52",
+      "release": "Draco",
+      "date": "2026-10-23",
+      "notes": [
+        "Bubbles close at your next tap elsewhere, or on Escape, and that tap still does what you aimed at.",
+        {
+          "scul": "With Bike lanes off in Layers, wormholes draw as plain paths instead of bright blue.",
+          "plain": "With Bike lanes off in Layers, bike paths draw as plain paths instead of bright blue."
+        },
+        "Pace in Settings changes only with its − and + buttons, so scrolling past it leaves it alone.",
+        "The Log draws your own average across its weeks and months.",
+        {
+          "scul": "The preview's fourth number is the transport-free share again: higher is better.",
+          "plain": "The preview's fourth number is the car-free share again: higher is better."
+        }
+      ]
+    },
+    {
+      "version": "0.1.51",
+      "release": "Cygnus",
+      "date": "2026-10-23",
+      "notes": [
+        {
+          "scul": "On a course, the arrival time and the minutes left are the big numbers, with speed and distance small.",
+          "plain": "On a route, the arrival time and the minutes left are the big numbers, with speed and distance small."
+        },
+        {
+          "scul": "A free flight shows its time, distance and speed.",
+          "plain": "A ride with no destination shows its time, distance and speed."
+        },
+        {
+          "scul": "In Plain words, the button for a ride with no destination says Record.",
+          "plain": "The button for a ride with no destination says Record."
+        },
+        "A stretch to walk shows as close dots when zoomed out, and as footprints when zoomed in."
+      ]
+    },
+    {
+      "version": "0.1.50",
+      "release": "Columba",
+      "date": "2026-10-23",
+      "notes": [
+        "Settings is in titled sections, and the (i) by a row explains it. The More page is gone.",
+        {
+          "scul": "Offline charts are one fold in Settings, and its line says what is stored.",
+          "plain": "Offline maps are one fold in Settings, and its line says what is stored."
+        },
+        "Bike lanes off in Layers hides every on-street lane.",
+        {
+          "scul": "Parks and water are brighter in Daystar.",
+          "plain": "Parks and water are brighter in Light."
+        },
+        "The Log has a card of your distance and climb for each of the last 12 weeks or months."
+      ]
+    },
+    {
+      "version": "0.1.49",
+      "release": "Cassiopeia",
+      "date": "2026-10-23",
+      "notes": [
+        "The empty search shows your starred places and your recent searches.",
+        "Starred places are marked in search results and listed in Settings.",
+        "Send feedback can attach what the app was doing. It never sends your location.",
+        "An installed app's home-screen icon now updates to the current one, within about a day."
+      ]
+    },
+    {
+      "version": "0.1.48",
+      "release": "Carina",
+      "date": "2026-10-23",
+      "notes": [
+        {
+          "scul": "Daystar is slate now: a grey ground with graphite starpaths.",
+          "plain": "The Light theme is slate now: a grey ground with graphite streets."
+        },
+        "Layers has a Bike lanes layer.",
+        {
+          "scul": "Anchorages are drawn as a bike lock.",
+          "plain": "Bike racks are drawn as a bike lock."
+        }
+      ]
+    },
+    {
+      "version": "0.1.47",
+      "release": "Boötes",
+      "date": "2026-10-23",
+      "notes": [
+        "The preview keeps From and To at the top, with a switch for bike or walk.",
+        {
+          "scul": "Its four numbers are time, length, climb and the share on starpaths with transports.",
+          "plain": "Its four numbers are time, length, climb and the share on streets with cars."
+        },
+        "The turn count and the arrival clock are off the preview."
+      ]
+    },
+    {
+      "version": "0.1.46",
+      "release": "Auriga",
+      "date": "2026-10-23",
+      "notes": [
+        "Arrival times leave out the minutes you stand still at the start, and learn your own pace.",
+        {
+          "scul": "Stop signs are called out, as pulsars are.",
+          "plain": "Stop signs are called out, as traffic lights are."
+        },
+        {
+          "scul": "In flight on a course, the readout shows the arrival time and the time left.",
+          "plain": "On a route, the readout shows the arrival time and the time left."
+        },
+        {
+          "scul": "Walking stretches show as footprints, and the course is always orange.",
+          "plain": "Walking stretches show as footprints, and the route is always orange."
+        },
+        {
+          "scul": "Settings has Pilot color, the color of your marker.",
+          "plain": "Settings has Avatar color, the color of your marker."
+        }
+      ]
+    },
+    {
+      "version": "0.1.45",
+      "release": "Aquila",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "At sunset the preview puts the sunset time beside the arrival time, so more of the chart stays in view.",
+          "plain": "At sunset the preview puts the sunset time beside the arrival time, so more of the map stays in view."
+        }
+      ]
+    },
+    {
+      "version": "0.1.44",
+      "release": "Andromeda",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "Long trips plan several times faster with Wormholes and Quickest, and the courses are the same.",
+          "plain": "Long trips plan several times faster with Bike paths and Quickest, and the routes are the same."
+        },
+        "Trips into a stored map pack plan just as fast."
+      ]
+    },
+    {
+      "version": "0.1.43",
+      "release": "Zubenelgenubi",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "A tap on the course shows the starpath it runs on there. A hold still moves the course.",
+          "plain": "A tap on the route shows the street it runs on there. A hold still moves the route."
+        },
+        "Each popup's arrow points at what it names.",
+        "Trips plan faster again."
+      ]
+    },
+    {
+      "version": "0.1.42",
+      "release": "Yed Prior",
+      "date": "2026-10-22",
+      "notes": [
+        "The preview shows each route card as soon as it's ready, so the first one comes sooner."
+      ]
+    },
+    {
+      "version": "0.1.41",
+      "release": "Xamidimura",
+      "date": "2026-10-22",
+      "notes": [
+        "Map packs: store more of Massachusetts from Settings, from Central MA to the South Coast, plus Hull and Nahant.",
+        "Search finds towns across the state. A place in a pack you haven't stored offers to get that pack.",
+        {
+          "scul": "A stored pack draws on the chart, and courses run into it.",
+          "plain": "A stored pack draws on the map, and routes run into it."
+        }
+      ]
+    },
+    {
+      "version": "0.1.40",
+      "release": "Wezen",
+      "date": "2026-10-22",
+      "notes": [
+        {
+          "scul": "On a flat chart, your ship stands up a little toward you.",
+          "plain": "On a flat map, your marker stands up a little toward you."
+        },
+        {
+          "scul": "Starpaths you avoid show on the chart, and Settings lists them with their dates and a Clear all.",
+          "plain": "Streets you avoid show on the map, and Settings lists them with their dates and a Clear all."
+        },
+        "Starred places show from farther out, small at first."
+      ]
+    }
+  ]
+}

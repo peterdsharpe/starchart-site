@@ -1,0 +1,71 @@
+/* W35 welcome (design/app-ui/SPEC.md §49): the first open's card (app/welcome.js). A card over the chart, in the glass with
+   its hairline, low on the screen, over the bar and clear of the tab bar, so Start is in the thumb's reach; it sizes to its words and scrolls only if a screen is
+   too short for them. */
+#welcome { box-sizing: border-box; width: auto; max-width: min(420px, calc(100vw - var(--ml) - var(--mr)));
+  max-height: calc(100dvh - var(--top) - max(var(--rail), calc(var(--bar-h) + 10px))); margin: auto auto max(var(--rail), calc(var(--bar-h) + 10px)); padding: 14px 16px 10px; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--glass-snack); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  color: var(--starlight); font: max(11px, 1rem)/1.35 var(--font-body); } /* W142 remscale */
+#welcome[open] { animation: enter var(--t-small) var(--ease-enter); }
+/* The dialog itself takes the first focus (welcome.js), so a phone shows no ring on Start before anything is touched; Tab still reaches the link, Start and the ×. */
+#welcome:focus { outline: none; }
+#welcome::backdrop { background: color-mix(in srgb, var(--void) 45%, transparent); }
+:root[data-theme="light"] #welcome::backdrop { background: color-mix(in srgb, var(--starlight) 22%, transparent); }
+#welcome form { margin: 0; }
+#welcome .head { display: flex; align-items: center; gap: 10px; margin: 0 40px 8px 0; }
+#welcome .head img { flex: none; }
+#welcome h2 { margin: 0; font: 700 min(calc(26px + (1rem - 16px) * 1.5), 8.125vw)/1 var(--font-display); /* W142 remscale: and no wider than its row: "Starchart" whole beside the × at 320 px */ letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#welcome .lede { margin: 0 0 10px; color: var(--starlight); }
+#welcome ul { margin: 0; padding: 0; list-style: none; }
+#welcome li { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+#welcome li .i { width: 22px; height: 22px; margin-top: 1px; color: var(--stardust); }
+#welcome b { font-weight: 700; color: var(--starlight); }
+#welcome .more { display: block; margin-top: 4px; }
+/* W130 plaindefault (SPEC §242): SCUL's words row in SCUL only; W150 welcome2 (SPEC §270): Plain's offer of SCUL is gone, Settings' Words has it */
+[data-lingo="meatspace"] #welcome .scul-words { display: none; } /* W130 plaindefault; W150 welcome2 */
+#welcome a { color: var(--accent, var(--wormhole)); /* W171 palette */ font-weight: 600; text-underline-offset: 2px; }
+#welcome .i-lingo { -webkit-mask-image: url("../design/glyphs/ui/lingo_mode.svg"); mask-image: url("../design/glyphs/ui/lingo_mode.svg"); }
+/* W160 smallui (SPEC §287): the record row wears Record's mark, a dot in a ring, as #gobar's (app/launch.css); SCUL's Launch keeps its own */
+[data-lingo="meatspace"] #welcome .i-launch { -webkit-mask-image: radial-gradient(circle closest-side, #000 40%, transparent 44% 62%, #000 66% 88%, transparent 92%);
+  mask-image: radial-gradient(circle closest-side, #000 40%, transparent 44% 62%, #000 66% 88%, transparent 92%); }
+#welcome .i-here { -webkit-mask-image: url("../design/glyphs/ui/locate.svg"); mask-image: url("../design/glyphs/ui/locate.svg"); }
+/* on a screen too short for the words (320 x 568), they scroll under Start and the credit */
+#welcome .end { position: sticky; bottom: -10px; margin: 0 -16px -10px; padding: 8px 16px 10px; background: var(--glass-snack); }
+#welcome .go { display: block; width: 100%; height: 48px; margin: 0; padding: 0 16px; border: 0; border-radius: var(--r-pill);
+  background: var(--phosphor); color: var(--void); font: 700 1.25rem var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; } /* W69 artdir */ /* W142 remscale */
+#welcome .by { margin: 8px 0 0; text-align: center; color: var(--stardust); font: max(11px, 0.8125rem)/1.2 var(--font-mono); } /* W142 remscale */
+#welcome > form > .nx { position: sticky; z-index: 1; top: calc(6px - var(--wpt, 14px)); float: right; margin: calc(6px - var(--wpt, 14px)) calc(4px - var(--wpr, 16px)) -44px 0; background: var(--glass-snack); } /* W92 panels: 6 px down and 4 px in, as before, and there while the card scrolls; a sticky top counts from the padding */
+/* a short portrait screen: less room around the words */
+@media (orientation: portrait) and (max-height: 700px) {
+  #welcome { padding-top: 10px; --wpt: 10px; line-height: 1.3; } /* W92 panels: --wpt, the × follows the padding */
+  #welcome .head { margin-bottom: 4px; }
+  #welcome .head img { width: 32px; height: 32px; }
+  #welcome h2 { font-size: min(1.375rem, 6.875vw); } /* W142 remscale: the title whole beside the × */
+  #welcome .lede { margin-bottom: 6px; }
+  #welcome li { padding: 6px 0; }
+}
+/* W47 install: the smallest phones (320 x 568), with the install row: tighter still, so the card fits with no scroll */
+@media (orientation: portrait) and (max-height: 600px) {
+  #welcome { line-height: 1.2; } /* W60 a: 1.2, and the rows' 2 px, with Words' buttons */
+  #welcome .lede { margin-bottom: 4px; }
+  #welcome li { padding: 2px 0; } /* W60 a: was 4 px */
+  #welcome .more { margin-top: 0; } /* W60 a: was 2 px */
+  #welcome .seg { margin: 4px 0 0; } /* W60 a */
+  #welcome .by { margin-top: 4px; }
+}
+/* landscape, and short screens: the card goes wide, so each line holds more and Start stays on screen */
+@media (orientation: landscape) and (max-height: 500px) {
+  #welcome { max-width: min(640px, calc(100vw - var(--ml) - var(--mr))); max-height: calc(100dvh - 16px); margin-bottom: 8px; padding: 10px 14px 8px; --wpt: 10px; --wpr: 14px; } /* W92 panels: --wpt, --wpr */
+  #welcome .end { bottom: -8px; margin: 0 -14px -8px; padding: 6px 14px 8px; }
+  #welcome .head { margin-bottom: 4px; }
+  #welcome .head img { width: 32px; height: 32px; }
+  #welcome h2 { font-size: min(1.375rem, 6.875vw); } /* W142 remscale: the title whole beside the × */
+  #welcome .lede { margin-bottom: 4px; }
+  #welcome li { padding: 5px 0; }
+}
+/* W144 small5 (SPEC §260): narrow for its text (a 320 px phone from 125 %): only Start stays in place at the foot while the rows scroll, the credit after it, so the rows keep the room above Start;
+   a row focused or scrolled to stops above Start, never under it */
+@media (max-width: 16.25em) {
+  #welcome { scroll-padding-bottom: calc(48px + 20px); }
+  #welcome .end { display: contents; }
+  #welcome .go { position: sticky; bottom: 0; margin-top: 8px; box-shadow: 0 0 0 10px var(--glass-snack); }
+}

@@ -1,0 +1,105 @@
+/* W56 hud (design/app-ui/SPEC.md §77): the flight readout and Land, as the parked bar.
+   Parked, one bar holds "Where to?" and Launch (app/launch.css). In flight the same bar, in the same place, holds the
+   readout and Land: the readout is the glass part, rounded, where the field was, and Land is the green end, where
+   Launch was, in Launch's shape, type and glyph. So the same place starts and ends a ride. The numbers are the theme's
+   text colour, in Antonio's tabular figures: Warp at 44 px, LY and minutes at 34 (32 at 320 px), over 7:1 on its glass in
+   Dark and Daystar (the old phosphor on Daystar's white glass was about 4:1). Their words are the app's body type, under them.
+   Land stays inside #readout, so it shows, hides and lifts over a sheet with it (app/course.css [data-open~="ride-preview"]). */
+#readout { right: var(--mr); margin: 0 auto; /* W171 flightbar (SPEC §298), her note 5: "the lower bar should take up the entire width of the screen": margin to margin, centred under its cap; the location button rides above it (app.css --colb) */ max-width: min(27.5rem, 528px); /* W142 remscale: the room for its type, at most 1.2 x */ height: 64px; gap: 0; box-sizing: border-box;
+  background: var(--glass-snack); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-pill); box-shadow: var(--lift); overflow: hidden; }
+#readout .warp, #readout .pair > div { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; padding: 0; }
+#readout .warp { padding-left: 10px; }
+#readout .pair { display: contents; }
+#readout .lbl { order: 1; font: 600 max(11px, min(0.8125rem, 15.6px, 4.0625vw))/1 var(--font-body); letter-spacing: 0.02em; text-transform: none; color: var(--stardust); } /* W142 remscale */
+#readout b { color: var(--starlight); text-shadow: none; line-height: 0.92; letter-spacing: 0.01em; }
+#warp { font-size: min(2.75rem, 52.8px, 13.75vw); min-width: 0.85em; text-align: center; } /* two digits wide, and the minutes too, and LY "0.00": the cells hold still as the numbers change */ /* W142 remscale */
+#readout .pair b { font-size: min(2.125rem, 40.8px, 10.625vw); min-width: 0.8em; text-align: center; } /* W142 remscale */
+#readout .pair b { line-height: 1.12; } /* W144 small5 (SPEC §260): a line box that holds the figures' ink, 0.88 em up and the round digits' foot below the baseline, so the odometer's clip cuts none of it (at 1 the foot fell 1 px under the box) */
+#ly { min-width: 1.7em; }
+#readout .warp .nofix { order: 2; font: 700 max(11px, min(0.75rem, 14.4px, 3.75vw))/1 var(--font-body); letter-spacing: 0.04em; } /* W142 remscale */
+#readout .warp.lost .lbl { display: none; } /* GPS lost: "No fix" under the dash, in the label's place */
+/* Land: Launch's twin, the bar's green end */
+#land { order: 9; flex: none; width: auto; flex-direction: row; gap: 6px; margin-left: 2px; padding: 0 18px 0 12px; border: 0;
+  border-radius: var(--r-xs) var(--r-pill) var(--r-pill) var(--r-xs); background: var(--phosphor); color: var(--void); /* W69 artdir */
+  font: 700 min(1.3125rem, 25.2px, 6.5625vw) var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#land .i { width: 24px; height: 24px; }
+#land .lbl { order: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+@media (max-width: 22.4375em) { /* W142 remscale */
+  #land { padding: 0 10px 0 8px; gap: 4px; font-size: max(11px, min(1.1875rem, 22.8px, 5.9375vw)); } /* 320 px: room for Warp 25, 12.34 LY and 123 min */ /* W142 remscale */
+  #land .i { width: 22px; height: 22px; }
+  #readout .pair b { font-size: min(2rem, 38.4px, 10vw); } /* W142 remscale */
+  #warp { font-size: min(2.5rem, 48px, 12.5vw); } /* W142 remscale */
+  #readout .warp { padding-left: 8px; }
+}
+/* W171 flightbar: a landscape is too short for the column over the bar, so the location button keeps its corner on the rail,
+   and the bar is centred between the corners, under the ship (it stopped 64 px short of the middle); a small one keeps the 320 px sizes */
+@media (orientation: landscape) {
+  :root { --colb: var(--rail); }
+  #readout { left: calc(var(--ml) + 48px + 8px); right: calc(var(--mr) + 48px + 8px); } }
+@media (orientation: landscape) and (max-width: 46.25em) { /* W142 remscale */
+  #land { padding: 0 10px 0 8px; gap: 4px; font-size: max(11px, min(1.1875rem, 22.8px, 5.9375vw)); } /* W142 remscale */
+  #land .i { width: 22px; height: 22px; }
+  #readout .pair b { font-size: min(2rem, 38.4px, 10vw); } /* W142 remscale */
+  #warp { font-size: min(2.5rem, 48px, 12.5vw); } /* W142 remscale */
+  #readout .warp { padding-left: 8px; }
+}
+/* the scale and the full credit: the bar spans the screen under the location button (W171 flightbar), or runs to it in a
+   landscape, so in flight they sit just above the bar, at the left, at every width (app.css and scale.css did so under 410 and
+   380 px); the scale steps aside while the credit shows */
+:root:not([data-flight="parked"]) #scale { bottom: calc(var(--card) + 64px + 6px); } /* W187 handside: its side is app/home.css's */
+body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { right: auto; left: 0; bottom: calc(var(--card) + 64px + 6px); }
+body:has(#readout:not([hidden])) .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open] { float: left; margin: 0 0 0 var(--ml); }
+/* W86 ride (SPEC §168): on a course the minutes' cell is the arrival clock, "6:07", with the time left under it, "12 min left",
+   in the label's type, on one line */
+#readout .pair > .eta .lbl { white-space: nowrap; }
+#readout .pair > .eta { padding-left: 4px; } /* W86 ride: a little air after LY */
+@media (max-width: 21.4375em), (orientation: landscape) and (max-width: 46.25em) { /* W171 flightbar: 344 px (was 400): the bar is 56 px wider */ /* W86 ride: room for Warp 25, 12.34 LY and 12:07 over "1h 20m left": Land its word alone */ /* W142 remscale */
+  #readout .pair > .eta .lbl { font-size: max(11px, min(0.75rem, 14.4px, 3.75vw)); letter-spacing: 0; } /* W142 remscale */
+  #readout:has(.eta) #land { padding: 0 14px 0 12px; } #readout:has(.eta) #land .i { display: none; } }
+@media (max-width: 22.4375em), (orientation: landscape) and (max-width: 46.25em) { #readout:has(.eta) #warp { font-size: min(2.25rem, 43.2px, 11.25vw); } #readout:has(.eta) .warp { padding-left: 4px; } #readout:has(.eta) #land { padding: 0 10px 0 8px; /* W171 flightbar: a 44 px target (was 8 and 6 px, 41 px), in the bar's 56 px more */ font-size: max(11px, min(1.0625rem, 20.4px, 5.3125vw)); } } /* W86 ride: 320 px */ /* W142 remscale */
+/* W88 ridemodes (SPEC §174): on a course the readout is the destination's: the arrival clock and the minutes left are the big
+   pair, "6:07 arrive" and "12 min left"; speed and the distance ridden go small, stacked at its start ("14 mph" over "2.31 mi", "14 Warp" over "2.31 LY").
+   A free ride (no destination) keeps the journey's three, as above. */
+#readout .pair > .left { display: none; }
+#readout.to { display: grid; grid-template-columns: var(--ro-cols); grid-template-rows: 1fr 1fr; grid-template-areas: var(--ro-areas); } /* W191 appleft (SPEC §334): the areas by name, the hand's order app/home.css's (--ro-*): Warp over LY, the clock, the minutes left, Land */
+#readout.to .warp, #readout.to .pair > div:first-child { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 3px; padding: 0 2px 0 16px; }
+#readout.to .warp { grid-area: warp; align-self: end; padding-bottom: 2px; } /* W191 appleft: by name */
+#readout.to .pair > div:first-child { grid-area: ly; align-self: start; padding-top: 2px; }
+#readout.to .pair > .eta { grid-area: eta; }
+#readout.to .pair > .left { display: flex; grid-area: left; }
+#readout.to #land { grid-area: land; }
+#readout.to #warp, #readout.to #ly, #readout.to .warp.lost #warp { font-size: min(1.25rem, 24px, 6.25vw); min-width: 0; text-align: left; } /* W142 remscale */
+#readout.to .warp .lbl, #readout.to .pair > div:first-child .lbl { font-size: max(11px, min(0.75rem, 14.4px, 3.75vw)); letter-spacing: 0; } /* W142 remscale */
+#readout.to .warp .nofix { font-size: max(11px, min(0.6875rem, 13.2px, 3.4375vw)); letter-spacing: 0; } /* W142 remscale */
+#readout.to .pair > :is(.eta, .left) b { font-size: min(2.5rem, 48px, 12.5vw); line-height: 1; } /* W142 remscale */ /* W144 small5: the big pair keeps its line, in its 64 px */
+#readout.to .pair > .left b { min-width: 1.1em; }
+#readout.to .pair > .left .lbl { white-space: nowrap; }
+@media (max-width: 22.4375em), (orientation: landscape) and (max-width: 46.25em) { /* W142 remscale */
+  #readout.to .warp, #readout.to .pair > div:first-child { padding-left: 12px; }
+  #readout.to .pair > :is(.eta, .left) b { font-size: min(2.125rem, 40.8px, 10.625vw); } /* W142 remscale */
+}
+@media (orientation: landscape) and (max-width: 37.5em) { /* W88 ridemodes: a small phone on its side, the bar 50vw less 64 px: "12:45" and "125" apart, with their words */ /* W142 remscale */
+  #readout.to .pair > :is(.eta, .left) b { font-size: min(1.75rem, 33.6px, 8.75vw); } /* W142 remscale */
+  #readout.to .pair > .eta { padding: 0 8px 0 0; } /* W88 ridemodes fix: the clock nearer LY, clear of the minutes left (4 px at "12:45" and "125", where 30 px overlapped) */
+  #readout.to .warp, #readout.to .pair > div:first-child { padding-left: 10px; }
+  #readout.to :is(.warp, .pair) .lbl { font-size: max(11px, min(0.6875rem, 13.2px, 3.4375vw)); } /* W142 remscale */
+}
+/* W173 navflow (SPEC §300), her note 1: "the undo message should not have its own dedicated box: it should replace the route
+   metrics box at the bottom. The "end" button should become "undo" and the message and time bar should appear in the white
+   space to the left of the undo button, still inside the lower bar." Landed, the bar stays where it was: the numbers give way
+   to the word with its time bar under it, and Undo takes End's place, shape, colour and type, at the Buttons side. */
+#readout.ended { display: flex; } /* a course's grid too */
+#readout.ended > :not(#snack) { display: none; }
+#readout #snack { position: relative; inset: auto; flex: 1 1 auto; min-width: 0; max-width: none; min-height: 0; margin: 0; padding: 0; display: flex; align-items: stretch; gap: 0;
+  border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible; contain: none; }
+#readout #snack[hidden] { display: none; }
+#readout #snack .msg { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 0 14px 0 18px; }
+#readout #snack .t { flex: none; font: 700 min(1.3125rem, 25.2px, 6.5625vw)/1.3 var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; color: var(--starlight); } /* wraps, never cut (W166) */
+#readout #timer { position: relative; inset: auto; flex: none; height: 3px; border-radius: var(--r-pill); } /* W173 integration: the shape scale (W69 artdir), its ends round as the 2 px were */
+#readout #undo { flex: none; height: auto; margin-left: 2px; padding: 0 18px 0 12px; gap: 6px; border-radius: var(--r-xs) var(--r-pill) var(--r-pill) var(--r-xs); background: var(--phosphor); color: var(--void);
+  font: 700 min(1.3125rem, 25.2px, 6.5625vw) var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; } /* End's (above) */
+#readout #undo .i { width: 24px; height: 24px; }
+:root[data-hand="left"] #readout #undo { order: -1; margin: 0 2px 0 0; border-radius: var(--r-pill) var(--r-xs) var(--r-xs) var(--r-pill); } /* as End at the left (app/home.css) */
+@media (max-width: 22.4375em), (orientation: landscape) and (max-width: 46.25em) {
+  #readout #undo { padding: 0 10px 0 8px; gap: 4px; font-size: max(11px, min(1.1875rem, 22.8px, 5.9375vw)); } #readout #undo .i { width: 22px; height: 22px; }
+  #readout #snack .t { font-size: max(11px, min(1.1875rem, 22.8px, 5.9375vw)); } #readout #snack .msg { padding: 0 10px 0 14px; } }

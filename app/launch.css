@@ -1,0 +1,92 @@
+/* W28 launch (design/app-ui/SPEC.md §39): the parked bar, the full-screen search, the first Launch's card and the
+   first-time tips (app/tips.js).
+   Parked, one bar at the bottom holds the search's field, "Where to?" (app/course.js puts it first), and Launch. It runs
+   from the left margin to the location button. The field is the larger part and the brightest thing in the chrome:
+   filled with --starlight, the theme's text colour, so it is light on Dark and ink on Daystar. Launch is still green,
+   and smaller. */
+#gobar { position: absolute; left: var(--ml); right: calc(var(--mr) + 48px + 8px); bottom: max(var(--rail), calc(var(--bar-h) + 14px));
+  max-width: 440px; height: 48px; display: flex; gap: 2px; border-radius: var(--r-pill); box-shadow: var(--lift); }
+#gobar .csearch { position: relative; left: auto; top: auto; z-index: auto; flex: 1 1 auto; width: auto; min-width: 0; height: 48px;
+  padding: 0 2px 0 11px; gap: 7px; border: 0; border-radius: var(--r-pill) var(--r-xs) var(--r-xs) var(--r-pill); background: var(--starlight); box-shadow: none; color: var(--void); } /* W69 artdir */
+#gobar .csearch input { font-size: max(11px, 1.0625rem); font-weight: 600; color: var(--void); text-shadow: none; } /* W142 remscale */
+#gobar .csearch input::placeholder { color: var(--void); opacity: 1; }
+#gobar #launch { position: relative; left: auto; bottom: auto; flex: none; height: 48px; padding: 0 14px 0 10px; gap: 6px; font-size: max(11px, 1.1875rem); /* W142 remscale */
+  border: 0; border-radius: var(--r-xs) var(--r-pill) var(--r-pill) var(--r-xs); box-shadow: none; } /* W69 artdir */
+#gobar #launch .i { width: 22px; height: 22px; }
+@media (max-width: 359px) { #gobar #launch { padding: 0 12px 0 9px; font-size: max(11px, 1.125rem); } #gobar .csearch input { font-size: max(11px, 1rem); } } /* 320 px: "Where to?" whole */ /* W142 remscale */
+/* W88 ridemodes (SPEC §174): with no destination the bar's button records a ride, so Plain's says so: Record, with a record mark,
+   a dot in a ring, in the button's ink. A planned course's card keeps Start's play mark; SCUL's pilots Launch either way. */
+[data-lingo="meatspace"] #gobar #launch .i-launch { -webkit-mask-image: radial-gradient(circle closest-side, #000 40%, transparent 44% 62%, #000 66% 88%, transparent 92%);
+  mask-image: radial-gradient(circle closest-side, #000 40%, transparent 44% 62%, #000 66% 88%, transparent 92%); }
+@media (hover: hover) and (pointer: fine) { #gobar .csearch:hover { background-image: none !important; filter: brightness(0.94); } }
+
+/* open: the field goes to the top, over the search's full-screen page; Launch waits under it */
+body[data-open~="search"] #gobar .csearch { position: fixed; left: var(--ml); right: var(--mr); top: var(--top); z-index: 7; padding: 0 4px 0 14px;
+  border: var(--hairline) solid color-mix(in srgb, var(--course) 70%, transparent); border-radius: var(--r-pill); background: var(--space-2); color: var(--stardust); } /* W69 artdir */
+body[data-open~="search"] #gobar .csearch input { font-weight: 400; color: var(--starlight); }
+body[data-open~="search"] #gobar .csearch input::placeholder { color: var(--stardust); }
+body[data-open~="search"] #launch { visibility: hidden; }
+/* merge (W27 friction + W28 launch): the Log and a flight's page are full-screen tasks; the bar waits under them */
+body[data-open~="log"] #gobar, body[data-open~="flight-page"] #gobar { visibility: hidden; }
+/* the search is a full-screen task: the field, then home and the recent places, then the results, on the ground colour */
+.cresults:not(.cfromto) { padding-top: calc(var(--top) + 48px + 12px); }
+.cresults.idle:not(.cfromto) { bottom: 0; overflow-y: auto; padding-bottom: 24px; background: var(--void); border-bottom: 0; border-radius: 0; box-shadow: none; }
+/* before two letters, home and the recent places are rows, as the results are; from two letters, the results alone */
+.cresults.idle:not(.cfromto) .picks { flex-direction: column; gap: 0; padding: 0 var(--mr) 0 var(--ml); overflow: visible; }
+.cresults.idle:not(.cfromto) .picks button { height: 56px; padding: 0; gap: 12px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent);
+  border-radius: 0; background: none; font-size: max(11px, 1.0625rem); } /* W142 remscale */
+.cresults.idle:not(.cfromto) .picks img { width: 36px; height: 36px; }
+.cresults:not(.idle, .cfromto) .picks { display: none; }
+/* W77 desktop (SPEC §143): on a wide screen the search is a 440 px column at the left, over the live chart */
+@media (min-width: 900px) and (min-height: 561px) {
+  body[data-open~="search"] #gobar .csearch { right: auto; width: calc(440px - var(--ml) - var(--m)); } /* W77 desktop */
+  .cresults:not(.cfromto) { right: auto; width: var(--scol); /* W190 screenstate: app/home.css */ border-right: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); } /* W77 desktop */
+}
+
+/* the bar runs to the location button: the full credit, while it shows, sits just above the bar at the left (above
+   Landed's snackbar while that shows), and the scale sits there too, as it does in flight on a narrow screen */
+[data-flight="parked"] .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { right: auto; left: 0; bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 6px); }
+[data-flight="parked"] body:has(#snack:not([hidden])) .maplibregl-ctrl-bottom-right:has(.maplibregl-ctrl-attrib[open]) { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 8px + 56px + 6px); }
+[data-flight="parked"] .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open], [data-flight="parked"] body:has(#demo-chip:not([hidden])) .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib[open] {
+  float: left; margin: 0 0 0 var(--ml); max-width: calc(100vw - var(--ml) - var(--mr)); }
+[data-flight="parked"] #scale { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 6px); } /* W187 handside: its side is app/home.css's */
+[data-flight="parked"] body:has(#snack:not([hidden])) #scale { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 8px + 56px + 6px); }
+#snack { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 8px); } /* above the bar */
+
+/* the first-time tips (app/tips.js): the bubble's look, with an × that takes taps */
+.ftip { position: fixed; z-index: 9; display: flex; align-items: flex-start; gap: 0; margin: 0; padding: 0 12px; box-sizing: border-box; /* W92 panels: no ×, so 12 px at the right too */
+  width: max-content; max-width: min(300px, calc(100vw - 32px)); border-radius: var(--r-card); /* W69 artdir */
+  background: var(--space-1); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); color: var(--starlight); /* W110 looks: solid, as #loctip (was --glass-snack): text bubbles sit on a solid ground */
+  font-size: max(11px, 0.9375rem); line-height: 1.3; animation: enter var(--t-small) var(--ease-enter); } /* W142 remscale */
+:root[data-theme="light"] .ftip { background: var(--space-2); } /* W110 looks: Daystar's, as #loctip's */
+.ftip .t { flex: 1; min-width: 0; padding: 9px 0; text-wrap: balance; }
+
+/* the first Launch with no destination: a small card above the bar, once ever */
+.fcard { position: absolute; z-index: 8; left: var(--ml); right: calc(var(--mr) + 48px + 8px); max-width: 440px; box-sizing: border-box;
+  bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 8px); padding: 12px 4px 12px 14px;
+  background: var(--glass-snack); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  animation: enter var(--t-small) var(--ease-enter); }
+.fcard p { margin: 0 44px 0 0; font-size: max(11px, 1rem); line-height: 1.3; color: var(--starlight); } /* W76 look (D14b): its sentence and ×; the bar's Where to? and Launch are the pick */ /* W142 remscale */
+.fcard > .nx { position: absolute; top: 4px; right: 2px; margin: 0; }
+.fcard::after { content: ""; position: absolute; right: calc(var(--tail, 56px) - 6px); bottom: -7px; width: 12px; height: 12px; box-sizing: border-box; /* W76 look: its tail, on the bar's Launch (app/tips.js --tail) */
+  background: var(--glass-snack); border: solid var(--glass-edge); border-width: 0 var(--hairline) var(--hairline) 0; transform: rotate(45deg); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
+/* in flight, Land says its word under its glyph, in the readout's label style, as Warp does (W28 first-use audit, item 2) */
+#land { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+#land .lbl { line-height: 1; }
+/* under the no-location sheet, the bar steps away, as the top pill did on a short screen */
+body:has(#nogps:not([hidden])) #gobar { visibility: hidden; }
+/* W40 flight: so the sheet offers the bar's Where to? (search needs no position), under Try again, in a hairline */
+#nogps .where { display: flex; align-items: center; justify-content: center; gap: 8px; width: min(100%, 320px); height: 48px; margin: 8px auto 0;
+  padding: 0 16px; border: var(--hairline) solid var(--starlight); border-radius: var(--r-pill); background: none; color: var(--starlight); font: 600 max(11px, 1.0625rem) var(--font-body); } /* W142 remscale */
+#nogps .where .i { width: 22px; height: 22px; }
+body:has(.csearch[hidden]) #nogps .where { display: none; } /* in flight, or a build with no search */
+/* Show frame rate, parked: its readout sat right of Launch; the bar runs there now, so it sits just above the bar's right end */
+[data-flight="parked"] #fps { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 6px); }
+/* the rough-position line and "No GPS fix yet." sit above the row the credit and the scale share over the bar (16 px and
+   6 px each side), so neither runs into them, open or folded; W77 fitfix: above the folded ©'s 44 px target too (W73 a11y),
+   whose top 28 px ran under the notice's × */
+#nofix { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 6px + 44px + 6px); } /* W77 fitfix: was 16px */
+/* the folded ©, on that row too, at the right, over the location button: under the bar's right end it would touch Launch */
+[data-flight="parked"] .maplibregl-ctrl-bottom-right { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 48px + 6px); }
+[data-flight="parked"] .maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin-right: var(--m); }

@@ -1,0 +1,364 @@
+/* Set a course (SPEC §16): the search field and results, the pin, the place and preview sheets, the turn
+   card, and the course's snackbar. app/course.js makes the elements. The turn card sets --card-h, and the
+   compass moves down by it. */
+.i-search { -webkit-mask-image: url("../design/glyphs/ui/search.svg"); mask-image: url("../design/glyphs/ui/search.svg"); }
+.i-course { -webkit-mask-image: url("../design/glyphs/ui/set_course.svg"); mask-image: url("../design/glyphs/ui/set_course.svg"); }
+
+/* the search field: parked only, top left. W20 chrome: a small see-through pill, a magnifier and "Search", until a tap
+   opens it into the field across the top ([data-open~="search"]); closing it folds it back */
+.csearch { position: absolute; left: var(--ml); top: var(--top); z-index: 2; width: 118px; height: 44px; box-sizing: border-box;
+  padding: 0 4px 0 12px; display: flex; align-items: center; gap: 8px; background: var(--glass-btn); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-pill); /* W21 glass */ /* W69 artdir */
+  box-shadow: var(--lift); color: var(--stardust); }
+.csearch input { cursor: pointer; }
+body[data-open~="search"] .csearch { width: auto; padding-left: 14px; gap: 10px; }
+body[data-open~="search"] .csearch input { cursor: text; }
+.csearch[hidden] { display: none; }
+.csearch input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; color: var(--starlight); font: max(11px, 1.0625rem) var(--font-body); } /* W142 remscale */
+.csearch input::placeholder { color: var(--stardust); }
+.csearch input::-webkit-search-cancel-button { display: none; }
+.csearch .x { display: none; width: 44px; height: 44px; /* W73 a11y: 44 px (BRIEF §7.8) */ place-items: center; border: 0; background: none; color: var(--stardust); }
+body[data-open~="search"] .csearch { right: var(--mr); z-index: 7; background: var(--space-2); border-color: color-mix(in srgb, var(--course) 70%, transparent); }
+body[data-open~="search"] .csearch .x { display: grid; }
+/* W47 firstload: no more hidden until the chart is in (body:not(.loaded)): index.html has the field from the first frame */
+
+.cresults { position: absolute; inset: 0; z-index: 6; overflow-y: auto; overscroll-behavior: contain; padding: calc(var(--top) + 44px + 12px) 0 24px;
+  box-sizing: border-box; background: var(--void); }
+/* W21 entry: before two letters, only the field's picks and a hint, on glass: the chart stays in view below */
+:root[data-flight="parked"] .cresults:not(.cfromto) { bottom: var(--bar-h); } /* W147 small6 (SPEC §264): the search's page, its picks or its results, ends at the bar, which stays under it; From/To's editor is the course preview's, where the bar is hidden ([data-open~="preview"]) */
+.cresults.idle { bottom: auto; overflow: visible; padding-bottom: 12px; background: var(--glass-card); border-bottom: var(--hairline) solid var(--glass-edge);
+  border-radius: 0 0 var(--r-l) 0; box-shadow: var(--lift); }
+.cresults.idle .note { margin-top: 2px; }
+.cresults .picks { display: flex; gap: 8px; padding: 0 var(--mr) 10px var(--ml); overflow-x: auto; scrollbar-width: none; }
+.cresults .picks button { flex: none; height: 44px; /* W73 a11y: 44 px (BRIEF §7.8) */ padding: 0 14px 0 6px; display: flex; align-items: center; gap: 6px; border-radius: var(--r-pill);
+  border: 1px solid var(--space-3); background: var(--space-1); color: var(--starlight); font: max(11px, 0.9375rem) var(--font-body); white-space: nowrap; } /* W142 remscale */
+.cresults ul { list-style: none; margin: 0; padding: 0 var(--mr) 0 var(--ml); }
+.cresults li button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 62px; padding: 6px 0; border: 0; text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); background: none; color: var(--starlight); }
+.cresults li button[aria-selected="true"] { outline: 2px solid var(--phosphor); outline-offset: -2px; } /* W73 a11y: the row the arrows chose, ringed as a focused control */
+.csheet:focus { outline: none; } /* W73 a11y: the preview takes the focus as it opens, for a screen reader: no ring round the sheet */
+.cresults li div { flex: 1; min-width: 0; }
+.cresults li b { font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.1875rem); letter-spacing: var(--track-display); text-transform: uppercase; /* W142 remscale */
+  overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; } /* W176 searchux (SPEC §311): a long name on two lines ("Prudential Center Plaza II" and "… Plaza I" were both "Prudential Center Plaz…" at 320 px), an ellipsis only past them; pretty, so no "II" alone on the second */
+.cresults li small { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; font-size: max(11px, 0.875rem); color: var(--stardust); } /* W69 artdir */ /* W142 remscale */ /* W176 searchux: wrap, so "Closed" and the LY go under words they would squeeze to a word a line (150 % text at 320 px) */
+.cresults li small > span:first-child { flex: 1 1 8em; flex-basis: calc-size(max-content, min(size, 8em)); min-width: 0; } /* W176 searchux: what it is, its street and town wrap, whole (were cut: "Restaurant · Nichols Av…"); its words' width up to 8em (Chrome 129+, else 8em), so short words keep the LY beside them at 150 % text */
+.cresults li small > .end { flex: none; margin-left: auto; display: flex; align-items: baseline; gap: 8px; } /* W176 searchux: "Closed" and the LY together, by the words or under them */
+@media (max-width: 16.25em) { .cresults li b { -webkit-line-clamp: none; } } /* W142 remscale (SPEC §256): narrow for its text, a place's name wraps, whole, rather than cut; W176 searchux: unclamped */
+.cresults li small em { flex: none; margin-left: auto; font-style: normal; font-family: var(--font-display); font-weight: 600; font-size: max(11px, 0.9375rem); letter-spacing: var(--track-display); text-transform: uppercase; color: var(--course-ink); } /* W102 a11y: course-ink */ /* W69 artdir */ /* W142 remscale */
+/* the lingo's generic word ("Starpath", "Quadrant"): small and dim, so the eye lands on the name that differs */
+.cresults .gen, .csheet h4 .gen, .cresults .picks .gen { font-style: normal; font-size: 0.68em; font-weight: 600; color: var(--stardust); letter-spacing: 0.06em; }
+.cresults .picks .gen { font-size: 0.8em; }
+.cresults .note, .csheet .note { margin: 12px var(--mr) 0 var(--ml); font-size: max(11px, 0.9375rem); color: var(--stardust); } /* W142 remscale */
+.cresults .note .osm-add { display: inline-flex; align-items: center; min-height: 44px; color: var(--starlight); text-decoration: underline; text-underline-offset: 3px; } /* W155 addrnear (SPEC §274): words that say where they go, a 44 px target in a line of its height, so it covers no line above; whole, never split over two lines; inline-flex centres its words with no px line height (W142 remscale) */
+
+/* the pin, and the sheets: the place and the preview */
+/* the long press's ring and pop: app/states.css (W26 hold) */
+/* the pin: a see-through circle, so the chart shows through it; the box ends at the pin's tip, the anchor */
+.cpin { width: 26.6px; height: 36px; pointer-events: none; } /* W173 icons6: the drop alone (was 44 × 35.06, in its circle) */
+.cpin svg { display: block; overflow: visible; }
+:is(.cpin, .cvia) .tip { fill: var(--course); filter: drop-shadow(0 2px 2px color-mix(in srgb, var(--fixed-shadow) 70%, transparent)); } /* W173 icons6: and a stop's; W185 colours */
+:root[data-theme="light"] :is(.cpin, .cvia) .tip { stroke: var(--fixed-sign); stroke-width: 4; stroke-linejoin: round; paint-order: stroke; } /* W192 icons7 (SPEC §338), her row 11: in Light her day accent (--course) with a white outline, 1.3 px outside its edge; a stop's pin too, one look */
+:is(.cpin, .cvia) .star { fill: var(--fixed-sign); } /* W185 colours; W173 icons6: the big white star, in both modes (was void, and Plain's round hole, W140 small4) */
+.csheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; padding: 6px calc(var(--mr) + 4px) calc(env(safe-area-inset-bottom) + 18px) calc(var(--ml) + 4px);
+  background: var(--glass-snack); border-top: 1px solid color-mix(in srgb, var(--course) 70%, transparent); border-radius: var(--r-sheet); /* W21 glass; W27 card: --glass-snack, so the chart's labels don't read through its rows (W28 first-use 3) */ /* W69 artdir */
+  box-shadow: 0 -6px 24px color-mix(in srgb, var(--shade) 60%, transparent); animation: sheet-in var(--t-normal) var(--ease-enter); }
+
+.csheet > .x { position: absolute; top: 6px; right: 6px; width: 48px; height: 48px; display: grid; place-items: center; border: 0; background: none; color: var(--stardust); }
+.csheet h4 { margin: 0 44px 0 0; font-family: var(--font-display); font-weight: 700; font-size: calc(26px + (1rem - 16px) * 1.5); letter-spacing: var(--track-display); text-transform: uppercase; line-height: 1.05; } /* W142 remscale */
+.cfromto .ft-to .home { flex: none; width: 44px; height: 44px; margin: 0 -6px 0 0; display: grid; place-items: center; padding: 0; border: 0; background: none; } /* W25 course: Set as home, at the To field's end */
+body[data-open~="fromto"] .csnack { z-index: 8; } /* W25 course: its snackbar, over the editor */
+.csheet .launch-c, .csnack button { display: flex; align-items: center; gap: 8px; border: 0; font-family: var(--font-display); font-weight: 700;
+  letter-spacing: var(--track-display); text-transform: uppercase; }
+.csheet .launch-c { flex: none; height: 52px; padding: 0 22px 0 16px; border-radius: var(--r-pill); font-size: 1.375rem; } /* W142 remscale */
+.csheet .launch-c { background: var(--phosphor); color: var(--void); box-shadow: var(--glow-m) color-mix(in srgb, var(--phosphor) 40%, transparent); }
+.csheet .launch-c .i { width: 26px; height: 26px; }
+body[data-open~="preview"] .csearch, body[data-open~="preview"] #launch, body[data-open~="preview"] #locate, body[data-open~="preview"] #readout, body[data-open~="preview"] #hifive, body[data-open~="preview"] #cup { visibility: hidden; }
+body[data-open~="ride-preview"] #readout { visibility: visible; z-index: 6; bottom: calc(var(--card) + var(--csheet-h, 0px)); } /* W21 flight: in flight, Land stays in reach */
+body[data-open~="ride-preview"]:not(.csheet-r) #readout { left: calc(var(--ml) + var(--csheet-w, 0px)); } /* W21 flight */
+body[data-open~="ride-preview"].csheet-r #readout { right: calc(var(--mr) + var(--csheet-w, 0px)); } /* W187 handside: beside a side sheet at the right (Buttons on the left: app/home.css), its other side hud.css's */
+/* the preview: compact, so the chart above it shows the routes. One row of three cards; the switch and Launch under them. */
+.cpreview { padding: 6px var(--mr) calc(env(safe-area-inset-bottom) + 12px) var(--ml); }
+.cpreview h4 { margin-left: 4px; }
+.cpreview h4 { font-size: 1.3125rem; margin-top: 4px; overflow-wrap: anywhere; } /* W22 fit: a long name wraps, never cut */ /* W142 remscale */
+.cpreview > .x { top: 0; }
+.cpreview .cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); /* W21 routes: three styles; W21 entry: fewer when they fold */ gap: 6px; margin: 8px 0 0; overflow-x: auto; scrollbar-width: none; }
+/* W49 cards: the space carries the type. Each card says its name and its minutes, big; the chosen route's facts run across
+   the sheet under the row (.facts), at 17 px, where a card a third wide had them at 12.5. One card spans the sheet, its
+   minutes at the right. The cards keep their facts for their accessible names, out of sight. */
+.cpreview .cards button { position: relative; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; text-align: left; padding: 7px 6px 8px 7px;
+  border-radius: var(--r-inner); border: 1px solid var(--space-3); background: var(--space-1); color: var(--starlight); } /* W69 artdir */
+.cpreview .cards b { display: block; min-height: 2.1em; font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1rem); line-height: 1.05; letter-spacing: 0.01em; text-transform: uppercase; overflow-wrap: break-word; } /* W49 cards: "Wormholes" whole in a third of 320 px */ /* W142 remscale */
+.cpreview .cards span { display: block; margin-top: 4px; font-family: var(--font-display); font-weight: 700; font-size: calc(32px + (1rem - 16px) * 1.5); line-height: 1; color: var(--starlight); white-space: nowrap; font-variant-numeric: tabular-nums; } /* W142 remscale */
+.cpreview .cards span i { font-style: normal; font-size: max(11px, 1.125rem); font-weight: 600; letter-spacing: 0.02em; } /* W49 cards: " min" */ /* W142 remscale */
+.cpreview .cards:not(:has(> button:not([hidden]) ~ button:not([hidden]))) b { min-height: 0; } /* W22 fit: one card, one line for its name: no gap under it */
+.cpreview .cards small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* W49 cards: in the name, not in sight */
+.cpreview .cards em { display: block; margin-top: 2px; font-style: normal; font-family: var(--font-body); font-weight: 400; font-size: max(11px, 0.875rem); line-height: 1.25; color: var(--stardust); } /* W33 routing2: "Best route"'s note */ /* W69 artdir */ /* W142 remscale */
+.cpreview .cards em:empty { display: none; }
+/* W59 routes: each card's bar, its route from start to end: a thin --course track, and its stretches with no bike support
+   in --caution, taller than the track, so the shape tells them apart where the hue can't (lime and orange meet in deuteranopia).
+   In the card's bottom padding: the card is no taller. */
+/* W90 comfort (SPEC §184): the bar is the route in the comfort scale, start to end, over the track (app/course.js comfortCardBar) */
+.cpreview .cards .bare { position: absolute; left: 7px; right: 6px; bottom: 3px; height: 4px; pointer-events: none; /* W59 routes */
+  background: var(--bare, none), linear-gradient(var(--course), var(--course)) center / 100% 2px no-repeat; } /* W59 routes */
+.cpreview .cards[data-n="1"] .bare { left: 12px; right: 12px; } /* W59 routes: the one card's padding */
+/* W102 a11y (W72 D13): on Daystar the lime and the orange meet in protanopia (ΔE 1.1), where the shape is the only cue: the
+   stretches 6 px tall on the 2 px track, three times it, still in the card's bottom padding */
+:root[data-theme="light"] .cpreview .cards .bare { bottom: 2px; height: 6px; } /* W102 a11y */
+.cpreview .cards button:not([data-min]) .bare { display: none; } /* W59 routes: no route yet */
+.cpreview .cards[data-n="1"] button { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "b min" "em min"; /* W53 turns: "min", as "span" is grid's keyword and placed the minutes in the first row alone, 21 px taller */ align-items: center; column-gap: 12px; padding: 8px 12px 9px; }
+.cpreview .cards[data-n="1"] b { grid-area: b; align-self: end; font-size: max(11px, 1.125rem); } /* W142 remscale */
+.cpreview .cards[data-n="1"] em { grid-area: em; align-self: start; text-wrap: balance; } /* no word alone on its second line */
+.cpreview .cards[data-n="1"] span { grid-area: min; margin: 0; font-size: calc(40px + (1rem - 16px) * 1.5); } /* W53 turns: min */ /* W142 remscale */
+.cpreview .facts { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 14px; margin: 6px 4px 0;
+  font-family: var(--font-display); font-weight: 600; font-size: max(11px, 1.0625rem); line-height: 1.2; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--starlight); } /* W69 artdir */ /* W142 remscale */
+.cpreview .facts:empty { display: none; }
+/* W86 preview (SPEC §167): the chosen route's four metrics, first in the sheet beside ×: ride time, length, climb, and the share
+   with cars; tabular figures, each unit small, spread across the row */
+.cpreview .facts { min-height: 32px; margin: 2px 48px 0 4px; } /* the × beside it */
+.cpreview .facts.metrics { flex-wrap: wrap; /* a long one ("1h 20m", "12.5 LY") puts the last on a line of its own, never cut */ row-gap: 4px; /* W142 remscale: wrapped lines' 44 px targets apart */ font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; white-space: nowrap; }
+.cpreview .facts.metrics i { font-style: normal; font-size: max(11px, 0.875rem); font-weight: 600; letter-spacing: 0.04em; text-transform: none; color: var(--stardust); } /* small and lower case, as the cards' " min" */ /* W142 remscale */
+@container (max-width: 359px) { .cpreview .facts.metrics { gap: 4px 6px; /* W142 remscale: 4px */ font-size: max(11px, 1.0625rem); } .cpreview .facts.metrics i { font-size: max(11px, 0.75rem); letter-spacing: 0; } } /* 320 px: "with transports" whole beside × */
+.cpreview .facts.metrics > :not(.avoided) { flex: none; } .cpreview .facts.metrics .avoided { white-space: normal; } /* W86 preview */
+.cpreview:has(.cards .wait:not([hidden])) .facts:empty { display: block; min-height: 32px; /* W86 preview: the metrics' height */ } /* W83 progressive: while cards come, the facts' row keeps its place, so the sheet never rises under them; only shown cards (a walker's plan hides the bike cards, still waiting) */
+/* W102 leaveby (SPEC §198): the ride time is a button (a 44 px target in the row's 32 px), dotted under so it reads tappable; after
+   a pick it says "Leave 8:37". Its picker floats over the chart beside it, so the sheet keeps its height (§18's 30 %) */
+.cpreview .facts.metrics button.m-t { min-height: 44px; margin: -6px -8px; padding: 0 8px; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: none;
+  text-decoration: underline dotted color-mix(in srgb, currentColor 55%, transparent); text-decoration-thickness: 2px; text-underline-offset: 5px; cursor: pointer; }
+/* "Leave 10:45" is longer than "11 min": the row a size smaller and closer, so SCUL's "transport-free" stays on its line (no taller sheet) */
+.cpreview .facts.metrics:has(.m-t.leave) { gap: 0 6px; font-size: max(11px, 1.0625rem); } .cpreview .facts.metrics:has(.m-t.leave) i { font-size: max(11px, 0.75rem); letter-spacing: 0; } /* W142 remscale */
+@container (max-width: 359px) { .cpreview .facts.metrics:has(.m-t.leave) { gap: 0 4px; font-size: max(11px, 1rem); } .cpreview .facts.metrics:has(.m-t.leave) i { font-size: max(11px, 0.6875rem); } } /* W142 remscale */
+.leaveby { position: fixed; z-index: 9; display: grid; grid-template-columns: auto auto; align-items: center; gap: 2px 10px; padding: 6px 6px 6px 14px; box-sizing: border-box;
+  border-radius: var(--r-card); background: var(--space-1); border: var(--hairline) solid var(--glass-edge); box-shadow: var(--lift); color: var(--starlight); animation: enter var(--t-small) var(--ease-enter); }
+:root[data-theme="light"] .leaveby { background: var(--space-2); } /* as the bubble, a solid ground in both themes */
+.leaveby .lb-h { grid-column: 1; font-size: max(11px, 0.875rem); font-weight: 600; letter-spacing: 0.04em; color: var(--stardust); } /* W142 remscale */
+.leaveby .lb-clear { grid-column: 2; grid-row: 1; justify-self: end; min-width: 44px; min-height: 44px; padding: 0 10px; border: 0; background: none; color: var(--stardust); font: inherit; font-size: max(11px, 0.9375rem); } /* W142 remscale */
+.leaveby .lb-row { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.leaveby .lb-t { min-width: 4.2ch; text-align: center; font-family: var(--font-display); font-size: calc(28px + (1rem - 16px) * 1.5); font-weight: 700; font-variant-numeric: tabular-nums; } /* W142 remscale */
+.leaveby .lb-step { width: 48px; height: 48px; border-radius: var(--r-pill); border: var(--hairline) solid var(--glass-edge); background: none; color: var(--starlight); font-size: 26px; line-height: 1; } /* W142 remscale: px, the − and + glyphs are icons in a 48 px button */
+body.calm .leaveby { animation: none; }
+.cpreview .facts .avoided { flex: 1 0 100%; font: 500 max(11px, 0.8125rem)/1.3 var(--font-body); letter-spacing: 0; text-transform: none; color: var(--stardust); } /* W73 avoid: "1 starpath avoided", small, on a line of its own */ /* W142 remscale */
+.cpreview .facts .avoided.onto::before { --avoid-glyph: var(--prefer-glyph); background: var(--chalk); } /* W133 roadprefs: "Taking Vassar Street" alone: a Prefer's ring and tick, in chalk (app/settings.css has the glyph) */
+.cpreview .facts .avoided.old { color: var(--caution-words, var(--caution)); } /* W80 avoidmap: "Still avoiding Starpath Elm? …", once, 30 days on: in the chart's mark's hue */
+.cpreview .facts .avoided::before { content: ""; display: inline-block; width: 12px; height: 12px; margin: 0 5px -1px 0; background: currentColor; -webkit-mask: var(--avoid-glyph) center / contain no-repeat; mask: var(--avoid-glyph) center / contain no-repeat;
+  --avoid-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M5.9 5.9l12.2 12.2'/%3E%3C/svg%3E"); } /* W73 avoid: Avoid's sign, small */
+.cpreview .facts .share { position: relative; padding: 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; text-decoration: underline dotted color-mix(in srgb, var(--stardust) 80%, transparent); /* W69 artdir */
+  text-underline-offset: 4px; } /* W49 cards: a tap says what counts */
+.cpreview .facts .share::after { content: ""; position: absolute; inset: -6px 0 -8px; } /* the gap between the cards and Launch, all of it */
+.cpreview .facts span.share { text-decoration: none; } .cpreview .facts span.share::after { content: none; } /* W173 previewsheet: Plain's "protected" is no button, so no dotted line (her note 20) */
+.cpreview .cards button[hidden], .csheet .launch-c[hidden] { display: none; } /* W21 entry: a folded style; no Launch without a position */
+.cpreview .cards button:not([data-min]):not(.wait) span { font-size: max(11px, 1rem); line-height: 1.6; color: var(--stardust); white-space: normal; } /* W49 cards: "No course", whole; W83 progressive: :not(.wait) */ /* W142 remscale */
+/* W83 progressive (SPEC §161): a card still coming says nothing: its minutes' place, a soft bar as tall as the minutes, breathes
+   until they fill it, so the card is its full height from the start. A card folded away while others come keeps its place (.gone). */
+.cpreview .cards .wait span { height: 1em; } /* W83 progressive */
+.cpreview .cards .wait span::before { content: ""; display: block; width: 2.3em; height: 0.62em; margin-top: 0.19em; border-radius: var(--r-xs); background: color-mix(in srgb, var(--stardust) 30%, transparent); animation: card-coming 1.4s var(--ease-standard) infinite alternate; } /* W83 progressive */
+.cpreview .cards[data-n="1"] .wait span { width: 2.3em; } /* W83 progressive: the one card's minutes, in a column as wide as they are */
+@keyframes card-coming { from { opacity: 0.45; } to { opacity: 1; } } /* W83 progressive */
+body.calm .cpreview .cards .wait span::before { animation: none; } /* W83 progressive */
+.cpreview .cards .gone { visibility: hidden; } /* W83 progressive */
+body[data-open~="preview"] #nogps { z-index: 6; } /* W25 course: opened by the preview's Launch with location off, over the preview */
+:root[data-flight="parked"] body[data-open~="preview"] #nogps { bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom) + 14px); } /* W40 flight: to the bottom, as the preview, which covers the bar: nothing of the preview's Launch row shows under it */
+.cpreview .from { display: block; margin: 1px 0 0 4px; font-size: max(11px, 0.875rem); color: var(--stardust); } /* W21 entry: no ship: the routes start at the Fort */ /* W69 artdir */ /* W142 remscale */
+.cpreview .cards [aria-checked="true"] { border-color: var(--course); background: var(--accent-fill, color-mix(in srgb, var(--course) 16%, var(--space-1))); } /* W186 palette: Plain's on her shading */
+.cpreview .cards [aria-checked="true"] b { color: var(--pick-ink); }
+.cpreview .cards [aria-checked="true"] em { color: var(--stardust-on-shading, var(--stardust)); } /* W186 palette: Plain's note on her shading by night, 4.5:1 (design/tokens.css) */
+.cpreview { --pick-ink: var(--course); } /* W49 cards: the chosen name, 4.5:1 on its card; Daystar's orange gives 3:1, so it darkens */
+:root[data-theme="light"] .cpreview { --pick-ink: color-mix(in srgb, var(--course) 65%, var(--starlight)); }
+/* W22 fit: "Spoken turns" whole; where the switch and Launch don't fit on one line, Launch goes under it, full width */
+.cpreview .pv-go { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 8px 4px 0; }
+.cpreview .pv-go .row { flex: 1000 0 auto; min-height: 52px; gap: 10px; padding: 0; border: 0; }
+.cpreview .pv-go .txt { flex: 1 0 auto; font-size: max(11px, 1rem); white-space: nowrap; } /* W142 remscale */
+.cpreview .pv-go .launch-c { flex: 1 0 auto; justify-content: center; }
+.cpreview .note { margin: 8px 0 0; }
+.cpreview .note:empty { display: none; } /* W25 course: only for no course */
+.cpreview .note.off { margin: 12px 0 4px; font-size: max(11px, 1rem); color: var(--starlight); } /* W68 fixes: off the chart, the line where the cards would be */ /* W142 remscale */
+/* landscape: the sheet goes to the side, the cards two by two */
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { /* W77 desktop (SPEC §143): and a wide screen, a laptop's or a landscape tablet's */
+  .cpreview { left: var(--sl); right: var(--sr); /* W187 handside (app/home.css): opposite the Buttons */ top: 0; box-sizing: border-box; overflow-y: auto; border-top: 0;
+    border-right: 1px solid color-mix(in srgb, var(--course) 70%, transparent); border-radius: 0 var(--r-l) 0 0;
+    padding-top: calc(env(safe-area-inset-top) + 10px); }
+  .cpreview .handle { display: none; }
+  .cpreview { width: var(--pcol); /* W190 screenstate: app/home.css */ bottom: auto; max-height: 100%; border-bottom: 1px solid color-mix(in srgb, var(--course) 70%, transparent);
+    border-radius: 0 0 var(--r-l) 0; } /* W22 fit: only as tall as it needs */
+  .cpreview { padding-right: calc(var(--m) + 4px); } /* W22 fit: at the left, clear of the right inset already */
+  .cturn { right: auto; width: var(--cardw); /* W190 screenstate: app/home.css */ } /* W22 fit: the turn card at the left, so the; W73 polish: three slots at the right, Overview, the gear and Layers (was 100 px) */
+}
+@media (min-width: 900px) and (min-height: 561px) { .cpreview .ft-p.ft-from.you { flex-shrink: 0; } } /* W77 desktop: a 420 px column (--pcol); "Your position" whole, and the To's name wraps first */
+
+/* the turn card, with the ETA along its foot; W173 navflow (SPEC §300): no x, End ends the course with the ride */
+.cturn { position: absolute; left: var(--ml); right: var(--mr); top: var(--top); z-index: 2; height: 116px; box-sizing: border-box; display: grid; /* W53 turns: 116 px (was 104): the foot is a 44 px target */
+  grid-template-columns: 64px 1fr 12px; /* W173 navflow: the x's 44 px column, now the text's room and a 12 px end */ grid-template-rows: 70px 44px; /* W53 turns: 44px (was 32) */ contain: layout paint;
+  background: var(--glass-snack); border: 1px solid color-mix(in srgb, var(--course) 70%, transparent); border-radius: var(--r-card); /* W21 glass; W27 card: --glass-snack, as the sheet */ /* W69 artdir */
+  box-shadow: var(--lift), var(--glow-s) color-mix(in srgb, var(--course) 30%, transparent); }
+.cturn[hidden] { display: none; }
+.cturn .arrow { width: 56px; height: 56px; margin: 8px 0 0 6px; }
+.cturn .tc { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding-left: 4px; font-family: var(--font-display); }
+.cturn .dist { text-transform: uppercase; font-size: min(2.125rem, 40.8px, 10.625vw); line-height: 1; color: var(--course); font-weight: 700; font-variant-numeric: tabular-nums; } /* W142 remscale */
+.cturn .road { font-size: min(1.3125rem, 25.2px, 6.5625vw); line-height: 1.15; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* W142 remscale */
+.cturn .road.two { font-size: max(11px, min(1.0625rem, 20.4px, 5.3125vw)); line-height: 1.05; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; } /* W22 fit: a long one wraps first */ /* W142 remscale */
+.cturn .foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 12px; min-width: 0;
+  border-top: 1px solid color-mix(in srgb, var(--course) 30%, transparent);
+  font-family: var(--font-display); font-weight: 600; font-size: max(11px, min(1rem, 19.2px, 5vw)); letter-spacing: 0.06em; text-transform: uppercase; color: var(--stardust); white-space: nowrap; } /* W142 remscale */
+.cturn .to { overflow: hidden; text-overflow: ellipsis; }
+.cturn .eta { flex: none; color: var(--course-ink); /* W102 a11y */ font-variant-numeric: tabular-nums; }
+/* W31 navview: the turn after this one, in a slim row under the card while it is close, as Google's "Then" */
+.cthen { position: absolute; left: calc(var(--ml) + 12px); top: calc(var(--top) + 116px - 1px); /* W53 turns: 116 */ z-index: 2; height: 44px; box-sizing: border-box;
+  display: flex; align-items: center; gap: 8px; padding: 0 12px 0 14px; pointer-events: none;
+  background: var(--glass-snack); border: 1px solid color-mix(in srgb, var(--course) 70%, transparent); border-top: 0; border-radius: 0 0 var(--r-l) var(--r-l);
+  font-family: var(--font-display); font-weight: 700; font-size: min(1.25rem, 24px, 6.25vw); letter-spacing: 0.06em; text-transform: uppercase; color: var(--starlight); } /* W142 remscale: the flight's cap, as the card's */
+.cthen[hidden] { display: none; }
+.cthen img { width: 32px; height: 32px; }
+/* W53 lanes (SPEC §68): the lane row in the Then slot: the lanes left to right as the road is, the bike's cell at its edge,
+   "2 TO CROSS" and the bike box; "Then" and its arrow after a hairline */
+.cthen { max-width: calc(100vw - var(--ml) - var(--mr) - 12px); overflow: hidden; white-space: nowrap; } /* W53 lanes: to the card's right edge; fitLanes reads its overflow */
+.cthen.lanes { gap: 8px; padding: 0 12px 0 10px; }
+.cthen:not(.lanes) > .lanes, .cthen:not(.lanes) > .cross, .cthen > .box[hidden], .cthen:not(.lanes) > .sep, .cthen:not(.then) > .sep,
+  .cthen:not(.then) > .tw, .cthen:not(.then) > img { display: none; }
+.cthen .lanes { display: flex; align-items: stretch; height: 34px; }
+.cthen .lane { width: 30px; box-sizing: border-box; display: grid; place-items: center; border-left: 2px dashed color-mix(in srgb, var(--stardust) 45%, transparent); }
+.cthen .lane:first-child { border-left: 2px solid color-mix(in srgb, var(--stardust) 60%, transparent); }
+.cthen .lane svg { width: 24px; height: 30px; color: color-mix(in srgb, var(--stardust) 55%, transparent); }
+.cthen .lane.use svg { color: var(--course); }
+.cthen .bike { width: 20px; box-sizing: border-box; display: grid; place-items: center; background: color-mix(in srgb, var(--phosphor) 14%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--phosphor) 70%, transparent); border-right: 2px solid color-mix(in srgb, var(--stardust) 60%, transparent); }
+.cthen .bike:first-child { border-left: 2px solid color-mix(in srgb, var(--stardust) 60%, transparent); border-right: 2px solid color-mix(in srgb, var(--phosphor) 70%, transparent); }
+.cthen .bike:first-child + .lane { border-left: 0; }
+.cthen .bike svg { width: 14px; height: 18px; color: var(--phosphor); }
+.cthen .cross { color: var(--course); }
+.cthen .box { font-size: max(11px, min(0.9375rem, 18px, 4.6875vw)); color: var(--phosphor); border: 1.5px solid currentColor; border-radius: var(--r-xs); padding: 1px 5px; letter-spacing: 0.08em; } /* W69 artdir */ /* W142 remscale */
+.cthen .sep { width: 1px; align-self: stretch; margin: 8px 0; background: color-mix(in srgb, var(--course) 30%, transparent); }
+.cthen.tight .box .long { display: none; } /* W53 lanes: "BOX" where "BIKE BOX" doesn't fit */
+.cthen.wait > .sep, .cthen.wait > .tw, .cthen.wait > img { display: none; } /* and then the Then waits until after the turn */
+@media (max-width: 359px) { /* W53 lanes: the narrow phones: the Then waits for the turn, the lanes narrow, the box says "box" */
+  .cthen.lanes > .sep, .cthen.lanes > .tw, .cthen.lanes > img { display: none; }
+  .cthen.lanes { gap: 8px; } .cthen .lane { width: 24px; } .cthen .lane svg { width: 20px; height: 26px; } .cthen .box .long { display: none; } }
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { /* W53 lanes: the turn card at the left: the row no wider than it */ /* W77 desktop */
+  .cthen { max-width: calc(var(--cardw) - 12px); } } /* W73 polish: as the card */ /* the card's width, less the row's inset */
+.cturn.off { border-color: var(--caution); box-shadow: var(--lift), var(--glow-s) color-mix(in srgb, var(--caution) 35%, transparent); }
+.cturn.off .dist { color: var(--caution-words, var(--caution)); }
+.cturn.keep { height: 128px; grid-template-rows: 70px 56px; } /* W74 course (SPEC §128): the heads-up's foot is Keep course, a 56 px target in motion */
+.cturn.keep .foot .to { padding: 7px 14px; border: 2px solid var(--caution-words, var(--caution)); border-radius: var(--r-pill); color: var(--caution-words, var(--caution)); font-weight: 700; } /* W74 course */
+.cturn.off .foot .fold { display: none; } /* W74 course: nothing to unfold off course (Keep course, and after it) */
+
+/* the course's snackbar: above the readout card in flight, clear of the right column */
+.csnack { position: absolute; left: calc(var(--ml) + var(--colw-l)); right: calc(var(--mr) + var(--colw-r)); /* W187 handside: clear of the Buttons column on its side (app/home.css) */ bottom: calc(var(--rail) + 74px); z-index: 3; min-height: 56px; max-width: 420px; /* W166 walkui: min-height */
+  display: flex; align-items: center; gap: 4px; padding: 6px 4px 6px 14px; box-sizing: border-box; overflow: hidden; contain: layout paint;
+  background: var(--glass-card); border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift); /* W21 glass */ /* W69 artdir */
+  animation: enter var(--t-normal) var(--ease-enter); }
+.csnack .t { flex: 1; min-width: 0; overflow-wrap: break-word; /* W166 walkui (her note 8): a message wraps, never cut */ font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.1875rem); /* W142 remscale */
+  line-height: 1.05; letter-spacing: var(--track-display); text-transform: uppercase; }
+.csnack em { display: block; font-style: normal; color: var(--stardust); font-weight: 600; font-size: max(11px, 0.9375rem); letter-spacing: 0.04em; } /* W142 remscale */
+.csnack em:empty { display: none; }
+.csnack button { flex: none; height: 44px; padding: 0 8px 0 4px; border-radius: var(--r-pill); background: none; color: var(--phosphor); font-size: 1.25rem; } /* W142 remscale */
+.csnack .x { width: 44px; padding: 0; justify-content: center; color: var(--stardust); } /* W25 course: Course complete closes */
+.csnack .timer { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--phosphor); transform-origin: left; animation: undo-timer 5s linear forwards; }
+html body #banner:has(~ .csnack), html body #banner:has(~ .nsnack) { bottom: calc(var(--rail) + 74px + 56px + 10px); } /* W21 flight: above any snackbar, Show frame rate too */
+.bpill.course { --hue: var(--course); }
+.bpill.off { --hue: var(--caution); } /* W56 reroute: the heads-up off course */
+.bpill.arrive { --hue: var(--phosphor); }
+body.calm .csheet, body.calm .csnack { animation: none; }
+.csheet .launch-c:disabled, .csheet .launch-c[aria-disabled="true"] { opacity: 0.45; box-shadow: none; } /* W73 polish: no course, and the tap says why */
+.cpreview .cards button:disabled { opacity: 0.6; }
+/* W19 course: each route's minutes in the preview; the chosen one filled */
+.cmin { padding: 2px 9px 3px; border: 1.5px solid var(--edge, var(--course)); /* W21 routes: its route line's colour */ border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--void) 88%, transparent); color: var(--course-ink); /* W102 a11y */ font-family: var(--font-display); font-weight: 700;
+  font-size: max(11px, 0.9375rem); line-height: 1.15; white-space: nowrap; box-shadow: var(--lift); cursor: pointer; } /* W142 remscale */
+.cmin.on { border-color: var(--course-ink); background: var(--course-ink); color: var(--void); z-index: 1; } /* W102 a11y: course-ink */
+/* W102 a11y: Daystar's orange gives 15 px type 4.0:1 against the pale, under AA's 4.5 (axe), so its words darken a little: 5.0:1 */
+:root { --course-ink: var(--course); } /* W102 a11y */
+:root[data-theme="light"] { --course-ink: color-mix(in srgb, var(--course) 85%, var(--starlight)); } /* W102 a11y */
+/* W21 routes: the minutes beside each route's line, never on it, with a pointer to it, edged like the line (the others
+   are drawn at half strength); and the vias' handles, 18 px to see, 44 px to press */
+.ccall { width: 0; height: 0; pointer-events: none; --edge: color-mix(in srgb, var(--course) 55%, var(--void)); }
+.ccall.on { --edge: var(--course); z-index: 1; }
+.ccall .cmin { position: absolute; left: 0; top: 0; pointer-events: auto; }
+.ccall .cmin::after { content: ""; position: absolute; inset: -10px min(0px, calc((100% - 44px) / 2)); } /* W73 a11y: a 44 px target round the 24 px pill (BRIEF §7.8) */
+.ccall::before { content: ""; position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%;
+  background: var(--edge); border: 1.5px solid var(--void); }
+.ccall .cptr { position: absolute; left: 0; top: -1px; height: 2px; border-radius: var(--r-pill); transform-origin: 0 50%; background: var(--edge); } /* W69 artdir */
+.cvia { width: 18px; height: 18px; border-radius: 50%; cursor: grab; touch-action: none; z-index: 2; } /* W173 icons6: a box on the stop, its pin over it (was an orange ring) */
+.cvia svg { position: absolute; left: 50%; bottom: 50%; transform: translateX(-50%); display: block; overflow: visible; } /* W173 icons6: the tip on the stop */
+.cvia::before { content: ""; position: absolute; inset: -13px; border-radius: 50%; }
+.cvia.live { pointer-events: none; transform-origin: center; }
+/* W54 flight (SPEC §70): the anchorages near the landing pad, in the Then slot from the arrival, then at the top beside
+   "Course complete"; a tap lights them (a --phosphor ring each) */
+.canchors { position: absolute; left: calc(var(--ml) + 12px); top: calc(var(--top) + 116px - 1px); z-index: 2; height: 44px; box-sizing: border-box; max-width: calc(100vw - var(--ml) - var(--mr) - 12px);
+  display: flex; align-items: center; gap: 8px; padding: 0 14px 0 10px; white-space: nowrap; overflow: hidden;
+  background: var(--glass-snack); border: 1px solid color-mix(in srgb, var(--phosphor) 70%, transparent); border-top: 0; border-radius: 0 0 var(--r-l) var(--r-l);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.125rem); letter-spacing: 0.04em; color: var(--starlight); } /* W142 remscale */
+.canchors[hidden] { display: none; }
+.canchors img { width: 24px; height: 24px; flex: none; }
+.canchors .t { overflow: hidden; text-overflow: ellipsis; }
+.canchors.after { top: var(--top); border-top: 1px solid color-mix(in srgb, var(--phosphor) 70%, transparent); border-radius: var(--r-l); left: var(--ml); }
+.canchors[aria-pressed="true"] { color: var(--phosphor); }
+body:is([data-open~="preview"], [data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) > .canchors { visibility: hidden; }
+.canchor-ring { width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 3px solid var(--phosphor); box-shadow: 0 0 0 2px var(--void), var(--glow-s) var(--phosphor); pointer-events: none; }
+/* W56 parking (SPEC §73): on the approach they light by themselves with one gentle pulse (Calm and reduced motion: none);
+   lockers, sheds and customers' racks after the dedicated ones, fainter */
+.canchor-ring.other { border-color: color-mix(in srgb, var(--phosphor) 55%, transparent); box-shadow: 0 0 0 2px var(--void); }
+.canchor-ring.pulse::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--phosphor); opacity: 0; animation: canchor-pulse 1.4s var(--ease-enter) 1; }
+@keyframes canchor-pulse { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(2.2); } }
+body.calm .canchor-ring.pulse::after { animation: none; }
+.cpreview .facts .warn::before { content: ""; display: inline-block; width: 8px; height: 8px; margin: 0 8px 2px 2px; transform: rotate(45deg); background: var(--caution); } /* W62 cometcard: a warning ("Stairs at Bowdoin"), marked with the hazards' diamond */
+:root[data-lingo="meatspace"][data-theme="light"] .cpreview .facts .warn::before { box-shadow: 0 0 0 1px var(--pal-ink); } /* W186 palette: by day her faint yellow takes her thin ink edge */
+.cturn.board.tall { height: 136px; grid-template-rows: 90px 44px; } /* W62 cometcard: leg 1's landing card, "Board the Red Line comet at Davis toward South Station. 3 stops.", whole: a third line where two can't hold it */
+.cturn.board.tall .road.two { -webkit-line-clamp: 3; } /* W62 cometcard */
+.cturn.board .foot .fold { visibility: hidden; } /* W62 cometcard: its foot says "Tap to fly on", and does: no turns to unfold */
+/* W67 routefile (SPEC §94): the search's last pick, "Open a route file"; its glyph is drawn in app/routefile.js */
+.cresults .picks .rfile { color: var(--starlight); }
+.cresults .picks .rfile .rf-ic { flex: none; width: 36px; height: 36px; }
+.cresults:not(.idle) .picks .rfile, .cfromto .picks .rfile { display: none; }
+.cpreview .note.stray { color: var(--chalk); }
+/* W73 walk: a walker's card: its legs as the bar (walks dotted, rides dashed in their lines' colours), with no course line under them */
+.cpreview .cards .walkc .bare { background: var(--bare, none); }
+.cpreview { --bar-track: color-mix(in srgb, var(--stardust) 55%, transparent); } /* W173 previewsheet: a walker's bar's track, through its waits (app/walk-card.js legsBar) */
+.cpreview.walking .pv-go .launch-c { height: 56px; } /* W79 walkgo: the walker's Start, used on foot: 56 px in motion (BRIEF §7.8) */
+/* W73 dark (SPEC §120): the sunset under the arrival, only when the ride ends after it; the daystar's gold, as its glyph.
+   W83 sunsetrow: in the arrival's column, smaller, so the row keeps its 52 px and the sheet its 30 % (§18).
+   W86 preview (SPEC §167): the preview has no arrival clock, so no sunset under it: planned ahead, neither is known. */
+/* W77 hours (SPEC §140): "Closed" or "Closes 6 PM" in a search row, before its LY, never cut, and under a place's name in its peek; caution's lime, as other heads-ups */
+.cresults li small .oh { flex: none; font-style: normal; font-weight: 700; color: var(--caution-words, var(--caution)); white-space: nowrap; } /* W77 hours */
+.cpeek .t small.oh { font-weight: 700; color: var(--caution-words, var(--caution)); } /* W77 hours */
+/* W104 oss2 (SPEC §210): a kind search's "Show on the chart", over the rows */
+.cfound-go { display: flex; align-items: center; gap: 8px; height: 44px; margin: 0 var(--mr) 6px var(--ml); padding: 0 16px 0 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--course); background: color-mix(in srgb, var(--course) 14%, var(--space-1)); color: var(--starlight); font: 600 max(11px, 0.9375rem) var(--font-body); } /* W142 remscale */
+.cfound-go:not(.ckind) { height: auto; min-height: 44px; padding-block: 8px; } /* W173 uismall (SPEC §302, her note 13): "Show Starbucks on the map" whole, on two lines where it must (was 44 px tall, one line) */
+.cfound-go > .t { min-width: 0; text-align: left; text-wrap: pretty; } /* W173 uismall: a second line starts under the first, by the icon */
+/* W112 kindsearch (SPEC §226): a kind of place the words start ("post": Post office), its glyph, name and what it is, then Show */
+.ckind { max-width: calc(100% - var(--ml) - var(--mr)); box-sizing: border-box; }
+.ckind b { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ckind small { flex: 0 100 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--chalk); font: 400 max(11px, 0.8125rem) var(--font-body); } /* W142 remscale */
+.ckind small:empty { display: none; }
+.ckind .go { margin-left: auto; }
+@media (max-width: 360px) { .ckind .go { display: none; } .ckind .i:last-child { margin-left: auto; } } /* the map glyph says Show on a small phone, so a SCUL name stays whole ("Temple of Knowledge") */
+/* W173 previewsheet (SPEC §305), her note 21: the grabber works, and the sheet's more part, over Launch: when, along the way, the
+   turn list. More sits in the list button's place, its chevron turned for Less; the part scrolls in the room over the chart */
+.cpreview > .handle { cursor: grab; } .cpreview > .handle, .cpreview .facts { touch-action: none; -webkit-user-select: none; user-select: none; } /* a drag on the grabber or the metrics is the sheet's, not the chart's, nor a text selection's (which a mouse's next press would drag away) */
+.cpreview.walking > .handle { visibility: hidden; } /* a walker's plans have no more part: no grabber that does nothing (her note) */
+.cpreview .pv-more { display: none; }
+.cpreview.open .pv-more { display: flex; flex-direction: column; gap: 10px; margin: 10px 4px 0; overflow-y: auto; overscroll-behavior: contain; }
+.cpreview.open:not(.turns-on) .cards:not([data-n="1"]) ~ .pv-strip:not(:empty) { display: block; } /* her note 19: the chosen route's heights while she chooses, once there is room; not over the turn list, whose head has its own */
+.cpreview .pv-go .pv-more-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 2px; height: 52px; min-width: 52px; padding: 0 14px 0 9px; box-sizing: border-box;
+  border-radius: var(--r-pill); border: 1px solid var(--glass-edge, var(--space-3)); background: var(--glass-btn); color: var(--starlight);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1rem); letter-spacing: 0.04em; text-transform: uppercase; }
+.cpreview .pv-more-btn svg { flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--t-small) var(--ease-standard); }
+.cpreview .pv-more-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.cpreview .pv-go:has(> .pv-more-btn) { column-gap: 8px; }
+.cpreview .pv-go:has(> .pv-more-btn) .launch-c { padding: 0 18px 0 14px; }
+.cpreview.walking .pv-go .pv-more-btn { display: none; }
+.cpreview .pv-when { display: flex; gap: 6px; }
+.cpreview .pv-when[hidden], .cpreview .pv-step[hidden], .cpreview .pv-along[hidden] { display: none; }
+.cpreview .pv-when button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 4px 6px; border-radius: var(--r-pill); border: 1px solid var(--glass-edge, var(--space-3)); background: var(--glass-btn); color: var(--starlight);
+  font: 600 max(11px, 0.9375rem)/1.15 var(--font-body); overflow-wrap: anywhere; }
+.cpreview .pv-when [aria-checked="true"] { border-color: var(--course); background: var(--accent-fill, color-mix(in srgb, var(--course) 16%, var(--space-1))); color: var(--pick-ink); }
+.cpreview .pv-step { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.cpreview .pv-step .lb-step { flex: none; width: 48px; height: 48px; border-radius: var(--r-pill); border: var(--hairline) solid var(--glass-edge); background: none; color: var(--starlight); font-size: 26px; line-height: 1; } /* as W102's picker's; W142 remscale: px, the − and + glyphs are icons in a 48 px button (allow-listed, W173 integration) */
+.cpreview .pv-step .lb-t { min-width: 4.2ch; text-align: center; font-family: var(--font-display); font-size: calc(28px + (1rem - 16px) * 1.5); font-weight: 700; font-variant-numeric: tabular-nums; }
+.cpreview .pv-along { display: flex; flex-direction: column; gap: 6px; }
+.cpreview .pv-h { font-size: max(11px, 0.875rem); font-weight: 600; letter-spacing: 0.04em; color: var(--stardust); }
+.cpreview .pv-along .tstops { flex-wrap: wrap; overflow: visible; }
+.cpreview .pv-more .turns-chip { width: auto; height: 48px; align-self: flex-start; justify-content: flex-start; gap: 10px; padding: 0 16px 0 12px; text-transform: none; font-family: var(--font-body); font-weight: 600; letter-spacing: 0; }
+@media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (min-height: 561px) { /* the side column has the room: the part shows, with no More */
+  .cpreview .pv-more { display: flex; flex-direction: column; gap: 10px; margin: 10px 4px 0; }
+  .cpreview:not(.turns-on) .cards:not([data-n="1"]) ~ .pv-strip:not(:empty) { display: block; } /* her note 19's heights with several cards, as the open sheet's */
+  .cpreview .pv-go .pv-more-btn { display: none; }
+}
+.cpreview.walking .pv-more { display: none; } /* a walker's plans have no more part, in the side column too: no When or chips that do nothing */
