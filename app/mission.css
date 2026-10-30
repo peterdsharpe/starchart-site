@@ -39,3 +39,40 @@ body:has(#readout:not([hidden])):has(> #burnup:not([hidden])) #nofix { top: calc
   padding: 0 12px; border: 0; background: none; color: inherit; font: inherit; font-size: max(11px, 1rem); text-transform: none; letter-spacing: 0; opacity: 0.8; text-wrap: balance; } /* W177 buttons2 (SPEC §312), her note 5: the line at the foot, centred, in words (was a small Chart pill); a tap anywhere goes back (mission.js); the screen's width less 16 px a side, centred (at left 50 % it had half and wrapped at 320 px) */
 #haul .back:active { transform: none; }
 body[data-open~="ride-preview"] .btn.mission { visibility: hidden; } /* a preview opened in flight covers them */
+/* W195 pocket (SPEC §343): Pocket, on the long-haul screen over its foot's line: clearly a button (a pill with its edge, 48 px
+   tall), in the screen's own dim colours. Pocketed, the screen is all black but a faint ring at the thumb's height, the pocket
+   glyph in it, and "Hold to show the map" under it; the ring fills while a hold runs (app/pocket.js), in three still steps in
+   Calm (Calm motion, Battery saver or the phone's reduced motion), and the faint parts come in by a short fade, none in Calm. */
+.i-pocket { -webkit-mask-image: url("../design/glyphs/ui/pocket.svg"); mask-image: url("../design/glyphs/ui/pocket.svg"); }
+#haul .pocket { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px + 44px + 16px); translate: -50% 0; display: flex; align-items: center; gap: 8px;
+  min-height: 48px; padding: 0 20px 0 16px; border: 1.5px solid color-mix(in srgb, var(--dark-stardust) 55%, var(--fixed-black)); border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--dark-stardust) 10%, var(--fixed-black)); color: var(--dark-stardust);
+  font: 700 max(11px, 1.125rem)/1 var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; white-space: nowrap; }
+:root { --pk-l: auto; --pk-r: calc(env(safe-area-inset-right) + 16px); --pk-cols: 1fr auto; --pk-num: 1; --pk-btn: 2; } /* Pocket at the Buttons' side (below), */
+:root[data-hand="left"] { --pk-l: calc(env(safe-area-inset-left) + 16px); --pk-r: auto; --pk-cols: auto 1fr; --pk-num: 2; --pk-btn: 1; } /* either hand (W191 appleft's rule) */
+@media (orientation: portrait) and (max-height: 36em) { /* a short screen for its text size (320 × 568; 411 × 832 at 150 %): the numbers and a course's turn
+  fill it, so Pocket goes up to the top corner at the Buttons' side */
+  #haul .pocket { top: calc(env(safe-area-inset-top) + 16px); bottom: auto; left: var(--pk-l); right: var(--pk-r); translate: none; } }
+@media (orientation: landscape) { /* a phone on its side: the numbers fill the height, so Pocket is a column of its own at the
+  Buttons' side, halfway up, and the numbers centre in the rest (at 568 × 320 and 150 % text they met it) */
+  #haul:not([hidden], .pocketed) { display: grid; grid-template-columns: var(--pk-cols); grid-template-rows: repeat(3, auto); align-content: center; justify-items: center; column-gap: 16px; row-gap: 4vh; }
+  #haul:not([hidden], .pocketed):has(> .turn[hidden]) { grid-template-rows: repeat(2, auto); }
+  #haul:not(.pocketed) > :is(.turn, .ly, .pair) { grid-column: var(--pk-num); }
+  #haul .pocket { position: static; translate: none; grid-column: var(--pk-btn); grid-row: 1 / -1; align-self: center; } }
+#haul .pocket .i { width: 24px; height: 24px; }
+#haul .pocket:active { transform: none; background: color-mix(in srgb, var(--dark-stardust) 22%, var(--fixed-black)); }
+#haul .pk { display: none; }
+#haul.pocketed > :not(.pk) { display: none; }
+#haul.pocketed { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#haul.pocketed .pk { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + max(16px, 15dvh)); color: color-mix(in srgb, var(--dark-stardust) 62%, var(--fixed-black)); animation: pk-in 600ms var(--ease-standard); } /* as the screen's numbers, 62 %: faint, 3.3:1, and still read in daylight */
+@keyframes pk-in { from { opacity: 0; } }
+#haul .ring { position: relative; width: 72px; height: 72px; box-sizing: border-box; display: grid; place-items: center; border: 2.5px solid color-mix(in srgb, var(--dark-stardust) 40%, var(--fixed-black)); border-radius: 50%; } /* the track 1.9:1, a faint target */
+#haul .ring::before { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: color-mix(in srgb, var(--dark-phosphor) 40%, var(--fixed-black)); transform: scale(0); } /* the hold's fill, a disc that grows to the ring: transform only (BRIEF §8.2) */
+[data-lingo="meatspace"] #haul .ring::before { background: color-mix(in srgb, var(--dark-harbour) 40%, var(--fixed-black)); } /* as the screen's LY (above) */
+#haul .ring .i { position: relative; } /* over the fill */
+#haul .ring.holding::before { animation: pk-fill 1500ms linear forwards; } /* app/pocket.js HOLD_MS */
+@keyframes pk-fill { to { transform: scale(1); } }
+#haul .pk .hint { margin: 0; font: 600 max(11px, 1rem)/1.3 var(--font-body); text-align: center; text-wrap: balance; max-width: calc(100vw - 32px); }
+body.calm #haul.pocketed .pk { animation: none; }
+body.calm #haul .ring.holding::before { animation-timing-function: steps(3, end); }

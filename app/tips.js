@@ -18,6 +18,8 @@
 //            (W110 looks: her "sometimes it's green. I don't understand why it changes"; { sheet: true })
 //   free     the first time a course preview shows a route's transport-free share: what it counts (W49 cards; { sheet: true })
 //   leaveby  at a preview after free's: a tap on the ride time picks an arrive-by and says when to leave (W102 leaveby; { sheet: true })
+//   pocket   back on a ride's page after the screen went off (GPS stopped with it): the way to Pocket, which keeps the ride going
+//            with the phone in a pocket, by its buttons' names, beside the long-haul button (W195 pocket; { flight: true })
 // W177 buttons2 (SPEC §312): sound, gear and settings are gone with the holds they told of (her note 11: no pop-ups on the round
 // buttons; note 6: Settings' hold for the theme was counterintuitive; nobulb, SPEC §320: the theme is Settings › Theme's).
 // Where a landed flight goes is in the first Launch's card ("Land ends it and saves it to the Log").
@@ -30,7 +32,7 @@ export const TIP = "starchart.tip.";
 /** W190 testinvariants (SPEC §333): every first-time tip's id, its key TIP + id: the tipOnce ids above with port (course.js), the
  *  first Launch's card and the welcome (app/welcome.js). The e2e suite marks these seen (tests/e2e/helpers.mjs), and a unit
  *  (app/tests/tip.test.mjs) checks every id the app shows is here. */
-export const TIPS = ["hold", "compass", "units", "comfort", "free", "leaveby", "port", "launch", "welcome"]; // W190 testinvariants
+export const TIPS = ["hold", "compass", "units", "comfort", "free", "leaveby", "port", "launch", "welcome", "pocket"]; // W190 testinvariants; W195 pocket
 // W25 rest's hold hint was "starchart:hint-hold": a phone (or a test) that saw it keeps it seen
 const OLD = { hold: "starchart:hint-hold" };
 let gate = () => true, cur = null, card = null;

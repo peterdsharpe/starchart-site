@@ -7,14 +7,22 @@
 //   shows the readout and the next turn, dim; Chart goes back. W177 buttons2 (SPEC §312), her note 5: "any tap/click on that screen
 //   should take us back to map view. The tiny map button should be gone. Instead at the bottom center of the screen put a message
 //   that says "tap to return to map"": a tap anywhere on it goes back, and the button is that line, in words, at the foot.
+// - W195 pocket (SPEC §343): **Pocket**, a button on the long-haul screen (over its foot's line; in a short screen's top corner;
+//   on its side, a column of its own): the screen goes all black but a faint ring and "Hold to show the map", and ignores every
+//   touch (app/pocket.js) until a 1.5 s hold on the ring, Back or Escape, which go back to the chart. The wake lock is held,
+//   whatever Keep the screen on says; without one it says why and stays. Land, or the ride ending by itself at its
+//   destination, ends both.
 import { pick, onLingo } from "./lingo-mode.js";
 import { el } from "./dom.js"; // W152 app-rest J2
 import { own as ownScreen, sync as syncScreen } from "./screen.js"; // W190 screenstate (SPEC §330)
+import { pocket } from "./pocket.js"; // W195 pocket
+import { buzz } from "./press.js"; // W195 pocket: the hold's buzz as it takes
 
 export const WORDS = {
   burn: ["Burn up", "Head home"],
   haul: ["Long haul", "Dim screen"],
   back: ["Tap to return to the chart", "Tap to return to the map"], // W177 buttons2: was "Chart" / "Map", a small pill
+  pocket: ["Pocket droid", "Pocket"], hold: ["Hold to show the chart", "Hold to show the map"], // W195 pocket: SCUL's "pocket droid", the phone (CULTURE.md)
   ly: ["LY", "mi"], warp: ["Warp", "mph"], min: "Min",
 };
 
@@ -25,7 +33,7 @@ export const burnTarget = ({ home, fort, plain }) => home || (plain ? null : for
  *  course is a course on the train too, between its legs, where `active` (a bike leg's) is false and `leg` stays. */
 export const burnShown = ({ flying, active, leg, target, haul }) => flying && !active && !leg && !!target && !haul;
 
-export function mountMission({ flight, nav, onCover = () => {}, $ = (id) => document.getElementById(id) }) {
+export function mountMission({ flight, nav, onCover = () => {}, awake = async () => null, explain = () => {}, $ = (id) => document.getElementById(id) }) { // W195 pocket: awake(on), the wake lock held for Pocket (null, or why not); explain(node, text), a bubble
   const button = (id, icon) => { const b = el("button", "btn mission"); b.id = id; b.hidden = true; b.append(el("i", `i i-${icon}`), el("span", "lbl")); return b; };
   const burn = button("burnup", "hangar"), haulBtn = button("longhaul", "amoled");
   haulBtn.dataset.round = ""; // W190 testinvariants: a round button (app/index.html's data-round)
@@ -40,15 +48,22 @@ export function mountMission({ flight, nav, onCover = () => {}, $ = (id) => docu
   const cell = (b, l) => { const d = el("div", ""); d.append(b, l); return d; };
   pair.append(cell(mins, minL), cell(warp, warpL));
   const back = el("button", "back");
-  screen.append(turn, big, pair, back);
+  const pk = el("button", "pocket"), pkL = el("span", ""); // W195 pocket: the way in
+  pk.append(el("i", "i i-pocket"), pkL);
+  const ring = el("div", "ring"), hint = el("p", "hint"), pocketed = el("div", "pk"); // W195 pocket: what pocket mode shows, faint
+  ring.append(el("i", "i i-pocket"));
+  pocketed.append(ring, hint);
+  screen.append(turn, big, pair, pk, back, pocketed);
   document.body.append(burn, haulBtn, screen);
 
-  const m = { haul: false };
+  const m = { haul: false, pocket: false }; // W195 pocket
+  let unpocket = null, asking = false; // W195 pocket: pocket()'s off; a wake lock asked for
   ownScreen("haul", () => m.haul); // W190 screenstate: was body.haul
   const words = () => {
     for (const [b, k] of [[burn, "burn"], [haulBtn, "haul"]]) { b.querySelector(".lbl").textContent = pick(WORDS[k]); b.setAttribute("aria-label", pick(WORDS[k])); }
     back.textContent = pick(WORDS.back);
-    screen.setAttribute("aria-label", pick(WORDS.haul));
+    pkL.textContent = pick(WORDS.pocket); hint.textContent = pick(WORDS.hold); // W195 pocket
+    screen.setAttribute("aria-label", m.pocket ? pick(WORDS.pocket) : pick(WORDS.haul));
     lyL.textContent = pick(WORDS.ly); warpL.textContent = pick(WORDS.warp); minL.textContent = WORDS.min;
   };
   words(); onLingo(words);
@@ -69,8 +84,28 @@ export function mountMission({ flight, nav, onCover = () => {}, $ = (id) => docu
       dist.textContent = text(".cturn .dist"); road.textContent = text(".cturn .road");
     }
   }
+  /** W195 pocket: pocket mode on the long-haul screen, or off (back to the long-haul screen, or with it, to the chart). */
+  function setPocket(on) {
+    if (m.pocket === on) return;
+    m.pocket = on;
+    screen.classList.toggle("pocketed", on);
+    if (on) unpocket = pocket({ ring, buzz, onLeave: () => { unpocket = null; set(false); } }); else { unpocket?.(); unpocket = null; }
+    words();
+    if (!on) awake(false);
+  }
+  pk.onclick = async (e) => {
+    e.stopPropagation(); // the screen's own tap goes back to the chart
+    if (asking) return;
+    asking = true;
+    const no = await awake(true); // the wake lock first: no lock, no Pocket (the screen would sleep, and GPS with it)
+    asking = false;
+    if (no) explain(pk, no);
+    else if (!m.haul || !flight.flying) awake(false); // gone meanwhile
+    else setPocket(true);
+  };
   function set(on) {
     if (m.haul === on) return;
+    if (!on) setPocket(false); // W195 pocket: off with it
     m.haul = on;
     screen.hidden = !on;
     syncScreen(); // W190 screenstate

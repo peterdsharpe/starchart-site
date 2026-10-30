@@ -2,6 +2,21 @@
   "next": [],
   "versions": [
     {
+      "version": "0.1.89",
+      "release": "Pinwheel Galaxy",
+      "date": "2026-10-30",
+      "notes": [
+        {
+          "scul": "Pocket droid: from Long haul, the screen goes black and ignores every touch while the flight, the voice and the buzzes go on; hold the ring to come back.",
+          "plain": "Pocket: from Dim screen, the screen goes black and ignores every touch while the ride, the voice and the buzzes go on; hold the ring to come back."
+        },
+        {
+          "scul": "The loading honeycomb takes the theme's colour in Plain, and About lists Send feedback's host with the others.",
+          "plain": "The loading honeycomb is purple like the rest of the app, and About lists Send feedback's host with the others."
+        }
+      ]
+    },
+    {
       "version": "0.1.88",
       "release": "Jewel Box",
       "date": "2026-10-29",

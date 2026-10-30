@@ -26,6 +26,8 @@ import { KEY as ROADS, OLD_KEY as OLD_ROADS, readAvoids, countLevels } from "./a
 // Sheets cell's 50,000 characters, so the sheet the form fills never cuts one short. The counter shows only near the end.
 export const LIMITS = { message: 200_000, part: 45_000, attach: 24_000, queue: 20, postMs: 30_000 }; // W73 logsafe: queue, in messages, each whole; arclight 2026-10-23: no wait between sends ("we should be way less aggressive about trying to rate limit people who are trying to give us feedback"), so no rate; postMs: a post that hangs gives up and stays queued
 const QUEUE = "starchart.feedback.queue";
+let host = null; // rel-0.1.89: the feedback form's host once feedback.json is read, for About's list (app/main.js about)
+export const feedbackHost = () => host;
 export const DRAFT = "starchart.feedback.draft"; // the half-typed message: an update's reload or Android ending the app never loses it
 export const NAME = "starchart.feedback.name"; // W128 small3 (her note): the name or contact of the last send that had one; a send without one clears it
 export const WORDS = {
@@ -222,8 +224,8 @@ export function mountFeedback({ $ = (id) => document.getElementById(id), version
 
   config.then((c) => { cfg = isSet(c) ? c : null; }).catch(() => { cfg = null; }).finally(() => {
     shown(); flush();
-    if (cfg) $("ab-hosts")?.after(Object.assign(document.createElement("p"), { className: "note", id: "ab-feedback",
-      textContent: `Feedback goes to ${new URL(cfg.action, location.href).host}, with no location.` })); // About lists every host it talks to; W133 settings4: concise
+    host = cfg ? new URL(cfg.action, location.href).host : null; // About lists every host it talks to (app/main.js about); rel-0.1.89 (her 10-29 21:56 row): as one of its bullets, not a sentence after them
+    if (host) dispatchEvent(new Event("starchart:feedback-host"));
   });
   shown();
   addEventListener("online", flush);

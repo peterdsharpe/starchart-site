@@ -58,6 +58,7 @@
 @keyframes hex-swell { to { transform: scale(1.3); } }
 @keyframes hex-fade { to { opacity: 0; } }
 html.calm-start #hexload i, body.calm #hexload i, [data-lingo="meatspace"] #hexload i { display: none; }
+[data-lingo="meatspace"] #hexload::before { background: var(--course); opacity: 0.45; } /* rel-0.1.89 (her 10-29 21:56 row): Plain's honeycomb in her accent purple, as the rest of its chrome (W186 palette); SCUL keeps --wormhole */
 html.calm-start #hexload.gone, body.calm #hexload.gone, [data-lingo="meatspace"] #hexload.gone { animation-name: hex-fade; } /* W69 boot: Calm: a soft fade */
 html.calm-start #hexload.gone::before, body.calm #hexload.gone::before, [data-lingo="meatspace"] #hexload.gone::before { animation: none; }
 /* W76 look (D14c): Plain has no rainbow start-up, as it has no flashes: the honeycomb, still, and Calm's soft fade

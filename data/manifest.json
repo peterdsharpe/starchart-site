@@ -1,8 +1,8 @@
 {
   "version": "20261028-d963cc1f",
   "osm_date": "2026-10-28",
-  "built_at": "2026-10-29T22:00:11.013Z",
-  "commit": "caf470200cbcc9c80d33bd229d2a66a7ccf77bbe",
+  "built_at": "2026-10-30T13:51:44.543Z",
+  "commit": "82d6ab6e804317a1fb92ed4484f175a8f426e535",
   "files": [
     {
       "path": "data/tiles/greater-boston-20261028-d963cc1f.pmtiles",

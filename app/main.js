@@ -7,6 +7,7 @@
 // along the route (W12-ux R14).
 //
 // URL: ?sim=demo [&speed=n] [&muted=1] [&calm=1] [&perf=1] [&lingo=scul|meatspace, for tests: the Words setting; W60 a]. See app/README.md.
+import "./pocket.js"; // W195 pocket (SPEC §343): first, so its listeners are the window's first and Pocket swallows every touch before the app's
 import { makeMap, mapPixelRatio, maplibregl, protocol, setLingoMode, spriteUrl } from "../chart/prototype/chart.js"; import { MISSING } from "../chart/prototype/tiles.js"; // W50 crisp: mapPixelRatio; W47 firstload: MISSING; W60 a: setLingoMode; W111 sprite3x: spriteUrl
 import { followTextSize } from "./textscale.js"; // W142 remscale
 import { lingo as lingoMode, onLingo, pick, plain } from "./lingo-mode.js"; // W60 a: the Words setting, SCUL or Plain
@@ -61,7 +62,7 @@ import { welcomeOnce } from "./welcome.js"; // W35 welcome
 import { mountLegend } from "./legend.js"; // W113 settings2: Developer's Icon legend
 import { chromeClear } from "./layout.js"; // W191 appleft (SPEC §334): the room the chrome takes at each side, measured once
 import { own as ownScreen, sync as syncScreen, watch as watchScreen, covered as overChart, isOpen } from "./screen.js"; // W190 screenstate (SPEC §330): which screen, and what covers the chart, told once
-import { mountFeedback, gpsQuality } from "./feedback.js"; /* W88 feedbackinfo: gpsQuality */ import { note, changed, watchApp } from "./trail-log.js"; // W48 feedback
+import { mountFeedback, gpsQuality, feedbackHost } from "./feedback.js"; /* W88 feedbackinfo: gpsQuality; rel-0.1.89: feedbackHost */ import { note, changed, watchApp } from "./trail-log.js"; // W48 feedback
 import { mountLayers, showLayers } from "./layers.js"; // W50 layers; W70 deep: showLayers, the tunnels with the Comets tile
 import { mountAnchorages, outsideFile, RACKS } from "./anchorages.js"; // W56 parking; W122 homerow: outsideFile; W193 racksplit: RACKS
 import { mountStarred } from "./starred.js"; // W67 places
@@ -1154,7 +1155,7 @@ hudTimer = setInterval(hud, 250); // the readout, the marks and the undo window:
 
 // ---- Launch, Land, Undo -------------------------------------------------------------------------
 const launchBtn = $("launch"), readoutEl = $("readout"), snack = $("snack");
-const mission = mountMission({ flight, nav, onCover: (on) => { if (!on) { drawTrail(); map.triggerRepaint(); wakeLoop(); } } }); // W73 mission: the trail kept under the long-haul screen, drawn again; W77 rest: and the loop wakes
+const mission = mountMission({ flight, nav, onCover: (on) => { if (!on) { drawTrail(); map.triggerRepaint(); wakeLoop(); } }, awake: pocketAwake, explain: (n, t) => tip(n, t) }); // W73 mission: the trail kept under the long-haul screen, drawn again; W77 rest: and the loop wakes; W195 pocket: awake, explain
 onLingo(() => showFlight()); // W60 a: the tallies and the snackbar's units follow Words, mid-flight too
 const enter = (node) => { node.classList.remove("enter"); void node.offsetWidth; node.classList.add("enter"); };
 function unstick() {
@@ -1408,13 +1409,14 @@ onPose.status();
 
 // ---- wake lock: the screen stays on while flying, unless the pilot switches it off ---------------
 let wakeWanted = setting("starchart:wake") === "1", wakeLock = null, wakeNote = "", wakeAsking = false; // W40 flight: wakeAsking; W191 appleft (SPEC §334): through get(), the registry's default
+let pocketWake = false; // W195 pocket: Pocket holds the lock, whatever Keep the screen on says
 async function wake() {
-  if (!flight.flying || !wakeWanted || wakeLock || wakeAsking || document.visibilityState !== "visible") return showWake(); // W40 flight: one ask at a time
+  if (!flight.flying || !(wakeWanted || pocketWake) || wakeLock || wakeAsking || document.visibilityState !== "visible") return showWake(); // W40 flight: one ask at a time
   if (!("wakeLock" in navigator)) { wakeNote = "This browser can't."; return showWake(); } // W28 settings: shorter
   wakeAsking = true; // W40 flight
   try {
     const l = await navigator.wakeLock.request("screen"); // W40 flight: a Land or the switch may come while it asks
-    if (!flight.flying || !wakeWanted) l.release(); // W40 flight: let go at once, landed or switched off meanwhile
+    if (!flight.flying || !(wakeWanted || pocketWake)) l.release(); // W40 flight: let go at once, landed or switched off meanwhile
     else { wakeLock = l; l.addEventListener("release", () => { if (wakeLock === l) wakeLock = null; showWake(); }); } // W40 flight: only the live lock
     wakeNote = "";
   } catch { wakeNote = pick("The droid said no. Asks again at Launch.", "The phone said no. Asks again at Record or Start."); } // W60 a: pick; W88 ridemodes: Plain's Record // W28 settings: shorter
@@ -1422,6 +1424,18 @@ async function wake() {
   showWake();
 }
 function unwake() { if (wakeLock) wakeLock.release(); wakeLock = null; showWake(); }
+/** W195 pocket: the screen kept on for Pocket (app/mission.js): null once the lock is held, else why not, in a bubble's words; off,
+ *  the lock as Keep the screen on says. A browser with no wake lock gets no Pocket: its screen would sleep, and GPS with it. */
+async function pocketAwake(on) {
+  pocketWake = on && "wakeLock" in navigator;
+  if (!on) { if (!wakeWanted) unwake(); return null; }
+  if (!pocketWake) return "This browser can't keep the screen on.";
+  while (wakeAsking) await new Promise((r) => setTimeout(r, 50)); // an ask already on its way (Launch's)
+  await wake();
+  if (wakeLock) return null;
+  pocketWake = false;
+  return pick("The droid said no.", "The phone said no.");
+}
 function showWake() {
   $("wake").checked = wakeWanted;
   $("ab-wake").textContent = (wakeWanted && wakeNote) || pick("While you fly", "While you ride"); // W28 settings: why, when it can't; W133 settings4 (her note 10): else when, Launch to Land (Record or Start to End)
@@ -1441,6 +1455,7 @@ pose.on("visibility", ({ visible }) => {
   Object.assign(screenOff, { id: "screen-off", until: t + 10000, text: screenOffLine(t - screenOff.at), at: 0 }); // W28 resume: id
   trail.gap(); drawTrail(); // W29 polish: no fixes came while it was off, so the trail shows a gap, as after a resume
   showNoFix();
+  tipOnce("pocket", $("longhaul"), pick("Keep the flight going in a pocket: Long haul, then Pocket droid.", "Keep the ride going in a pocket: Dim screen, then Pocket."), { flight: true }); // W195 pocket (SPEC §343): once, the way in, by its buttons' names
 });
 
 // ---- Settings and About: a bottom sheet (R12) ---------------------------------------------------------
@@ -1513,7 +1528,7 @@ function about() {
   $("ab-built").textContent = build.built_at.replace("T", " ").slice(0, 16) + " UTC";
   $("ab-bundle").textContent = build.bundle_hash.slice(0, 16);
   $("ab-data").textContent = `Greater Boston, OpenStreetMap data of ${data.osm_date || "unknown date"} (${data.version}).`;
-  const hosts = el("ul", ""); hosts.append(...[location.host, `the MBTA (api-v3.mbta.com) for ${pick("the comets", "live trains")}`, "with Weather on, mesonet.agron.iastate.edu and api.weather.gov for the radar and winter alerts"].map((t) => Object.assign(el("li", ""), { textContent: t }))); // W192 uitabs (SPEC §339, her row 6): the hosts as a list, in the same words
+  const hosts = el("ul", ""); hosts.append(...[location.host, `the MBTA (api-v3.mbta.com) for ${pick("the comets", "live trains")}`, "with Weather on, mesonet.agron.iastate.edu and api.weather.gov for the radar and winter alerts", ...(feedbackHost() ? [`with Send feedback, ${feedbackHost()}, with no location`] : [])].map((t) => Object.assign(el("li", ""), { textContent: t }))); // W192 uitabs (SPEC §339, her row 6): the hosts as a list, in the same words
   $("ab-hosts").replaceChildren("It talks only to:", hosts, `None of them gets your location: the MBTA learns only which ${pick("Comet Station or Sandworm Nest", "station or bus stop")} you tap. No accounts, analytics or trackers.`); /* W173 uismall (SPEC §302): a tapped station's trains, with Comets off too; W189 transittimes: and a bus stop's */ // W28 settings: one line; W29 comets: the MBTA; W52 weather: IEM; W60 a: pick; W102 winter: the NWS; W133 settings4 (her note 9): concise; W192 uitabs: a list
   aboutSource(); showStore(); showWake(); showQuota();
   aboutStores({ data, group: $("ab-data").closest(".group"), MB }); $("ab-screen").textContent = screenLine(); // W18 controls
@@ -1539,7 +1554,7 @@ longPress(credit, () => { openSheet(false); /* W192 uitabs: at its credits, not 
 const sheetTop = sheet.querySelector(".top"); // W20 chrome: About and the categories fold in app/settings.js
 const topHeight = () => sheet.style.setProperty("--top-h", sheetTop.offsetHeight + "px");
 if (sheet.open) { about(); topHeight(); } // W25 rest: opened while the chart loaded
-onLingo(() => { if (sheet.open) about(); }); // W73 logsafe: a Words switch made in the open sheet refills About (the hosts, the chart's store, the quota)
+onLingo(() => { if (sheet.open) about(); }); addEventListener("starchart:feedback-host", () => { if (sheet.open) about(); }); // rel-0.1.89: the feedback form's host joins About's list once it is read; W73 logsafe: a Words switch made in the open sheet refills About (the hosts, the chart's store, the quota)
 mountLegend({ fold: $("legend-fold"), glyphs: at("design/glyphs/"), style: () => at(starchartTheme.styleFile), sprite: () => { const sp = map.getStyle()?.sprite; return typeof sp === "string" ? sp : sp?.[0]?.url; } }); // W113 settings2: the map's own sprite, read when it opens; W166 icons4: the style's file, for what the map draws
 addEventListener("resize", () => { if (sheet.open) topHeight(); });
 // W133 settings4 (SPEC §244): a tab has no scrim to tap and no drag down to close: Chart, Log, Android's back and Esc leave it

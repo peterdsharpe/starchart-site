@@ -14,7 +14,7 @@
 //   chart doesn't need (build.json `lazy` too, chart/style/glyph-ranges.mjs) work the same way, in a glyph cache.
 // app/build.mjs writes the bundle hash into this file, so a new build is a new service worker.
 
-const BUNDLE = "ead4aa7b80eeac00576e94de74499355b392f29c66fa20b7e6f9e6275f72a084";
+const BUNDLE = "5c55aaefe070f81ea9e2c8a67c7a56659730b8df974b506c04962efbf10b0491";
 const CACHE = `starchart-${BUNDLE.slice(0, 16)}`;
 const VOICE = "starchart-voice"; // survives a version change
 const LINGO = "starchart.lingo"; // W60 d: the lingo mode the page last chose (app/calls.js keepLingo), for the install; not "starchart-", so no version change deletes it
