@@ -17,6 +17,7 @@ import { el } from "./dom.js"; // W152 app-rest J2
 import { own as ownScreen, sync as syncScreen } from "./screen.js"; // W190 screenstate (SPEC §330)
 import { pocket } from "./pocket.js"; // W195 pocket
 import { buzz } from "./press.js"; // W195 pocket: the hold's buzz as it takes
+import { touch } from "./haptics.js"; // W200 small8
 
 export const WORDS = {
   burn: ["Burn up", "Head home"],
@@ -53,7 +54,7 @@ export function mountMission({ flight, nav, onCover = () => {}, awake = async ()
   const ring = el("div", "ring"), hint = el("p", "hint"), pocketed = el("div", "pk"); // W195 pocket: what pocket mode shows, faint
   ring.append(el("i", "i i-pocket"));
   pocketed.append(ring, hint);
-  screen.append(turn, big, pair, pk, back, pocketed);
+  screen.append(turn, big, pair, ...(touch() ? [pk] : []), back, pocketed); // W200 small8 (SPEC §356, her row 6): Pocket on a touch screen only: a computer goes in no pocket
   document.body.append(burn, haulBtn, screen);
 
   const m = { haul: false, pocket: false }; // W195 pocket

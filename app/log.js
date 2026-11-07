@@ -16,7 +16,7 @@
 import { BlackBox, CLASSES, CarGuard, LOGS, LY, classFor, nextClass, tiny } from "./blackbox.js"; // W68 logbulk: tiny; W127 walklog: BlackBox; W147 backup: LOGS
 import { WALKER_SVG } from "./fromto.js"; // W127 walklog: the map's person on foot, a walk's mark
 import { starSVG, get as setting, set as setSetting, paceStep, paceToLearn } from "./settings.js"; // W59 pace: setting, setSetting, paceStep; W86 eta: paceToLearn; W190 settingsreg: no KEYS (app/keys.js)
-import { Chunker, drawnTrack, gpx, gpxName, learnedPace, rideName, statsFrom, thumbSVG, trackLines, unpackThumb, trackRuns, trimRuns } from "./logbook.js"; // W21 gps: drawnTrack; W27 friction: rideName; W29 polish: trackLines; W67 logsafe: trackRuns, trimRuns
+import { Chunker, drawnTrack, gpx, gpxName, learnedPace, plannedAt, rideName, statsFrom, thumbSVG, trackLines, unpackThumb, trackRuns, trimRuns } from "./logbook.js"; // W21 gps: drawnTrack; W27 friction: rideName; W29 polish: trackLines; W67 logsafe: trackRuns, trimRuns
 import { tip, why, say, onNewAction } from "./tip.js"; // W24 quiet; W73 a11y: say; W196 ui4: onNewAction
 import { LOCK, UNDO, heldLocks, holdLock } from "./resume.js"; import { browserOf } from "./install.js"; // W40 log
 import { keep as keepStorage } from "./offline.js"; // W40 settings
@@ -95,7 +95,7 @@ export const WORDS = {
   backupQ: ["Back up all flights?", "Back up all rides?"], restoreQ: "Restore a backup?",
   backupWhat: [(where) => `Your flights, places and settings, in one file ${where}. Nothing is uploaded.`, (where) => `Your rides, places and settings, in one file ${where}. Nothing is uploaded.`],
   toShare: "to share or save", toDownloads: "in Downloads",
-  restoreWhat: ["It replaces this droid's flights, places and settings with the backup file's.", "It replaces this phone's rides, places and settings with the backup file's."],
+  restoreWhat: ["It replaces this droid's flights, places and settings with the backup file's.", "It replaces this device's rides, places and settings with the backup file's."], // W200 small8 (SPEC §356): device
   starredN: (n) => `${n} starred`, streetsN: (n) => `${n} street${s_(n)}`, settings: "settings", // W147 backup: the file's one line
   restoredAll: "Backup restored", landFirst: ["Land first.", "End the ride first."], noLog: "Can't read the Log: nothing saved.", // W147 backup; noLog, its store off
   newer: "From a newer Starchart: update the app first.", notBackup: "Not a Starchart backup.", full: "Storage full: nothing restored.", // W67 logsafe; W147 backup: any backup
@@ -637,7 +637,7 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
       node("button", { className: "gpx", onclick: (e) => gpxMenu(e.currentTarget, box.get(f.id) || f) }, "GPX")]; // its name now, after a rename; W67 logsafe: its menu
     for (const b of [...links, ...acts.querySelectorAll(".go")]) why(b, "Loading the track."); // W24 quiet: until the track is in; W196 logsettings2: Go's end too
     const note = f.excluded_m ? node("p", { className: "note" }, node("b", { textContent: w("leftOut", (f.excluded_m / LY).toFixed(1)) }), w("leftWhy")) : ""; // W60 c; W150 logtidy (her note 10): no towns
-    const plan = f.plan_s > 0 && f.flew_s > 0 ? node("p", { className: "plan" }, ...durNodes(w("planned", Math.max(1, Math.round(f.plan_s / (f.pace || 1) / 60)), Math.max(1, Math.round(f.flew_s / 60))))) : ""; // W59 pace: old flights have no plan, and say nothing // W68 fixes: durNodes
+    const plan = f.plan_s > 0 && f.flew_s > 0 ? node("p", { className: "plan" }, ...durNodes(w("planned", Math.max(1, Math.round(plannedAt(f) / 60)), Math.max(1, Math.round(f.flew_s / 60))))) : ""; // W59 pace: old flights have no plan, and say nothing; W200 parkwalk: plannedAt // W68 fixes: durNodes
     const seg = node("div", { className: "seg", role: "radiogroup", ariaLabel: "Replay speed" },
       ...[10, 60].map((x) => { const b = node("button", { role: "radio", textContent: `${x}×` }); b.dataset.x = x; return b; }));
     const rbar = node("div", { className: "replaybar", hidden: true },

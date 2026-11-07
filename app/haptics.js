@@ -23,11 +23,14 @@ export const PATTERNS = { hold: 10, port: [600], starboard: [200, 200, 200], off
 const g = globalThis;
 const read = (k, d) => { try { return g.localStorage?.getItem(k) ?? d; } catch { return d; } };
 
+/** W200 small8 (SPEC §356, her row 6): a touch screen, a phone or tablet in the hand: where the lines and buttons only a phone
+ *  can use show (Vibrate at turns, Pocket). A computer's Chrome has navigator.vibrate too, and it buzzes nothing. */
+export const touch = (env = g) => !!env.matchMedia?.("(pointer: coarse)").matches;
+
 /** How this browser can buzz: "vibrate" (Android), "switch" (iOS's switch haptic, on a touch screen), or "" (nothing). */
 export function can(env = g) {
   if (typeof env.navigator?.vibrate === "function") return "vibrate";
-  const touch = env.matchMedia?.("(pointer: coarse)").matches;
-  return touch && env.HTMLInputElement && "switch" in env.HTMLInputElement.prototype ? "switch" : "";
+  return touch(env) && env.HTMLInputElement && "switch" in env.HTMLInputElement.prototype ? "switch" : ""; // W200 small8: touch()
 }
 
 /** Buzz `kind` (a PATTERNS key). Returns whether it asked the phone to. */

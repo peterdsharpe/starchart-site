@@ -17,7 +17,7 @@ import { asks, careful, freeAgain } from "./downloads.js";
 import { pick } from "./lingo-mode.js";
 
 export const WORDS = {
-  full: ["Not stored: the droid's storage is full.", "Not stored: the phone's storage is full."],
+  full: ["Not stored: the droid's storage is full.", "Not stored: the device's storage is full."], // W200 small8 (SPEC §356): device
   check: "The download didn't match. Try again.",
   stopped: "The download stopped. Try again with a signal.",
   gone: "The map pack couldn't be fetched. Reload and try again.", // an HTTP error: a redeploy renamed it, under the manifest loaded before

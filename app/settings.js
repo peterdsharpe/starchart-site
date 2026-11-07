@@ -10,7 +10,7 @@
 import { CLASSES } from "./blackbox.js";
 import { hiddenIds, resetHidden, wontShow } from "./notice.js"; // W21 glass; W104 oss2: wontShow
 import { tip, why } from "./tip.js"; // W24 quiet
-import { can as canBuzz } from "./haptics.js"; // W69 motion
+import { can as canBuzz, touch } from "./haptics.js"; // W69 motion; W200 small8: touch
 import { sweep } from "./delight.js"; // W73 delight: the theme sweep
 import { lingo } from "./lingo-mode.js"; // W60 a: Words, with ?lingo= for this visit; W133 settings4: no row says more, so no pick or onLingo
 import { STORE, defaultOf, MODE_KEYS, modeKey } from "./keys.js"; // W190 settingsreg: every key, and each setting's default; W196 logsettings2: each mode's own
@@ -197,7 +197,7 @@ export function mountSettings({ $ = (id) => document.getElementById(id), sound }
     gear?.addEventListener("click", show);
   }
   // W69 motion: Buzz the turns where the phone can buzz a pattern (Android); W88 settings3: Vibrate on taps went, and Sound's title says vibration only there
-  const hx = canBuzz() === "vibrate"; $("haptic-turns-row")?.toggleAttribute("hidden", !hx); // W88 settings3
+  const hx = canBuzz() === "vibrate" && touch(); $("haptic-turns-row")?.toggleAttribute("hidden", !hx); // W88 settings3; W200 small8 (SPEC §356): on a touch screen, a phone, as a computer's Chrome vibrates nothing
   if ($("sound-h")) $("sound-h").textContent = WORDS.sound[hx ? 0 : 1]; // W88 settings3
   // W59 pace: Pace, − 100 % +, 5 % a tap; its line shows a 20 min route at it (W160 logsettings: at 100 % too)
   const paceRow = $("pace-row");

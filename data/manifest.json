@@ -1,8 +1,8 @@
 {
   "version": "20261101-fbdb3b27",
   "osm_date": "2026-11-01",
-  "built_at": "2026-11-02T19:27:37.220Z",
-  "commit": "797a579c6dcd1036c179ef095e1b0a46d6004ebe",
+  "built_at": "2026-11-07T07:19:29.964Z",
+  "commit": "4d6362893b2cd83a5e23848a61ead8c5f4009648",
   "files": [
     {
       "path": "data/tiles/greater-boston-20261101-fbdb3b27.pmtiles",
@@ -14,9 +14,9 @@
       "prefix_sha256": "a1a04bc1080f6a559924e8eafd5e6b44bcd3068c422a6604e225368cec2e4864"
     },
     {
-      "path": "data/tiles/greater-boston-fa72cd5f6b73.graph.gz",
-      "bytes": 10543442,
-      "sha256": "fa72cd5f6b7303071bae4f236b6afca868a63a2474e0faaeaa9bec18ff3a0864",
+      "path": "data/tiles/greater-boston-35df9747a64f.graph.gz",
+      "bytes": 10545577,
+      "sha256": "35df9747a64f382e23c3a638daffb25920344d02c0b3c52af5f5f73cdd553083",
       "kind": "graph",
       "region": "greater-boston"
     },
@@ -42,36 +42,36 @@
       "region": "greater-boston"
     },
     {
-      "path": "data/tiles/greater-boston-a4cb55da3679.ch",
-      "bytes": 1481505,
-      "sha256": "a4cb55da3679ce8d5f7c581f4f9f5280c7485d105c417953816478b256e96126",
+      "path": "data/tiles/greater-boston-93c2ec535f12.ch",
+      "bytes": 1477879,
+      "sha256": "93c2ec535f129a50d5a692f5fc57fc6588439842bc61c1e88613ac3b18bb1357",
       "kind": "ch",
       "region": "greater-boston"
     }
   ],
   "optional": [
     {
-      "path": "data/tiles/greater-boston-comets-de03ceaae2d9.bin.gz",
-      "bytes": 30162,
-      "sha256": "de03ceaae2d9f9c7da7f3bf4ed21fdf5e603c4976504a40bab0cf47a695dff91",
+      "path": "data/tiles/greater-boston-comets-91b8b7d5952a.bin.gz",
+      "bytes": 30286,
+      "sha256": "91b8b7d5952ab870d2ad50b25b9b8ec5b66ce7d3afc458fdf1982407b9bbccb9",
       "kind": "transit",
       "region": "greater-boston",
       "feed": {
-        "start": "20261023",
+        "start": "20261027",
         "end": "20261212",
-        "version": "Fall 2026, 2026-10-30T17:51:33+00:00, version D"
+        "version": "Fall 2026, 2026-11-03T23:46:00+00:00, version D"
       }
     },
     {
-      "path": "data/tiles/greater-boston-transit-e867408aa113.bin.gz",
-      "bytes": 428143,
-      "sha256": "e867408aa113f591fefbbb1c5800e5e93ea2458808f66657692fd689de14f8a4",
+      "path": "data/tiles/greater-boston-transit-4400ffc1bdcb.bin.gz",
+      "bytes": 426432,
+      "sha256": "4400ffc1bdcbbf3e61a14c3e459af2199615f23a837db6dae21df51975e57466",
       "kind": "walk",
       "region": "greater-boston",
       "feed": {
-        "start": "20261023",
+        "start": "20261027",
         "end": "20261212",
-        "version": "Fall 2026, 2026-10-30T17:51:33+00:00, version D"
+        "version": "Fall 2026, 2026-11-03T23:46:00+00:00, version D"
       }
     }
   ],
@@ -86,7 +86,7 @@
         -71.32,
         42.52
       ],
-      "bytes": 53671801,
+      "bytes": 53668720,
       "files": [
         {
           "kind": "tiles",
@@ -96,9 +96,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-central-9b6478dce504.graph.gz",
-          "bytes": 10340736,
-          "sha256": "9b6478dce5041d86df802f3454c675aba58fc74e1cdbd431abbc4e66addcbc9e"
+          "path": "data/packs/pack-central-201a5ecb9780.graph.gz",
+          "bytes": 10340721,
+          "sha256": "201a5ecb9780cc197293eb01278f196626c16f73285115340032e769fa727cbf"
         },
         {
           "kind": "search",
@@ -108,9 +108,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-central-91ed85ffddf0.ch",
-          "bytes": 2392264,
-          "sha256": "91ed85ffddf07f8ef3b1401d0e7d39c1878ae69389491cf9ecfbdaac0b9cab2a"
+          "path": "data/packs/pack-central-292605528474.ch",
+          "bytes": 2389198,
+          "sha256": "2926055284748c87962f6228122caa3f7fa79c64a50a315a42e75503b610f66f"
         }
       ]
     },
@@ -124,7 +124,7 @@
         -70.55,
         42.89
       ],
-      "bytes": 53698348,
+      "bytes": 53694654,
       "files": [
         {
           "kind": "tiles",
@@ -134,9 +134,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-north-0d8cf0497b9f.graph.gz",
-          "bytes": 8785216,
-          "sha256": "0d8cf0497b9ffd1c7b780c3b261d6f3355612fb7c67f75803f888c2d1831a62b"
+          "path": "data/packs/pack-north-cf3c78d343c6.graph.gz",
+          "bytes": 8785214,
+          "sha256": "cf3c78d343c6c865e1c0995f83852fec18539846ced1f2534924cfda1e70a3e0"
         },
         {
           "kind": "search",
@@ -146,9 +146,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-north-ca7d8ca2f109.ch",
-          "bytes": 2253482,
-          "sha256": "ca7d8ca2f1098642584968cf89eb908d8821f41d847c816737ac8f00dd2dbfc2"
+          "path": "data/packs/pack-north-97a2baa30fcb.ch",
+          "bytes": 2249790,
+          "sha256": "97a2baa30fcb52706202d37591b51c0db2d850070402ed3c1bc5bde05c297f4c"
         }
       ]
     },
@@ -162,7 +162,7 @@
         -70.62,
         42.22
       ],
-      "bytes": 29879446,
+      "bytes": 29877010,
       "files": [
         {
           "kind": "tiles",
@@ -172,9 +172,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-south-shore-e132353f560e.graph.gz",
+          "path": "data/packs/pack-south-shore-d5a4d75e75b5.graph.gz",
           "bytes": 5452694,
-          "sha256": "e132353f560e0bda3111772a8267210d6499b39504a4a6a3801a54f10667b877"
+          "sha256": "d5a4d75e75b59f520345613bb9685a2b5c75cd62b6185fff42623191b3cfc0b0"
         },
         {
           "kind": "search",
@@ -184,9 +184,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-south-shore-0ea09f09fd6d.ch",
-          "bytes": 1940530,
-          "sha256": "0ea09f09fd6ddefe3053aaefbe10971e1536e8945f756539de52f25bb45d0bdd"
+          "path": "data/packs/pack-south-shore-a6d71e0f488e.ch",
+          "bytes": 1938094,
+          "sha256": "a6d71e0f488e865d0a48f47b04447f638a3628649e7a4c64ce68e7def211f1fe"
         }
       ]
     },
@@ -200,7 +200,7 @@
         -70.62,
         41.95
       ],
-      "bytes": 31747676,
+      "bytes": 31745050,
       "files": [
         {
           "kind": "tiles",
@@ -210,9 +210,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-south-coast-f78b7915ec6e.graph.gz",
-          "bytes": 4449236,
-          "sha256": "f78b7915ec6e7945e655cea7f9862f4dadc2d473fa89524f6ab8f64f4064982c"
+          "path": "data/packs/pack-south-coast-2ae360ff5c6e.graph.gz",
+          "bytes": 4449235,
+          "sha256": "2ae360ff5c6eda4a06e213c289aaf315e8d1837edab281d8fa6d04f673922dc7"
         },
         {
           "kind": "search",
@@ -222,9 +222,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-south-coast-4205ffcf2c28.ch",
-          "bytes": 1837422,
-          "sha256": "4205ffcf2c28bb062a4785c929822759a1259b03fc6c5de6d07e9b3ffb2e61ff"
+          "path": "data/packs/pack-south-coast-92c702444d4f.ch",
+          "bytes": 1834797,
+          "sha256": "92c702444d4fa3f8ea312c9e38fb2234c7b835b02fe6780f7e9a0e68b562dcbc"
         }
       ]
     },
@@ -238,7 +238,7 @@
         -69.92,
         42.1
       ],
-      "bytes": 28773433,
+      "bytes": 28770764,
       "files": [
         {
           "kind": "tiles",
@@ -248,9 +248,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-cape-islands-a2b1187a2242.graph.gz",
-          "bytes": 4854869,
-          "sha256": "a2b1187a2242f6ae3cad352e0e3194602c19f0a0791d3d9f52edc838108f9a6c"
+          "path": "data/packs/pack-cape-islands-840e212f43c0.graph.gz",
+          "bytes": 4854868,
+          "sha256": "840e212f43c03e8577d664b36fc860483d47282da720810819b4ff7f82c0afdc"
         },
         {
           "kind": "search",
@@ -260,9 +260,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-cape-islands-db477fcedd2f.ch",
-          "bytes": 1826469,
-          "sha256": "db477fcedd2fe5f4bfa56e9a56dc69cd501980453ad928375e685afe8eb27d14"
+          "path": "data/packs/pack-cape-islands-be46fc87168f.ch",
+          "bytes": 1823801,
+          "sha256": "be46fc87168f5491fe7d2da77739620cfdaae6993b4600ef52931b50ba5aebc8"
         }
       ]
     },
@@ -276,7 +276,7 @@
         -72.1,
         42.89
       ],
-      "bytes": 54559153,
+      "bytes": 54555694,
       "files": [
         {
           "kind": "tiles",
@@ -286,9 +286,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-west-744cc0ed8ae0.graph.gz",
-          "bytes": 8701470,
-          "sha256": "744cc0ed8ae0455f128d837576a8d8f15246d999b31952c6b11336b2e1e33806"
+          "path": "data/packs/pack-west-6352343a93b9.graph.gz",
+          "bytes": 8701487,
+          "sha256": "6352343a93b9881fcde30918731cfa2c4ac05a506a2f04c7a03c95b79fc52ffb"
         },
         {
           "kind": "search",
@@ -298,9 +298,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-west-054adf7d3df3.ch",
-          "bytes": 2195496,
-          "sha256": "054adf7d3df30e718a132489c2dc8b2342996c2dddc748a515a857d6303fcf49"
+          "path": "data/packs/pack-west-d63733efe3a1.ch",
+          "bytes": 2192020,
+          "sha256": "d63733efe3a19cb0026fd6607bd215cc1a26bfbb69847e0b0b843b28f615bebc"
         }
       ]
     },
@@ -314,7 +314,7 @@
         -70.62,
         42.52
       ],
-      "bytes": 6819030,
+      "bytes": 6815561,
       "files": [
         {
           "kind": "tiles",
@@ -324,9 +324,9 @@
         },
         {
           "kind": "graph",
-          "path": "data/packs/pack-hull-7781f58f07fd.graph.gz",
+          "path": "data/packs/pack-hull-dcd27bca5b80.graph.gz",
           "bytes": 911237,
-          "sha256": "7781f58f07fd04526ebb19a9e92b1ff96c3f0e18e22ff13764b1b14586856e2e"
+          "sha256": "dcd27bca5b80df163b15e3c25d612d4fdf282d0e46a5528ce8c797deb76e32f5"
         },
         {
           "kind": "search",
@@ -336,9 +336,9 @@
         },
         {
           "kind": "ch",
-          "path": "data/packs/pack-hull-7d6f6d86aec1.ch",
-          "bytes": 1555684,
-          "sha256": "7d6f6d86aec1920b14e5f095fb924ebfe06fb2d0b7da48f72389924ee95641f6"
+          "path": "data/packs/pack-hull-b7640b222457.ch",
+          "bytes": 1552215,
+          "sha256": "b7640b222457c00f1f0751a468c345d4a84a3e810ad32ca490feeb35b3442c2f"
         }
       ]
     }

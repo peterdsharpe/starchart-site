@@ -434,24 +434,57 @@ export function tailSpots(r, n, out = new Float64Array(n)) {
 }
 /** W144 tlines: two trains nearer than SIDE.near head radii (on the screen: about 6 m at z17) each move SIDE.push radii to
  *  their own side of the line ("If two trains are crossing, then separate them slightly to the sides of the line"). */
-export const SIDE = { near: 2.2, push: 0.8 };
+export const SIDE = { near: 2.2, push: 0.8, hold: 1.3, ease: 500 }; // W200 comets4: hold, how much farther a pair lets go than it takes hold; ease, the ms of a glide aside or back
+const smooth = (t) => t * t * (3 - 2 * t), unsmooth = (k) => 0.5 - Math.sin(Math.asin(1 - 2 * k) / 3); // W200 comets4: unsmooth, its inverse
 /**
  * W144 tlines: each of `n` trains' offset to its own side, the right of its way (the T keeps right), when another is near.
  * x, y: heads in px (y down); dx, dy: each one's way, a unit vector; r: the head's radius in px. Writes out[2i], out[2i+1]
  * in px: none when no other is within SIDE.near r, easing in to SIDE.push r as they close, so a train never jumps aside.
+ * W200 comets4 (SPEC §354), her row 2: "their head move sideways so they don't overlap, but then they immediately move back on the same
+ * like where one head gets hidden by the other subway's tail". With `keep` (holdAside's), a pair stays aside while they'd overlap.
  */
-export function sideOffsets(n, x, y, dx, dy, r, out) {
+export function sideOffsets(n, x, y, dx, dy, r, out, keep = null) {
   const far = SIDE.near * r, close = far / 2;
+  if (keep) holdAside(n, x, y, dx, dy, r, keep); // W200 comets4
   for (let i = 0; i < n; i++) {
     let k = 0;
     for (let j = 0; j < n && k < 1; j++) {
       if (j === i) continue;
       const d = Math.hypot(x[j] - x[i], y[j] - y[i]);
-      if (d < far) { const t = Math.min(1, (far - d) / (far - close)); k = Math.max(k, t * t * (3 - 2 * t)); }
+      if (d < far) { const t = Math.min(1, (far - d) / (far - close)); k = Math.max(k, smooth(t)); }
     }
+    if (keep) { const s = keep.held[i] ? Math.min(1, Math.max(keep.side[i] + keep.dt / SIDE.ease, unsmooth(k))) : Math.max(0, keep.side[i] - keep.dt / SIDE.ease); keep.side[i] = s; k = Math.max(k, smooth(s)); } // W200 comets4: held, aside as they close and on to all the way, never back while held; let go, a glide back
     out[2 * i] = -dy[i] * SIDE.push * r * k; out[2 * i + 1] = dx[i] * SIDE.push * r * k;
   }
   return out;
+}
+/**
+ * W200 comets4 (SPEC §354): which trains stay aside, kept from frame to frame in `keep`: held[i] (0 or 1), and side[i] (0 on the line
+ * to 1 aside), which sideOffsets moves in SIDE.ease ms toward held (keep.dt, the ms since the last frame; Infinity, Calm's: at once).
+ * A train takes hold when its head, on its line, comes within SIDE.near r of another's head, or with tails drawn
+ * (keep.tails, SCUL's: px [x, y] of each train's keep.dots tail dots, nearest first, of radii keep.tr) its head within reach of
+ * another's tail, or the other's head of its own: the head's half of SIDE.near r and the dot's radius and rim. Trains going one
+ * way (within 60°) never hold each other, since both would move to the same side: W144's nudge by distance alone. It lets go only
+ * at SIDE.hold times that, so it never flickers.
+ */
+export function holdAside(n, x, y, dx, dy, r, { held, tails = null, tr = null, dots = 0 }) {
+  const far = SIDE.near * r, head = far / 2, reach = tails ? TAIL_R * r + SIDE.hold * (head + tr[0] + RIM) : 0; // farther apart, no dot of a tail (TAIL_R r long, tr[0] its widest) is near the other's head
+  for (let i = 0; i < n; i++) {
+    const s = held[i] ? SIDE.hold : 1, near = (s * far) ** 2;
+    let on = false;
+    for (let j = 0; j < n && !on; j++) {
+      if (j === i || dx[i] * dx[j] + dy[i] * dy[j] >= 0.5) continue; // one way
+      const ex = x[j] - x[i], ey = y[j] - y[i], e = ex * ex + ey * ey; // squared, so no square root a pair
+      if (e < near) on = true;
+      else if (e < reach * reach) on = onTail(tails, tr, dots, j, x[i], y[i], s, head) || onTail(tails, tr, dots, i, x[j], y[j], s, head);
+    }
+    held[i] = on ? 1 : 0;
+  }
+}
+/** W200 comets4: is a head at (hx, hy) px within s times its reach of train j's tail? */
+function onTail(tails, tr, dots, j, hx, hy, s, head) {
+  for (let k = 0, o = 2 * dots * j; k < dots; k++) if ((tails[o + 2 * k] - hx) ** 2 + (tails[o + 2 * k + 1] - hy) ** 2 < (s * (head + tr[k] + RIM)) ** 2) return true;
+  return false;
 }
 /** May the comets ask now? Only on, with the page in view, online, the chart showing and in the comets' area, and not on
  *  Data Saver (which asks only when the pilot taps). */

@@ -58,7 +58,8 @@ body[data-open~="ride-preview"] .btn.mission { visibility: hidden; } /* a previe
   #haul:not([hidden], .pocketed) { display: grid; grid-template-columns: var(--pk-cols); grid-template-rows: repeat(3, auto); align-content: center; justify-items: center; column-gap: 16px; row-gap: 4vh; }
   #haul:not([hidden], .pocketed):has(> .turn[hidden]) { grid-template-rows: repeat(2, auto); }
   #haul:not(.pocketed) > :is(.turn, .ly, .pair) { grid-column: var(--pk-num); }
-  #haul .pocket { position: static; translate: none; grid-column: var(--pk-btn); grid-row: 1 / -1; align-self: center; } }
+  #haul .pocket { position: static; translate: none; grid-column: var(--pk-btn); grid-row: 1 / -1; align-self: center; }
+  #haul:not(:has(> .pocket)) { --pk-cols: 1fr; --pk-num: 1; } /* W200 small8 (SPEC §356): no Pocket (a computer), one column, so the numbers centre in the whole width */ }
 #haul .pocket .i { width: 24px; height: 24px; }
 #haul .pocket:active { transform: none; background: color-mix(in srgb, var(--dark-stardust) 22%, var(--fixed-black)); }
 #haul .pk { display: none; }

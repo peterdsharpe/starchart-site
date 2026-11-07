@@ -177,6 +177,20 @@ export class Router {
     for (const k of this.restr.keys()) this.hasR[k] = 1;
     this.zone = this.intersections();
     this.wait = this.waits(); // W67 graph3
+    // W200 parkwalk (SPEC §357): the edges of an area whose rule is "nobikes" (the graph's `park`, its header's `park_rules`): no bike
+    // course rides or walks them (styleSteps' Infinity, snap's skip); the walker (walktransit.js) reads neither and walks through
+    const nb = new Set((h.park_rules || []).flatMap((x, i) => (x === "nobikes" ? [i + 1] : []))); // W200 parkwalk
+    this.nobike = nb.size && s.park ? Uint8Array.from(s.park, (k) => nb.has(k)) : null; // W200 parkwalk
+    if (this.nobike) { // W200 parkwalk (its third review's P1): a way the closed edges cut off from the rest (Mount Auburn's 33 m service
+      // spur) is no bike's either, so a bike's snap never lands where no bike course reaches; the walker reads neither
+      const q = new Int32Array(N).map((_, i) => i), fq = (i) => { while (q[i] !== i) { q[i] = q[q[i]]; i = q[i]; } return i; };
+      for (let e = 0; e < E; e++) if (!this.nobike[e]) { const a = fq(s.from[e]), b = fq(s.to[e]); if (a !== b) q[a] = b; }
+      const sz = new Uint32Array(N);
+      for (let i = 0; i < N; i++) sz[fq(i)]++;
+      let top = 0;
+      for (let i = 0; i < N; i++) if (sz[i] > sz[top]) top = i;
+      for (let e = 0; e < E; e++) if (this.main[e] && !this.nobike[e] && fq(s.from[e]) !== top) this.nobike[e] = 1;
+    }
     this.costs = {};
     this.gen = 0;
     this.state = new Uint32Array(2 * E); // gen * 2 = open, gen * 2 + 1 = settled
@@ -274,7 +288,7 @@ export class Router {
     const whole = new Float32Array(2 * E), waitC = st.waits ? new Float32Array(2 * E) : null; // W83 algo: filled in the loop
     for (let d = 0; d < 2 * E; d++) {
       const e = d >> 1;
-      perM[d] = Math.max(1, st.factor(this.sculFactor(d), s.cls[e], this.bike(d), s.flags[e], this.wrong(d), this.bare(d), this.grade(d))); // W74 graph: bare; W140 dircomfort: grade
+      perM[d] = this.nobike?.[e] ? Infinity : Math.max(1, st.factor(this.sculFactor(d), s.cls[e], this.bike(d), s.flags[e], this.wrong(d), this.bare(d), this.grade(d))); // W74 graph: bare; W140 dircomfort: grade; W200 parkwalk: never in a "nobikes" area (lb.js: NONE)
       climbAt[d] = this.rise(d) - st.cutoff * s.len[e]; // the edge's change to the elevation buffer
       turnW[d] = s.flags[e] & (F.ROTARY | F.ROUTE) ? 0 : st.turn;
       perM[d] += turnW[d] * (s.curve ? s.curve[e] / 1000 : 0) / s.len[e]; // the turn cost of its bends, spread along it
@@ -393,7 +407,7 @@ export class Router {
   metres(a, b) { return Math.hypot((b[0] - a[0]) * this.kx, (b[1] - a[1]) * M_PER_DEG); }
 
   /** Nearest point on the main network to lonlat: { e, t (0..1 along the edge), d (metres away), at }. */
-  snap(lonlat) {
+  snap(lonlat, skip = null) { // W200 parkwalk: skip, edges a bike may not use (Router.nobike), for route(); the walker's snaps onto any
     if (!this.grid) this.buildGrid();
     const { cell, gx0, gy0, nx, ny, cs, items } = this.grid;
     const px = lonlat[0] * this.kx, py = lonlat[1] * M_PER_DEG;
@@ -404,6 +418,7 @@ export class Router {
         if (Math.max(Math.abs(i - cx), Math.abs(j - cy)) !== r || i < 0 || j < 0 || i >= nx || j >= ny) continue;
         const c = j * nx + i;
         for (let k = cs[c]; k < cs[c + 1]; k++) {
+          if (skip?.[items[k]]) continue; // W200 parkwalk
           const p = this.closest(items[k], px, py);
           if (!best || p.d < best.d) best = p;
         }
@@ -439,14 +454,14 @@ export class Router {
    * whichever side is handy and walks the bike over.
    */
   near(lonlat) {
-    const best = this.snap(lonlat);
+    const best = this.snap(lonlat, this.nobike); // W200 parkwalk: never in a "nobikes" area
     if (!best) return null;
     if (best.d > WALK_M) return [{ ...best, walk: 0 }];
     const { cell, gx0, gy0, nx, ny, cs, items } = this.grid, { s } = this;
     const px = lonlat[0] * this.kx, py = lonlat[1] * M_PER_DEG, seen = new Set();
     for (let j = Math.floor((py - WALK_M - gy0) / cell); j <= Math.floor((py + WALK_M - gy0) / cell); j++)
       for (let i = Math.floor((px - WALK_M - gx0) / cell); i <= Math.floor((px + WALK_M - gx0) / cell); i++)
-        if (i >= 0 && j >= 0 && i < nx && j < ny) for (let k = cs[j * nx + i]; k < cs[j * nx + i + 1]; k++) seen.add(items[k]);
+        if (i >= 0 && j >= 0 && i < nx && j < ny) for (let k = cs[j * nx + i]; k < cs[j * nx + i + 1]; k++) if (!this.nobike?.[items[k]]) seen.add(items[k]); // W200 parkwalk: nobike
     // across: the walk at least 45 degrees off the way's line at its point, and off the nearest way's (else the course
     // rides along that way to it)
     const across = (p) => {
@@ -512,7 +527,7 @@ export class Router {
     } // W56 reroute
     style = STYLE_ALIASES[style] || style;
     const ll = (p) => (Array.isArray(p) ? p : [p.lon, p.lat]);
-    const pts = [from, ...(via || []), to].map((p) => this.snap(ll(p)));
+    const pts = [from, ...(via || []), to].map((p) => this.snap(ll(p), this.nobike)); // W200 parkwalk: nobike
     if (pts.some((p) => !p)) return null;
     // W32 routing: the start and the end may be on any way near the place, with a walk to it (`near`); a via is on the
     // way nearest it
@@ -836,7 +851,7 @@ export class Router {
     const geometry = [], ends = [];
     const junctionAt = []; // distance along the course at the end of each leg
     const bike_m = Object.fromEntries(BIKE.map((k) => [k, 0]));
-    let dist = 0, time = 0;
+    let dist = 0, time = 0, footT = 0; // W200 parkwalk: footT, the seconds of it on foot (walk_s)
     const elev = [];
     const prof = [], ways = []; // W53 turns: the course strip's heights [at_m, z_m] and way kinds [at_m, kind], in runs
     const steps = []; // W54 flight: the flights of steps along it, [from_m, to_m]
@@ -845,11 +860,13 @@ export class Router {
     const dust = []; // W104 oss2: the unpaved stretches, [from_m, to_m]
     const junk = [], tracks = []; // W67 graph3: the Space Junk and the track crossings ridden through, at the leg's end junction
     const stops = []; // W86 stops: the stop signs met, at the junction the approach's sign faces [at_m, lon, lat]
+    const parks = []; // W200 parkwalk (SPEC §357): the stretches walked through an area whose rules ban riding, [from_m, to_m, its name] (the graph's `park`, its header's `parks`); none without the section
     const comfort = []; // W140 dircomfort: the comfort this way (the graph's comfort_dir, 0 to 7), [at_m, level] in runs; null where unknown (a pack built before it); none without the section
     for (const [i, [d, f0, f1]] of legs.entries()) {
       const { pts, m } = this.piece(d, f0, f1);
       const next = legs[i + 1]?.[0];
       time += m * this.secPerM(d) + (next === undefined ? 0 : next >> 1 === d >> 1 ? 2 * PACE.turn_s : this.waitS(d, next)); // turning back at a via
+      if (this.bike(d) === B.walk || this.bike(d) === B.steps || this.wrong(d)) footT += m * this.secPerM(d); // W200 parkwalk: as `walks` below
       for (const p of geometry.length ? pts.slice(1) : pts) geometry.push([+p[0].toFixed(6), +p[1].toFixed(6)]);
       const z0 = s.elev_dm[this.tail(d)] / 10, z1 = s.elev_dm[this.head(d)] / 10;
       if (!elev.length) elev.push(z0 + (z1 - z0) * f0);
@@ -860,6 +877,8 @@ export class Router {
       if (s.comfort_dir && m > 0) { const c = (s.comfort_dir[d >> 1] >> (d & 1 ? 4 : 0)) & 15, v = c ? c - 1 : null; if (!comfort.length || comfort.at(-1)[1] !== v) comfort.push([Math.round(dist), v]); } // W140 dircomfort
       if (this.bare(d) && m > 0) { const t = bare.at(-1); if (t && Math.round(dist) - t[1] <= 1) t[1] = Math.round(dist + m); else bare.push([Math.round(dist), Math.round(dist + m)]); } // W59 routes
       if ((this.bike(d) === B.walk || this.bike(d) === B.steps || this.wrong(d)) && m > 0) { const w = walks.at(-1); if (w && Math.round(dist) - w[1] <= 1) w[1] = Math.round(dist + m); else walks.push([Math.round(dist), Math.round(dist + m)]); } // W86 ride
+      const pn = s.park?.[d >> 1] && m > 0 && (this.bike(d) === B.walk || this.bike(d) === B.steps) && this.header.parks?.[s.park[d >> 1] - 1]; // W200 parkwalk: none for a park the header doesn't name (a pack's longer table merged onto an older base)
+      if (pn) { const w = parks.at(-1); if (w && w[2] === pn && Math.round(dist) - w[1] <= 1) w[1] = Math.round(dist + m); else parks.push([Math.round(dist), Math.round(dist + m), pn]); } // W200 parkwalk
       if (this.bike(d) === B.steps && m > 0) { const st = steps.at(-1); if (st && Math.round(dist) - st[1] <= 1) st[1] = Math.round(dist + m); else steps.push([Math.round(dist), Math.round(dist + m)]); } // W54 flight
       dist += m;
       if (i + 1 < legs.length && f1 === 1) { // W67 graph3: on through the leg's head
@@ -887,10 +906,13 @@ export class Router {
     let walked = 0;
     for (const w of [walk.start, walk.end]) if (w) walked += this.metres(...w);
     time += walked / (PACE.walk * MPH);
+    footT += walked / (PACE.walk * MPH); // W200 parkwalk
     if (walk.end) maneuvers.at(-1).walk_m = Math.round(b.walk);
     const r6 = (w) => w && w.map((p) => [+p[0].toFixed(6), +p[1].toFixed(6)]);
-    return { geometry, distance_m: Math.round(dist), climb_m: Math.round(climb), time_s: Math.round(time), maneuvers, bike_m, cost: Math.round(cost),
-      walk_m: Math.round(walked), walk: { start: r6(walk.start), end: r6(walk.end) }, elev: prof, ways, steps, bare, junk, tracks, stops, walks, dust, comfort }; // W140 dircomfort: comfort; W104 oss2: dust; W53 turns: elev, ways; W54 flight: steps; W59 routes: bare; W67 graph3: junk, tracks; W86 stops; W86 ride: walks
+    // W200 parkwalk (SPEC §357): `walk_s`, the seconds of `time_s` on foot (the walks, the steps, the wrong way, the walks to and
+    // from the course), which her pace never scales (app/course-logic.js routeSeconds)
+    return { geometry, distance_m: Math.round(dist), climb_m: Math.round(climb), time_s: Math.round(time), walk_s: Math.round(footT), maneuvers, bike_m, cost: Math.round(cost),
+      walk_m: Math.round(walked), walk: { start: r6(walk.start), end: r6(walk.end) }, elev: prof, ways, steps, bare, junk, tracks, stops, walks, parks, dust, comfort }; // W200 parkwalk: parks; W140 dircomfort: comfort; W104 oss2: dust; W53 turns: elev, ways; W54 flight: steps; W59 routes: bare; W67 graph3: junk, tracks; W86 stops; W86 ride: walks
   }
 
   /** W67 graph3: the angle between the course along directed edge d and the track at its head v, 0 to 90 degrees. */

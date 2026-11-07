@@ -68,7 +68,7 @@ export function toCourse(pack, r, { id = "planned", title = "Planned course" } =
     type: "Feature",
     properties: {
       id, title, profile: r.style, length_m: r.distance_m, light_years: +(r.distance_m / 1609.344).toFixed(2),
-      ascend_m: r.climb_m, time_s: r.time_s, bike_m: r.bike_m, instructions: r.maneuvers.map((m) => instruction(pack, m)),
+      ascend_m: r.climb_m, time_s: r.time_s, walk_s: r.walk_s || 0, bike_m: r.bike_m, /* W200 parkwalk: walk_s, for the ETA at her pace */ instructions: r.maneuvers.map((m) => instruction(pack, m)),
       stops: (r.stops || []).map(([, lon, lat]) => [lon, lat]), // W86 stops: the stop signs met, for the events engine
       lanes: laneRuns(r), // W93 busstop: the painted or shared bike lanes ridden, for a bus stop beside one
       source: "Starchart router, data © OpenStreetMap contributors (ODbL)",

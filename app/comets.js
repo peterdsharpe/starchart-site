@@ -16,9 +16,9 @@
 //   Both refresh while open (app/hints.js places them).
 // - On by default; `starchart.comets` = "off" turns them off, as window.starchart.comets.set(false) does.
 import { MBTA, Line, Limiter, STALE_MS, cometRadius, arrivalsAt, comingStops, decodePolyline, glideOf, inArea, mayPoll, mercX, mercY, nestUrl, parsePredictions, parseShapes,
-  parseVehicles, pollDelay, routeOf, lineColour, shapesUrl, STATION_LINE_M, stationLines, stationUrl, tripUrl, vehiclesUrl, TAIL_R, sideOffsets, tailRadius, tailSpots, placeComet, stopUrl, stopEtas, RIM, TAIL_DOTS, tailFade, rimColour } from "./comets-logic.js"; // W111 stationlines: stationLines; W144 tlines: TAIL_R, sideOffsets; W150 mapink: tailRadius, tailSpots; W153 tstations: placeComet
+  parseVehicles, pollDelay, routeOf, lineColour, shapesUrl, STATION_LINE_M, stationLines, stationUrl, tripUrl, vehiclesUrl, TAIL_R, SIDE, sideOffsets, tailRadius, tailSpots, placeComet, stopUrl, stopEtas, RIM, TAIL_DOTS, tailFade, rimColour } from "./comets-logic.js"; // W200 comets4: SIDE; W111 stationlines: stationLines; W144 tlines: TAIL_R, sideOffsets; W150 mapink: tailRadius, tailSpots; W153 tstations: placeComet
 import { clockAt } from "./course-logic.js";
-import { pick } from "./lingo-mode.js"; // W60 b: the peeks' words
+import { onLingo, pick, plain } from "./lingo-mode.js"; // W60 b: the peeks' words; W200 comets4: plain, onLingo, Plain's trains without tails
 import { bikeWords, bikesNow, stationWords, word } from "./comet-bikes.js"; // W59 cometbikes; W88 settings3: no bikes-only view, so no fades
 import { keepLayer } from "../chart/prototype/gl-layer.js"; // W39 ship
 import { KINDS } from "../chart/lingo/kinds.js"; // W191 dataleft (SPEC §335): the trains from the tiles' tracks' zoom, chart/kinds.json's (was 9 here)
@@ -30,7 +30,7 @@ import { MASSPORT } from "../chart/routing/transit.js"; // W192 sltimes: Masspor
 export const SETTING = "starchart.comets"; // "off" or "on" (the default)
 const SHAPES = "starchart:comets-shapes", WEEK = 7 * 864e5;
 const TAIL = TAIL_DOTS; // W196 comets3: 30 for the slimmer tail, as close (comets-logic.js); dots behind the head, overlapping, so the tail reads as one streak; W95 cometlook: 16, was 8, for a tail eight radii long; W144 tlines: 24, for TAIL_R's twelve, as close; W150 mapink: 24 still, spaced by their size (tailSpots)
-const PER = 2 * (TAIL + 1) + 1; // instances a comet: its rim (the tail's dots and the head, a size up), its fill (the same), its chevron; W196 comets3: was its glow, its head and its tail
+const PER = 3 * TAIL + 3; // instances a comet at most: its tail's rims and fills, then its head's rim, its tail's root again over it, its fill and its chevron (W200 comets4); W196 comets3: its rim (the tail's dots and the head, a size up), its fill (the same), its chevron, was its glow, its head and its tail
 // W95 cometlook: the tail's length in head radii (her note: "the tail is really short"); W144 tlines: TAIL_R (comets-logic.js), 12, was 8; W150 mapink: 6.15, 0.1.65's length on the screen
 const STRIDE = 11; // floats an instance: a_pos (3), a_look (size px, alpha, kind), a_color (3), a_dir (2); W40 maplayout: a_pos's z, the ground's height; W196 comets3: a_dir, and kind for core
 const HIT_PX = 14;
@@ -164,8 +164,11 @@ export function mountComets({ map, chart = () => true, theme = "dark", calm = fa
   let routes = {}, lines = {}, shapesAt = 0, shapesTried = 0;
   let on = get(SETTING) === "on", modified = "", lastReply = 0, movedAt = performance.now(), open = null, timer = 0, busy = false;
   let buf = new Float32Array(STRIDE * PER * 128), shown = false, fps = 0, shownZ = NaN; // W196 comets3: shownZ, the zoom the buffer was drawn for
+  let tails = !plain(), tickT = 0; // W200 comets4 (SPEC §354): SCUL draws its comets' tails, Plain a train's head alone (her row 4); tickT, the last frame's time, for the glide aside
+  onLingo(() => { tails = !plain(); shownZ = NaN; api.changed?.(); map.triggerRepaint(); }); // W200 comets4: redrawn at once in the new mode
   const tmp = [0, 0], head = [0, 0];
-  let near = { x: new Float64Array(64), y: new Float64Array(64), dx: new Float64Array(64), dy: new Float64Array(64), out: new Float64Array(128), c: [] }; // W144 tlines: this frame's trains in view, for sideOffsets
+  const room = (m) => ({ x: new Float64Array(m), y: new Float64Array(m), dx: new Float64Array(m), dy: new Float64Array(m), out: new Float64Array(2 * m), held: new Uint8Array(m), side: new Float64Array(m), tbuf: new Float64Array(2 * TAIL * m), tails: null, tr: new Float64Array(TAIL), dots: TAIL, dt: 0, c: [] }); // W200 comets4: held, side, the tails in px (holdAside)
+  let near = room(64); // W144 tlines: this frame's trains in view, for sideOffsets
   let tracked = { routes: [], dir: null }; // W33 peeks: the lines drawn for an open peek
   const bikesOf = (c) => c.bikes || 0; // W59 cometbikes; W88 settings3: the bikes-only view (starchart.comets.bikes) went, and with it the trips it asked for
 
@@ -282,10 +285,10 @@ export function mountComets({ map, chart = () => true, theme = "dark", calm = fa
     const show = on && comets.size > 0 && performance.now() - lastReply < STALE_MS && map.getZoom() >= KINDS.comet_trail.zoom && !!map.getLayer("comets") && map.getLayoutProperty("comets", "visibility") !== "none"; // W173 mapstyle2: not while a preview puts them aside (app/layers.js hush), so a tap finds none; W173 integration: nor while a lost context has no layer yet (MapLibre fires an error for each ask of a missing layer)
     if (!show) { fps = 0; if (shown) { shown = false; layer.set(buf, 0); return true; } return false; }
     const z = map.getZoom(), world = 512 * 2 ** z, r = cometRadius(z), len = (TAIL_R * r) / world; // small at low zoom; W95 cometlook: TAIL_R radii, was 12-36 px
-    if (r !== spotsR) { tailSpots(r, TAIL, spots); spotsR = r; } // W150 mapink
+    if (r !== spotsR) { tailSpots(r, TAIL, spots); spotsR = r; for (let k = 0; k < TAIL; k++) near.tr[k] = tailRadius(r, spots[k]); } // W150 mapink; W200 comets4: the dots' radii, for holdAside
     const b = map.getBounds(), x0 = mercX(b.getWest()), x1 = mercX(b.getEast()), y0 = mercY(b.getNorth()), y1 = mercY(b.getSouth()), pad = 40 / world;
     if (buf.length < comets.size * PER * STRIDE) buf = new Float32Array(comets.size * PER * STRIDE * 2);
-    if (near.x.length < comets.size) { const m = comets.size * 2; near = { x: new Float64Array(m), y: new Float64Array(m), dx: new Float64Array(m), dy: new Float64Array(m), out: new Float64Array(2 * m), c: near.c }; } // W144 tlines
+    if (near.x.length < comets.size) { const tr = near.tr; near = room(comets.size * 2); near.tr = tr; } // W144 tlines; W200 comets4: room()
     let moved = !shown || z !== shownZ, speed = 0, m = 0; // W144 tlines: m, the trains in view; W196 comets3: a zoom redraws standing trains too, whose tails and heads were the last zoom's (her row 18's dots up close)
     const deep = !!map.getTerrain(); // W40 maplayout
     n = 0;
@@ -293,22 +296,34 @@ export function mountComets({ map, chart = () => true, theme = "dark", calm = fa
     for (const c of comets.values()) { // W144 tlines: first each train's place and way, then their offsets aside, then the drawing
       place(c, t, len);
       // only the comets in view go in the buffer (an instance off the screen still costs the draw)
-      if (!inView(c, x0, x1, y0, y1, pad)) { c.drawnX = NaN; continue; }
+      if (!inView(c, x0, x1, y0, y1, pad)) { c.drawnX = NaN; c.held = 0; c.side = 0; continue; } // W200 comets4: back in view, on its line
       const wx = c.hx - c.tail[0], wy = c.hy - c.tail[1], wl = Math.hypot(wx, wy) || 1; // its way: from its tail's first dot to its head
-      near.x[m] = c.hx * world; near.y[m] = c.hy * world; near.dx[m] = wx / wl; near.dy[m] = wy / wl; near.c[m++] = c;
+      near.x[m] = c.hx * world; near.y[m] = c.hy * world; near.dx[m] = wx / wl; near.dy[m] = wy / wl; near.held[m] = c.held || 0; near.side[m] = c.side || 0; // W200 comets4: held, side
+      if (tails) for (let k = 0, o = 2 * TAIL * m; k < 2 * TAIL; k++) near.tbuf[o + k] = c.tail[k] * world; // W200 comets4: its tail in px, on its line
+      near.c[m++] = c;
     }
-    sideOffsets(m, near.x, near.y, near.dx, near.dy, r, near.out); // W144 tlines: px
+    near.tails = tails ? near.tbuf : null; near.dt = calm ? Infinity : Math.max(0, t - tickT); tickT = t; // W200 comets4: Calm puts them aside and back at once
+    sideOffsets(m, near.x, near.y, near.dx, near.dy, r, near.out, near); // W144 tlines: px; W200 comets4: near keeps who's held aside (holdAside)
     for (let i = 0; i < m; i++) {
-      const c = near.c[i], ox = (c.ox = near.out[2 * i] / world), oy = (c.oy = near.out[2 * i + 1] / world), tail = c.tail;
+      const c = near.c[i], ox = (c.ox = near.out[2 * i] / world), oy = (c.oy = near.out[2 * i + 1] / world);
+      c.held = near.held[i]; c.side = near.side[i]; if (c.side > 0 && c.side < 1) speed = Math.max(speed, (SIDE.push * r * 1000) / SIDE.ease); // W200 comets4: a frame each px of its glide aside or back
       gz = deep ? ground(c) - (api.sink ? api.sink(c) : 0) : 0; c.z = gz; // W40 maplayout: the hills rise as the tilt eases in, and their tiles come; W70 deep: in a tunnel, at its depth (app/deep.js)
       if (Math.hypot(c.hx + ox - c.drawnX, c.hy + oy - c.drawnY, gz - c.drawnZ) * world >= 0.5 || !(c.drawnX === c.drawnX)) moved = true; // NaN: it has just come into view; W40 maplayout: z; W144 tlines: aside
       if (c.dur && t - c.t0 < c.dur) { const e = c.g?.end || c.to, d = c.g?.line ? Math.abs(c.g.s1 - c.g.s0) : Math.hypot(e[0] - c.from[0], e[1] - c.from[1]); speed = Math.max(speed, (d * world * 1000) / c.dur); } // W92 cometsnap: e
-      const big = open?.comet === c ? 1.5 : 1; // W88 settings3: no alpha, since the bikes-only view that faded them went
-      rgb = c.color;
-      const R = r * big, hx = c.hx + ox, hy = c.hy + oy; // W196 comets3 (SPEC §346): one solid shape, rimmed, its chevron; no glow
-      for (let k = TAIL - 1; k >= 0; k--) put(tail[2 * k] + ox, tail[2 * k + 1] + oy, tailRadius(R, spots[k]) + RIM, 1, 0, 1); // the rim: the whole a size up, under it
-      put(hx, hy, R + RIM, 1, 0, 1);
+    }
+    // W196 comets3 (SPEC §346): each comet one solid shape, rimmed, its chevron; no glow. W200 comets4 (SPEC §354), her row 2: every tail
+    // first, then every head over them all, so no head is under another's tail; her row 4: in Plain a train is its head alone.
+    if (tails) for (let i = 0; i < m; i++) {
+      const c = near.c[i], ox = c.ox, oy = c.oy, tail = c.tail, R = open?.comet === c ? 1.5 * r : r; // W88 settings3: no alpha, since the bikes-only view that faded them went
+      rgb = c.color; gz = c.z;
+      for (let k = TAIL - 1; k >= 0; k--) put(tail[2 * k] + ox, tail[2 * k + 1] + oy, tailRadius(R, spots[k]) + RIM, 1, 0, 1); // the rim: the tail a size up, under it
       for (let k = TAIL - 1; k >= 0; k--) put(tail[2 * k] + ox, tail[2 * k + 1] + oy, tailRadius(R, spots[k]), 1, 0, tailFade(spots[k])); // the tail: tapering and fading toward the rim's colour; W95 cometlook: narrower than the head, to a point; W144 tlines: aside
+    }
+    for (let i = 0; i < m; i++) {
+      const c = near.c[i], ox = c.ox, oy = c.oy, tail = c.tail, R = open?.comet === c ? 1.5 * r : r, hx = c.hx + ox, hy = c.hy + oy;
+      rgb = c.color; gz = c.z;
+      put(hx, hy, R + RIM, 1, 0, 1); // the head's rim
+      if (tails) for (let k = TAIL - 1; k >= 0; k--) { const q = tailRadius(R, spots[k]); if (Math.hypot(tail[2 * k] - c.hx, tail[2 * k + 1] - c.hy) * world < R + RIM + q) put(tail[2 * k] + ox, tail[2 * k + 1] + oy, q, 1, 0, tailFade(spots[k])); } // W200 comets4: its tail's root again, over the head's rim, so head and tail stay one shape
       put(hx, hy, R, 1, 0, 0); // the head, in its line's colour
       dx = (near.dx[i] * R) / world; dy = (near.dy[i] * R) / world;
       put(hx, hy, R, dx || dy ? 1 : 0, 1, 1); // the chevron, the way it goes; none without a way

@@ -1,6 +1,6 @@
 // W21 entry: only rough positions, every one too rough to fly by (app/fixnote.js's roughM). The parked chart centres on
 // the best of them once, unless the pilot has moved it, with a big faint ring in --you the size of its accuracy; main.js
-// puts the ship there, dimmed. The search and the place sheet measure from it. All of it goes with the first good fix.
+// puts the ship there (solid since W200 small8: the ring says it is rough). The search and the place sheet measure from it. All of it goes with the first good fix.
 import { roughM } from "./fixnote.js";
 
 const none = { type: "FeatureCollection", features: [] };

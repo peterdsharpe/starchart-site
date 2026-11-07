@@ -191,7 +191,7 @@ function dijkstra(router, seeds, reverse, bound, slot) {
 
 /** Seeds for a place: the two ends of the way it snaps to, with the walk and the part of the way to each. */
 function seedsAt(router, ll) {
-  const p = router.snap(ll);
+  const p = router.snap(ll, router.nobike); // W200 parkwalk: a bike's, never in a "nobikes" area
   if (!p) return [];
   const { s } = router, L = s.len[p.e], walk = p.d / WALK_MS, perM = router.style("quickest").perM;
   return [[s.from[p.e], walk + L * p.t * perM[2 * p.e + 1] / V_TOP], [s.to[p.e], walk + L * (1 - p.t) * perM[2 * p.e] / V_TOP]];
@@ -365,7 +365,7 @@ export function samples(route, m0 = 0) {
   return out;
 }
 
-const summary = (r, style) => ({ style, time_s: r.time_s, distance_m: r.distance_m, climb_m: r.climb_m, bare_m: r.bare_m, samples: samples(r) });
+const summary = (r, style) => ({ style, time_s: r.time_s, walk_s: r.walk_s || 0, distance_m: r.distance_m, /* W200 parkwalk: walk_s */ climb_m: r.climb_m, bare_m: r.bare_m, samples: samples(r) });
 /** The bike cards to beat: the three styles' routes (the preview's), each { style, time_s, distance_m, climb_m, bare_m, samples }. W105 night: `night`, router.route()'s. */
 export function bikeCards(router, from, to, night = false) { // W105 night: night
   return ["wormhole", "flat", "quickest"].map((style) => { const r = ride(router, { from, to, style, night }); return r && summary(r, style); }).filter(Boolean); // W105 night: night
@@ -444,7 +444,7 @@ export function plan(router, tt, from, to, at, opts = {}) {
 
 /** A plan's legs and totals: ride, walk_in, wait, train (and a change, and another), walk_out, ride. Times as ms. */
 function describe(tt, { at, t0, r0, r1, legs, S0, S1, onPlat, off, end, in_ll, out_ll, risk_s, k, weekday }) { // W62 cometcard: in_ll, out_ll; W73 transit: risk_s; W189 transittimes: k, weekday
-  const ms = (s) => at + (s - t0) * 1000, route = (r, type, m0) => ({ type, time_s: r.time_s, distance_m: r.distance_m, climb_m: r.climb_m, bare_m: r.bare_m, geometry: r.geometry, samples: samples(r, m0) });
+  const ms = (s) => at + (s - t0) * 1000, route = (r, type, m0) => ({ type, time_s: r.time_s, walk_s: r.walk_s || 0, distance_m: r.distance_m, /* W200 parkwalk: walk_s */ climb_m: r.climb_m, bare_m: r.bare_m, geometry: r.geometry, samples: samples(r, m0) });
   const out = [route(r0, "ride", 0), { type: "walk_in", station: S0.id, name: S0.name, lonlat: in_ll, time_s: STATION.dismount + S0.access_s, ...(S0.stairs ? { stairs: true } : {}) }]; // W62 cometcard: lonlat, the entrance leg 1 lands at
   let ready = onPlat;
   for (const [n, l] of legs.entries()) {
@@ -513,6 +513,7 @@ export function earn(result, { wet = null, rules = EARN, paceK = 1 } = {}) { // 
   const bike = result.bike || [];
   if (!bike.length || !result.plans?.length) return null;
   const quick = Math.min(...bike.map((b) => b.time_s)), k = Math.max(1, paceK); // W76 comets: k
+  const ride = (r) => (r.time_s || 0) - Math.min(r.time_s || 0, r.walk_s || 0), quickK = Math.min(...bike.map((b) => ride(b) / k + b.time_s - ride(b))); // W200 parkwalk: her pace scales the riding, never the walking (app/course-logic.js routeSeconds)
   const cap = Math.min(rules.cap.s, rules.cap.frac * quick);
   const wetOf = (pts) => (wet ? wetMinutes(pts, wet, rules) : { min: 0, late: false });
   const bikeWet = wet ? bike.map((b) => wetOf(b.samples || [])) : null;
@@ -521,7 +522,7 @@ export function earn(result, { wet = null, rules = EARN, paceK = 1 } = {}) { // 
   const cut = (a, b, frac, min) => a - b >= min && b <= (1 - frac) * a;
   for (const p of result.plans) {
     const saves = quick - p.total_s - (p.risk_s || 0), costs = -saves; // W73 transit: its changes charged
-    const last = p.legs.findLast((l) => l.type === "ride")?.time_s || 0, paced = quick / k - p.total_s - last * (1 / k - 1); // W76 comets: as the cards show it (a change's charge isn't shown), for a pilot quicker than the router
+    const r1 = p.legs.findLast((l) => l.type === "ride"), last = r1 ? ride(r1) : 0, paced = quickK - p.total_s - last * (1 / k - 1); // W76 comets: as the cards show it (a change's charge isn't shown), for a pilot quicker than the router; W200 parkwalk: their riding at her pace
     const bus = p.legs.some((l) => l.mode === "bus"), bar = bus ? rules.bus : rules.time; // W128 buslegs
     if (saves >= Math.max(bar.s, bar.frac * quick) && paced > 0) return { ...p, earned: { reason: "time", saves_s: saves, bike_s: quick, comet_s: p.total_s } }; // W128 buslegs: bar
     if (costs > cap || bus) continue; // W128 buslegs: never a bus for rain or comfort alone

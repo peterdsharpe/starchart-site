@@ -12,7 +12,7 @@
 //
 // Every string is [SCUL, Plain] (app/lingo-mode.js pick()); a lone string is both modes'.
 import { pick } from "./lingo-mode.js";
-import { clockAt, carFree } from "./course-logic.js";
+import { clockAt, carFree, rideSeconds } from "./course-logic.js"; // W200 parkwalk: rideSeconds
 import { metres } from "./geo.js";
 import { samples } from "../chart/routing/transit.js";
 import { lineColour } from "./comets-logic.js"; // W186 palette
@@ -54,7 +54,7 @@ const ridesOf = (p) => p.legs.filter((l) => l.type === "ride");
  * `share`: the trains' part of the trip, [from, to] in 0..1, for the card's bar.
  */
 export function cometCard(p, { paceK = 1, now = Date.now() } = {}) { // W189 transittimes: now, for Leave by
-  const t0 = trainsOf(p)[0], r1 = ridesOf(p).at(-1), late = r1 ? r1.time_s * (1 / paceK - 1) : 0;
+  const t0 = trainsOf(p)[0], r1 = ridesOf(p).at(-1), late = r1 ? rideSeconds(r1) * (1 / paceK - 1) : 0; // W200 parkwalk: its riding, not its walks
   const total = p.total_s + late, trains = trainsOf(p), start = (t0.dep - (p.arrive - p.total_s * 1000)) / 1000;
   const warn = p.legs.filter((l) => l.stairs).map((l) => WORDS.stairs(l.name)).concat(busOf(p) ? [pick(WORDS.rack)] : []); // W128 buslegs: the rack's limit
   const lb = leaveBy(p, now, { paceK }); // W189 transittimes
@@ -68,7 +68,7 @@ export function cometCard(p, { paceK = 1, now = Date.now() } = {}) { // W189 tra
 }
 
 /** The preview's routes by style (the router's), as W61's planner weighs them (transit.js bikeCards()'s shape). */
-export const bikeCards = (routes) => Object.entries(routes).filter(([, r]) => r).map(([style, r]) => ({ style, time_s: r.time_s, distance_m: r.distance_m,
+export const bikeCards = (routes) => Object.entries(routes).filter(([, r]) => r).map(([style, r]) => ({ style, time_s: r.time_s, walk_s: r.walk_s || 0, distance_m: r.distance_m, /* W200 parkwalk: walk_s */
   climb_m: r.climb_m || 0, bare_m: (r.bare || []).reduce((a, [x, y]) => a + y - x, 0), samples: samples(r) }));
 
 /** How far apart two routes are as choices: their minutes, climb and car-free share, each against its own scale. */

@@ -12,7 +12,7 @@
 // Every string is [SCUL, Plain] (app/lingo-mode.js pick()); a lone string is both modes'. A bus is "bus" in both modes
 // until arclight names one (W72 walktransit §2.5: "transports" are cars).
 import { pick } from "./lingo-mode.js";
-import { clockAt } from "./course-logic.js";
+import { clockAt, rideSeconds } from "./course-logic.js"; // W200 parkwalk: rideSeconds
 import { lineColour } from "./comets-logic.js"; // W186 palette
 import { fillNext } from "../chart/routing/transit.js"; // W189 transittimes
 
@@ -105,10 +105,10 @@ export const LEAVE = { early_s: 180, before_s: 120, now_ms: 5 * 60000 };
 /** W189 transittimes: when to set off for plan `p`'s first boarding (ms), or null: on time, the vehicle gone, the time past, or a
  *  plan for later. `paceK`: the rider's pace on a bike plan's rides before it, as the card's minutes take it. Information only:
  *  Start sets out at once, and the card's minutes count from now. */
-export function leaveBy(p, now = Date.now(), { paceK = 1 } = {}) {
+export function leaveBy(p, now = Date.now(), { paceK = 1 } = {}) { // W200 parkwalk: the rides' riding at her pace, their walks unscaled
   const i = p.legs.findIndex((l) => l.type === "train"), wait = p.legs[i - 1], start = p.arrive - p.total_s * 1000;
   if (i < 0 || wait?.type !== "wait" || Math.abs(start - now) > LEAVE.now_ms || p.legs[i].dep <= now) return null;
-  const early = wait.time_s - p.legs.slice(0, i).reduce((a, l) => a + (l.type === "ride" ? l.time_s * (1 / paceK - 1) : 0), 0), t = start + (early - LEAVE.before_s) * 1000;
+  const early = wait.time_s - p.legs.slice(0, i).reduce((a, l) => a + (l.type === "ride" ? rideSeconds(l) * (1 / paceK - 1) : 0), 0), t = start + (early - LEAVE.before_s) * 1000;
   return early > LEAVE.early_s && t > now ? t : null;
 }
 

@@ -27,7 +27,7 @@ const str = (v) => typeof v === "string"; // W73 logsafe
 /** W73 logsafe: the summary's fields the Log reads, each with its type (app/logbook.js FlightStats.summary(), app/blackbox.js); one of
  *  another type is dropped, as a broken chunk is, so a hand-edited or odd file can't break the Log page. Any other field stays. */
 const TYPES = { name: str, dest: str, systems: (v) => Array.isArray(v) && v.every(str), thumb: (v) => Array.isArray(v) && v.length <= 256 && v.every(Number.isInteger), // W73 logsafe: packThumb writes at most 128
-  ...Object.fromEntries(["top_mps", "climb_m", "pulsars", "holes", "hifives", "cups", "moving_s", "plan_s", "flew_s", "courses", "pace"].map((k) => [k, num])) };
+  ...Object.fromEntries(["top_mps", "climb_m", "pulsars", "holes", "hifives", "cups", "moving_s", "plan_s", "walk_s", "flew_s", "courses", "pace"].map((k) => [k, num])) };
 const typed = (f) => Object.fromEntries(Object.entries(f).filter(([k, v]) => !TYPES[k] || TYPES[k](v))); // W73 logsafe
 
 /** What a backup brings to a phone that has the flights `have` (ids): {flights, chunks: [[id, n, chunk]], skipped}, with

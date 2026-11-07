@@ -15,7 +15,7 @@ export async function aboutStores({ data, group, MB }) {
     const st = await storedTiles(e).catch(() => null), ok = !!st?.current, name = WHAT[e.kind];
     let row = group.querySelector(`[data-kind="${e.kind}"]`);
     if (!row) { row = el("div", "row"); row.dataset.kind = e.kind; group.append(row); }
-    const txt = el("div", "txt"), small = el("small", "", ok ? pick(`Stored on this droid (${MB(e.bytes)}) and checked.`, `Stored on this phone (${MB(e.bytes)}) and checked.`) // W55 layers2: "Works offline" beside it says the rest; W60 c
+    const txt = el("div", "txt"), small = el("small", "", ok ? pick(`Stored on this droid (${MB(e.bytes)}) and checked.`, `Stored on this device (${MB(e.bytes)}) and checked.`) // W55 layers2: "Works offline" beside it says the rest; W60 c // W200 small8 (SPEC §356): device
       : e.kind === "dem" || e.kind === "slope" ? `Drawn once it is stored, after the chart (${MB(e.bytes)}).` // W76 privacy: the hills are never read from the network (app/terrain.js)
       : `Read from the network until it is stored, after the chart (${MB(e.bytes)}).`);
     txt.append(el("span", "", name), small);

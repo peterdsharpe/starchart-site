@@ -42,9 +42,9 @@ export const STORE_WORDS = {
 export function rowState({ supported, total, done, left, held, failed, started, again = false, full = false, nostore = false }) { // W74 integrity: full; W163 iosdownload: nostore
   if (nostore) return { text: pick(...STORE_WORDS.nostore), button: "" }; // W163 iosdownload
   if (!supported) return { text: "Needs a signal: this browser can't store files for the app.", button: "" };
-  if (left <= 0) return { text: pick(`Stored on this droid, ${mb(total)}.`, `Stored on this phone, ${mb(total)}.`), button: "" }; // W60 c // W55 layers2: "Works with no signal" is what Offline says
+  if (left <= 0) return { text: pick(`Stored on this droid, ${mb(total)}.`, `Stored on this device, ${mb(total)}.`), button: "" }; // W60 c // W55 layers2: "Works with no signal" is what Offline says // W200 small8 (SPEC §356): device
   if (held || !started) return { text: `${mb(left)} to download.`, button: "Download now" };
-  if (failed && full) return { text: pick("Not stored: the droid's storage is full.", "Not stored: the phone's storage is full."), button: "Download now" }; // W74 integrity
+  if (failed && full) return { text: pick("Not stored: the droid's storage is full.", "Not stored: the device's storage is full."), button: "Download now" }; // W74 integrity // W200 small8 (SPEC §356): device
   if (failed) return { text: `The download stopped. ${mb(left)} to go; ${again ? "it tries again later" : "tap Download now to try again"}.`, button: "Download now" }; // W40 settings
   return { text: `Downloading, ${Math.floor((100 * done) / total)} %.`, button: "Pause" };
 }

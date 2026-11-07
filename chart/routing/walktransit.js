@@ -148,7 +148,7 @@ export function walkRoute(router, from, to) { // W79 walkgo
     legs = [[seed[2], seed[3], 1], ...ds.map((d) => [d, 0, 1]), last].filter(([, f0, f1]) => f1 - f0 > 1e-6);
     if (!legs.length) legs = [last];
   }
-  return { ...router.describe(legs, { at: b.at, walk: 0, place: to }, Math.round(time), { at: a.at, walk: a.d, place: from }), time_s: Math.round(time + b.d / WALK.speed), style: "foot" };
+  return { ...router.describe(legs, { at: b.at, walk: 0, place: to }, Math.round(time), { at: a.at, walk: a.d, place: from }), time_s: Math.round(time + b.d / WALK.speed), walk_s: Math.round(time + b.d / WALK.speed), style: "foot" }; // W200 parkwalk: walk_s, all of it
 }
 
 /** Walking seconds and metres from the tree's start to a point `ll` on the graph (its snap's ends), or null. */

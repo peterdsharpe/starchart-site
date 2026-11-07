@@ -55,7 +55,7 @@ function draw(m, rgb, gain, withLines = true) { // W54 flight: withLines, none i
   const d = Number.isFinite(now) ? ahead.at(m) : null; // W55 weather2
   if (!d) return { rgba: null, lines: [] };
   const soft = blur(d), lines = [];
-  for (const level of withLines ? LEVELS : []) for (const p of areas(soft, level)) { // W54 flight; W112 weatherlook: areas
+  for (const [k, level] of (withLines ? LEVELS : []).entries()) for (const p of areas(soft, level, LEVELS[k + 1] ?? null)) { // W54 flight; W112 weatherlook: areas; W200 rainlook: each step's band alone, so its marks show alone
     lines.push({ level, rings: p.map((l) => { const ll = new Array(l.length / 2); for (let i = 0; i < l.length; i += 2) ll[i / 2] = lonLatOf(l[i], l[i + 1]); return ll; }) });
   }
   return { rgba: paint(soft, new Uint8ClampedArray(W * H * 4), rgb, gain).buffer, lines, made: ahead.stats.made, kept: ahead.kept }; // W55 weather2: made, kept

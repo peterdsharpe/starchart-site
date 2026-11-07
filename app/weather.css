@@ -72,7 +72,7 @@ body:is([data-open~="search"], [data-open~="preview"], [data-open~="fromto"], [d
 #wxsheet .marks .lab.now { color: var(--starlight); font-weight: 700; }
 #wxsheet .note { margin: 8px 0 0; font-size: max(11px, 0.8125rem); line-height: 1.35; color: var(--stardust); } /* W142 remscale */
 #wxsheet .note:empty { display: none; }
-#wxsheet .key { display: flex; gap: 14px; margin: 8px 0 0; font-size: max(11px, 0.8125rem); line-height: 1.2308; color: var(--stardust); } /* W112 weatherlook (SPEC §223): the chart's steps, each its wash and streaks on the chart's ground */ /* W142 remscale */
+#wxsheet .key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; font-size: max(11px, 0.8125rem); line-height: 1.2308; color: var(--stardust); } /* W112 weatherlook (SPEC §223): the chart's steps, each its wash and streaks on the chart's ground */ /* W142 remscale */ /* W200 rainlook: wraps, so Heavy shows at 320 px and 150 % text */
 #wxsheet .key span { display: flex; align-items: center; gap: 6px; }
 #wxsheet .key canvas { width: 32px; height: 16px; border-radius: var(--r-xs); background: var(--void); outline: 1px solid color-mix(in srgb, var(--stardust) 30%, transparent); outline-offset: -1px; }
 #wxsheet .alert { margin: 4px 0 0; font-size: max(11px, 1rem); line-height: 1.35; color: var(--starlight); text-wrap: pretty; } /* W102 winter: the NWS's alert, under the title */ /* W142 remscale */

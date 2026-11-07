@@ -417,16 +417,18 @@ export const stepOf = (d) => (d < 15 ? 0 : d < LEVELS[0] ? 1 : d < LEVELS[1] ? 2
  *  so heavy radiation still leaves the chart readable. Was a lime ramp from 8 % to under a third, the parks' hue. */
 export const WASH = [0, 26, 48, 76, 110];
 export const washAlpha = (d) => WASH[stepOf(d)];
-/** W112 weatherlook: the rain streaks over the steps from light up, one fill pattern a level (they stack, so a heavier step
- *  has more streaks and stronger ones): `size` the tile in CSS px, each streak [x, y] its top (it falls `len` px: left and
- *  down), `alpha` 0-1 and `width` in CSS px. W177 weatherlook (SPEC §315, her note: "a textured cloud with dashes … I am
- *  only seeing a very faint Green Cloud"): dashes she can see, slanted as the chip's rain icon's; light rain 4 in a 32 px
- *  tile at 1.5 px and 0.8 (as many as before, which were 1 px at 0.45), steady 8, heavy 16, on staggered rows, so the
- *  density doubles at each step; a dash crossing the tile's edge goes on in the next tile. */
-export const HATCH = { size: 32, len: [-2.5, 6], levels: [
-  { level: LEVELS[0], streaks: [[2, 1], [22, 9], [10, 17], [30, 25]], alpha: 0.8, width: 1.5 },
-  { level: LEVELS[1], streaks: [[18, 1], [6, 9], [26, 17], [14, 25]], alpha: 0.9, width: 1.8 },
-  { level: LEVELS[2], streaks: [[10, 1], [26, 1], [14, 9], [30, 9], [2, 17], [18, 17], [6, 25], [22, 25]], alpha: 1, width: 2.2 },
+/** W112 weatherlook: the rain streaks, one fill pattern a level: `size` the tile in CSS px, each streak [x, y] its top (it
+ *  falls `len` px: left and down), `alpha` 0-1 and `width` in CSS px. W177 weatherlook (SPEC §315, her note: "a textured
+ *  cloud with dashes … I am only seeing a very faint Green Cloud"): marks she can see, slanted as the chip's rain icon's
+ *  drops; a mark crossing the tile's edge goes on in the next tile. W200 rainlook (SPEC §355, her row 3: "I cannot tell
+ *  which intensity level is currently being displayed … Shorter, rounder drops for light rain, and more elongated ones for
+ *  heavy rain"): the shape tells the step, and each step draws its own alone (areas()' `top`, no longer stacked): light
+ *  rain round drops (6 a tile, 3 px), steady dashes (8, 6.5 px long, as W177's steady), heavy long streaks (6, 12 px),
+ *  the ink about doubling at each step as before. */
+export const HATCH = { size: 32, levels: [
+  { level: LEVELS[0], streaks: [[2, 2], [18, 2], [7.33, 12.67], [23.33, 12.67], [12.67, 23.33], [28.67, 23.33]], len: [-0.4, 1], alpha: 0.9, width: 3 }, // W200 rainlook: drops
+  { level: LEVELS[1], streaks: [[2, 1], [18, 1], [6, 9], [22, 9], [10, 17], [26, 17], [14, 25], [30, 25]], len: [-2.5, 6], alpha: 0.9, width: 1.8 }, // W200 rainlook: dashes
+  { level: LEVELS[2], streaks: [[2, 1], [12.67, 1], [23.33, 1], [7.33, 17], [18, 17], [28.67, 17]], len: [-4.6, 11], alpha: 1, width: 2.4 }, // W200 rainlook: streaks
 ] };
 /** W112 weatherlook: the hatch's image name at a contour level. */
 export const hatchId = (level) => `wx-rain-${LEVELS.indexOf(level) + 1}`;
@@ -506,12 +508,14 @@ export function contour(d, level, w = W, h = H) { // W112 weatherlook: w, h for 
  * W112 weatherlook: the areas of `d` at `level` or above, as polygons [[outer, ...holes], …] (each ring a closed flat
  * [x0, y0, …] in cell coordinates), for the hatch's fill. The grid is edged with a dry cell all round, so every ring
  * closes; a ring inside an odd number of others is a hole, in the smallest of them (contour()'s segments don't keep one
- * winding, so it is told by nesting).
+ * winding, so it is told by nesting). W200 rainlook (SPEC §355): with `top`, the band from `level` up to `top` only, so each
+ * step draws its own marks alone: the rings at both levels, nested as before (a heavier area is a hole in it, and a lighter
+ * hole in that an island).
  */
-export function areas(d, level) {
+export function areas(d, level, top = null) {
   const P = W + 2, pad = new Float32Array(P * (H + 2));
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) pad[(y + 1) * P + x + 1] = d[y * W + x];
-  const rings = contour(pad, level, P, H + 2).map((l) => { const r = l.map((v) => v - 1); r[r.length - 2] = r[0]; r[r.length - 1] = r[1]; return r; });
+  const rings = (top === null ? [level] : [level, top]).flatMap((l) => contour(pad, l, P, H + 2)).map((l) => { const r = l.map((v) => v - 1); r[r.length - 2] = r[0]; r[r.length - 1] = r[1]; return r; }); // W200 rainlook: and top's
   const box = rings.map((r) => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (let i = 0; i < r.length; i += 2) { x0 = Math.min(x0, r[i]); x1 = Math.max(x1, r[i]); y0 = Math.min(y0, r[i + 1]); y1 = Math.max(y1, r[i + 1]); } return [x0, y0, x1, y1]; });
   const size = box.map(([x0, y0, x1, y1]) => (x1 - x0) * (y1 - y0));
   const inside = (r, x, y) => { let c = false; for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) if ((r[i + 1] > y) !== (r[j + 1] > y) && x < ((r[j] - r[i]) * (y - r[i + 1])) / (r[j + 1] - r[i + 1]) + r[i]) c = !c; return c; };

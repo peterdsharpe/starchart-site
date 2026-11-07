@@ -164,18 +164,20 @@ export const MAX_PTS = 1000;
 export class FlightStats {
   constructor() {
     Object.assign(this, { top_mps: 0, climb_m: 0, pulsars: 0, holes: 0, systems: [], pts: [], ref: null, last: null, dest: "",
-      moving_s: 0, lastT: null, plan: null, plan_s: 0, flew_s: 0, courses: 0, pace: 0, still: 0, stop_s: 0, gap: false }); // W59 pace; W86 eta: still, stop_s; W125 tinygap: gap
+      moving_s: 0, lastT: null, plan: null, plan_s: 0, walk_s: 0, flew_s: 0, courses: 0, pace: 0, still: 0, stop_s: 0, gap: false }); // W59 pace; W86 eta: still, stop_s; W125 tinygap: gap; W200 parkwalk: walk_s
   }
   /** W27 friction: the course flown, by its destination's name; the last one set counts. */
   course(dest) { if (dest) this.dest = dest; }
-  /** W59 pace: a course launched: the router's minutes for it (before pace), and the pace then; a new one replaces it. */
-  planned(time_s, pace = 1) { this.plan = time_s > 0 ? { s: time_s, pace, from: this.moving_s, stop: 0 } : null; this.still = 0; } // W86 eta: stop, its longest
+  /** W59 pace: a course launched: the router's minutes for it (before pace), and the pace then; a new one replaces it. W200
+   *  parkwalk: `walk_s`, the router's seconds of it on foot (its walk_s), so the pace learned compares riding with riding. */
+  planned(time_s, pace = 1, walk_s = 0) { this.plan = time_s > 0 ? { s: time_s, pace, from: this.moving_s, stop: 0, walk: Math.min(time_s, walk_s || 0) } : null; this.still = 0; } // W86 eta: stop, its longest; W200 parkwalk: walk
   /** W59 pace: its touchdown: the plan, and the moving time since its launch, add to the flight's. */
   reached() {
     const p = this.plan;
     this.plan = null;
     if (!p) return;
     this.plan_s += p.s; this.flew_s += this.moving_s - p.from; this.courses++;
+    this.walk_s += p.walk || 0; // W200 parkwalk
     this.pace ||= p.pace;
     this.stop_s = Math.max(this.stop_s, p.stop || 0); // W86 eta
   }
@@ -203,7 +205,7 @@ export class FlightStats {
   summary() {
     return { top_mps: +this.top_mps.toFixed(1), climb_m: Math.round(this.climb_m), pulsars: this.pulsars, holes: this.holes,
       systems: this.systems.slice(), thumb: packThumb(this.pts), moving_s: Math.round(this.moving_s), ...(this.dest ? { dest: this.dest } : {}), ...(this.gap ? { gap: true } : {}), // W27 friction: dest; W68 logbulk: moving_s, for the tiny rule; W125 tinygap: gap
-      ...(this.courses ? { plan_s: Math.round(this.plan_s), flew_s: Math.round(this.flew_s), courses: this.courses, pace: this.pace, stop_s: Math.round(this.stop_s) } : {}) }; // W59 pace: only a course flown to its pad; W86 eta: stop_s
+      ...(this.courses ? { plan_s: Math.round(this.plan_s), flew_s: Math.round(this.flew_s), courses: this.courses, pace: this.pace, stop_s: Math.round(this.stop_s), ...(this.walk_s ? { walk_s: Math.round(this.walk_s) } : {}) } : {}) }; // W59 pace: only a course flown to its pad; W86 eta: stop_s; W200 parkwalk: walk_s, the plans' seconds on foot
   }
 }
 
@@ -223,8 +225,13 @@ export function paceOf(flights) {
  *  summed, not their median, which counted a 6 min hop as much as a 40 min ride (her 125 % at 3 % quicker). A short one (planned under `plan_s`),
  *  one with a stop of over `stop_s` (a café) and paceOf's outliers (walked, or a train) are left out. Null under `min`. */
 export const LEARN = { min: 3, n: 5, plan_s: 300, stop_s: 300 }; // W86 eta
+/** W200 parkwalk (SPEC §357): a flight's riding, planned and flown: its plans' seconds on foot (walk_s, at walking pace, which her
+ *  pace never scales) off both, so a walk across the Common doesn't skew the pace; a flight from before has none. */
+export const ridden = (f) => { const w = Math.min(f.walk_s || 0, f.plan_s, f.flew_s); return { plan_s: f.plan_s - w, flew_s: f.flew_s - w, stop_s: f.stop_s }; }; // W200 parkwalk
+/** W59 pace: a flight's planned seconds as its card showed them: riding at the pace then, walking (W200 parkwalk) unscaled. */
+export const plannedAt = (f) => { const w = Math.min(f.walk_s || 0, f.plan_s); return (f.plan_s - w) / (f.pace || 1) + w; }; // W200 parkwalk
 export function learnedPace(flights) { // W86 eta
-  const fs = flights.filter((f) => f.plan_s >= LEARN.plan_s && f.flew_s >= 60 && f.plan_s / f.flew_s >= 0.5 && f.plan_s / f.flew_s <= 2 && !(f.stop_s > LEARN.stop_s)).slice(-LEARN.n); // W86 eta
+  const fs = flights.map(ridden).filter((f) => f.plan_s >= LEARN.plan_s && f.flew_s >= 60 && f.plan_s / f.flew_s >= 0.5 && f.plan_s / f.flew_s <= 2 && !(f.stop_s > LEARN.stop_s)).slice(-LEARN.n); // W86 eta; W200 parkwalk: ridden
   if (fs.length < LEARN.min) return null; // W86 eta
   const sum = (k) => fs.reduce((a, f) => a + f[k], 0); // W150 logtidy: by time, not the median
   return { pct: (100 * sum("plan_s")) / sum("flew_s"), rides: fs.length }; // W86 eta

@@ -15,7 +15,7 @@ import { EventEngine } from "../chart/prototype/events.js";
 import { markClips } from "./landmarks.js"; // W157 landmarks
 import { firstOf, openWorld } from "../chart/prototype/world.js"; // W82 packmap: firstOf
 import { ChartMotion, keepLayer } from "../chart/prototype/gl-layer.js"; // W39 ship: keepLayer
-import { Governor, lively } from "../chart/prototype/perf.js"; import { mountFrameRate } from "./framerate.js"; import { gpsLine, noFixNotice, roughM, waitingWords, lostMs, lostWords, screenOffLine, noGpsHelp } from "./fixnote.js"; // W20 chrome; W21 glass: noFixNotice; W21 flight: lost
+import { Governor, lively } from "../chart/prototype/perf.js"; import { mountFrameRate } from "./framerate.js"; import { gpsLine, noFixNotice, roughM, waitingWords, lostMs, lostWords, screenOffLine, noGpsHelp, shipDims } from "./fixnote.js"; // W20 chrome; W21 glass: noFixNotice; W21 flight: lost
 import { initSound, isSilent } from "../chart/prototype/sound.js";
 import { num } from "../chart/prototype/params.js"; // W60 a: the mode is app/lingo-mode.js's
 import { FollowCamera, frameDt, glideMs, pixels, AutoZoom, streetMps } from "../chart/prototype/follow.js"; // W29 polish: glideMs; W31 navview: AutoZoom, streetMps
@@ -36,7 +36,7 @@ import { flightChatter, sayColourNow } from "./chatter.js"; // W15 settings
 import { startFx } from "./fx.js"; // W15 chart
 import { mountCourse } from "./course.js"; // W17 course
 import { onShare, takeShared, shareWaiting } from "./share-in.js"; // W67 routefile: what another app shared to Starchart
-import { mainName, placeName, restOf, allInside, etaOf, trackMps, LY, MPH, angleBetween as angle, lightLead } from "./course-logic.js"; // W196 voice4: lightLead; // W27 friction: a flight is named for its course; W60 b: placeName; W75 chrome: restOf, allInside; W125 tinygap: trackMps; W152 app O2: LY, MPH, angle
+import { mainName, placeName, restOf, allInside, etaOf, trackMps, LY, MPH, angleBetween as angle, lightLead, routeSeconds } from "./course-logic.js"; // W200 parkwalk: routeSeconds; W196 voice4: lightLead; // W27 friction: a flight is named for its course; W60 b: placeName; W75 chrome: restOf, allInside; W125 tinygap: trackMps; W152 app O2: LY, MPH, angle
 import { ShipModel3D } from "./ship-model-layer.js"; // W21 shipin
 import { KEY as AVATAR, COLOR_KEY as AVATAR_COLOR, avatarHex, avatarOf, mountAvatar, ownKey } from "./avatar.js"; // W86 avatar; W101 avatars: avatarOf; W124 avatars3: AVATAR_COLOR; W196 logsettings2: ownKey, the word mode's own
 import { mountVoices } from "./voices.js"; // W97 voices
@@ -75,7 +75,7 @@ import { WORDS as WALKW } from "./walk-card.js"; // W79 walkgo: Land's word for 
 import { mountRadiation } from "./radiation.js"; // W54 flight
 import { mountDusk, turnNear } from "./dusk.js"; // W73 dark
 import { winterStyle, winterPaints, dimWinter } from "./water.js"; // W67 water
-import { haptic, pulse, turnSide } from "./haptics.js"; import { mountMotion } from "./motion.js"; // W69 motion: haptics, and the UI's motion (SPEC §107)
+import { haptic, pulse, turnSide, touch } from "./haptics.js"; import { mountMotion } from "./motion.js"; // W69 motion: haptics, and the UI's motion (SPEC §107)
 import { setSfx, odometer, landSound, tallyTick, chime } from "./delight.js"; // W73 delight (SPEC §124)
 import { mountMission } from "./mission.js"; // W73 mission: Burn up and the long-haul screen
 import { mountChangelog } from "./changelog.js"; // W98 changelog
@@ -650,7 +650,7 @@ const nav = mountCourse({ map, maplibregl, lingo, world, data, at, flight, pills
     if (nogpsAside) showNoGps(true);
     sheetCam = null; nogpsAside = false;
   }, noPosition: () => { nogpsAside = false; showNoGps(true, { focus: true }); }, gpsLost: () => lost() > 0, // W25 course: Launch with location off says why, over the preview
-  planned: (s) => record.stats?.planned(afoot ? 0 : s, pace()), /* W127 walklog: none on foot, so Pace stays a bike's */ reached: () => record.stats?.reached(), // W59 pace: planned against flown, for the Log
+  planned: (s, w) => record.stats?.planned(afoot ? 0 : s, pace(), w), /* W200 parkwalk: w, its seconds on foot */ /* W127 walklog: none on foot, so Pace stays a bike's */ reached: () => record.stats?.reached(), // W59 pace: planned against flown, for the Log
   transit: () => transit, gap: (on) => { record.gap = on; }, walk: () => walk, afoot: () => { if (flight.state === "landed") commitLanding(false); /* W190 statefacts: a walker's Start in Land's Undo window makes that landing final first, as its Launch would, so the last flight's end doesn't end this walk's on foot */ afoot = true; afootWords(); if (flight.flying) { record.foot(readouts.metres); record.stats?.planned(0); } }, onFoot: () => afoot, ship, /* W190 statefacts: course.js's marker reads it */ land: sim ? null : () => $("land").click() }); // W124 autoland: land, the ride's end at the pad; W79 walkgo: afoot, before its Launch; W127 walklog: or a ride going on foot, from here, its bike plan dropped so Pace never learns a walker's minutes // W62 cometcard: bike plus comet's card; the train leg, a gap in the Log // W73 walk: walk
 const transit = mountTransit({ data, at, router: () => nav.routerReady(), weather, buses: () => walk.load() }); // W61 transit; W62 cometcard: here, for the course; W128 buslegs: buses, the walker's file
 comets.stations = () => transit.stations(); // W111 stationlines: a station's lines with Comets off, and the tracks beside it:
@@ -734,7 +734,7 @@ function showLocate() {
   const s = NO_POSITION.has(gps.gps) && !sim ? "off" : shipShown ? camera.mode : "searching";
   const label = pick(LOC[s === "follow" && compassOff ? "turned" : s]) + ( // W60 a: pick
    lost() && s !== "off" ? ". GPS lost" : ""); // W21 flight
-  ship.dim(Boolean(lost()) || !!est || (ship.on && !shipShown) || s === "off"); // W31 navview: est, an estimate in a GPS gap // W21 flight F2: dim while GPS is lost, whatever the button shows, and at a rough spot; W25 rest: and once location is taken away (entry B5)
+  ship.dim(shipDims({ lost: lost(), est, off: s === "off", rough: ship.on && !shipShown })); // W200 small8 (SPEC §356): solid at a rough spot, its ring says it // W31 navview: est, an estimate in a GPS gap // W21 flight F2: dim while GPS is lost, whatever the button shows; W25 rest: and once location is taken away (entry B5)
   if (s === locShown && label === locLabel) return;
   locShown = s; locLabel = label;
   locBtn.className = "btn " + s + (label.endsWith("GPS lost") ? " lost" : ""); // W21 flight: it breathes
@@ -1089,13 +1089,13 @@ function step(t) {
       camera.update(p.lonlat, p.heading_deg, dt.anim); // settle after a gesture, or finish turning the chart
     }
   } else if (rough && !shipShown) {
-    // Only rough positions: the ship at the best of them, dimmed, inside its accuracy ring (arclight: "I would expect to
-    // still see the dim ship"). Nothing flies or records on them; the first good fix takes over as above.
+    // Only rough positions: the ship at the best of them, inside its accuracy ring (arclight: "I would expect to still see
+    // the dim ship"; W200 small8, her row 1: solid now, the ring says it). Nothing flies or records on them; the first good fix takes over as above.
     const spot = rough.spot();
     if (spot && (!ship.on || ship.lngLat[0] !== spot[0] || ship.lngLat[1] !== spot[1])) {
       if (!ship.on) { ship.on = true; ship.cue("wake"); }
       ship.lngLat[0] = spot[0]; ship.lngLat[1] = spot[1];
-      camera.update(spot, camera.bearing, 0); // the camera's spot too: following keeps the dim ship in view, and the location button goes to it
+      camera.update(spot, camera.bearing, 0); // the camera's spot too: following keeps the ship in view, and the location button goes to it
       showLocate(); map.triggerRepaint();
     } else if (!spot && ship.on) { ship.on = false; showLocate(); map.triggerRepaint(); }
   }
@@ -1425,7 +1425,7 @@ async function wake() {
     if (!flight.flying || !(wakeWanted || pocketWake)) l.release(); // W40 flight: let go at once, landed or switched off meanwhile
     else { wakeLock = l; l.addEventListener("release", () => { if (wakeLock === l) wakeLock = null; showWake(); }); } // W40 flight: only the live lock
     wakeNote = "";
-  } catch { wakeNote = pick("The droid said no. Asks again at Launch.", "The phone said no. Asks again at Record or Start."); } // W60 a: pick; W88 ridemodes: Plain's Record // W28 settings: shorter
+  } catch { wakeNote = pick("The droid said no. Asks again at Launch.", "The device said no. Asks again at Record or Start."); } // W60 a: pick; W88 ridemodes: Plain's Record // W28 settings: shorter // W200 small8 (SPEC §356): device
   wakeAsking = false; // W40 flight
   showWake();
 }
@@ -1440,7 +1440,7 @@ async function pocketAwake(on) {
   await wake();
   if (wakeLock) return null;
   pocketWake = false;
-  return pick("The droid said no.", "The phone said no.");
+  return pick("The droid said no.", "The device said no."); // W200 small8 (SPEC §356): device
 }
 function showWake() {
   $("wake").checked = wakeWanted;
@@ -1461,7 +1461,7 @@ pose.on("visibility", ({ visible }) => {
   Object.assign(screenOff, { id: "screen-off", until: t + 10000, text: screenOffLine(t - screenOff.at), at: 0 }); // W28 resume: id
   trail.gap(); drawTrail(); // W29 polish: no fixes came while it was off, so the trail shows a gap, as after a resume
   showNoFix();
-  tipOnce("pocket", $("longhaul"), pick("Keep the flight going in a pocket: Long haul, then Pocket droid.", "Keep the ride going in a pocket: Dim screen, then Pocket."), { flight: true }); // W195 pocket (SPEC §343): once, the way in, by its buttons' names
+  if (touch()) tipOnce("pocket", $("longhaul"), pick("Keep the flight going in a pocket: Long haul, then Pocket droid.", "Keep the ride going in a pocket: Dim screen, then Pocket."), { flight: true }); // W195 pocket (SPEC §343): once, the way in, by its buttons' names; W200 small8: on a touch screen, where Pocket is
 });
 
 // ---- Settings and About: a bottom sheet (R12) ---------------------------------------------------------
@@ -1497,10 +1497,10 @@ function aboutSource() {
   $("ab-source").textContent = sim ? pick(`The demo mission, at ${speed}×.`, `The demo ride, at ${speed}×.`) : gpsWords(); // W60 a: pick // W28 settings: the demo's GPS and Demo switch left Settings
   $("ab-compass").textContent = {
     ok: "On, and corrected for the magnetic declination in Boston (13.9° W).",
-    "needs-permission": pick("The droid asks at Launch.", "The phone asks at Record or Start."), // W60 a; W88 ridemodes: Plain's Record
+    "needs-permission": pick("The droid asks at Launch.", "The device asks at Record or Start."), // W60 a; W88 ridemodes: Plain's Record // W200 small8 (SPEC §356): device
     denied: "Not allowed, so the heading comes from GPS alone.",
     unavailable: "No compass here, so the heading comes from GPS alone.",
-    uncalibrated: pick("Needs calibrating: move the droid in a figure eight.", "Needs calibrating: move the phone in a figure eight."), // W60 a
+    uncalibrated: pick("Needs calibrating: move the droid in a figure eight.", "Needs calibrating: move the device in a figure eight."), // W60 a // W200 small8 (SPEC §356): device
   }[gps.compass] || "—";
 }
 function showStore() {
@@ -1515,10 +1515,10 @@ function showStore() {
   const keeps = prefix ? `The chart keeps drawing from its first ${MB(tilesEntry.prefix_bytes)}, without street detail` : "The chart keeps reading from the network"; // W76 privacy
   $("ab-store").textContent = {
     network: prefix ? pick(`Only its first ${MB(tilesEntry.prefix_bytes)} from the network, the same for every pilot; street detail comes with the download.`, `Only its first ${MB(tilesEntry.prefix_bytes)} from the network, the same for every rider; street detail comes with the download.`) : "Read from the network with Range requests, until the download finishes.", // W76 privacy
-    downloading: pick(`Downloading into this droid's private storage: ${storeDetail} of ${MB(tilesEntry.bytes)}.`, `Downloading into this phone's private storage: ${storeDetail} of ${MB(tilesEntry.bytes)}.`), // W60 a
+    downloading: pick(`Downloading into this droid's private storage: ${storeDetail} of ${MB(tilesEntry.bytes)}.`, `Downloading into this device's private storage: ${storeDetail} of ${MB(tilesEntry.bytes)}.`), // W60 a // W200 small8 (SPEC §356): device
     verifying: "Downloaded; checking its SHA-256 against data/manifest.json.",
-    stored: pick(`Stored on this droid (${MB(tilesEntry.bytes)}) and checked by SHA-256.`, `Stored on this phone (${MB(tilesEntry.bytes)}) and checked by SHA-256.`), // W60 a: pick; W55 layers2: its "Works offline" says the rest
-    error: storeFull ? pick(`The droid's storage is full. ${keeps}.`, `The phone's storage is full. ${keeps}.`) : `The download stopped (${storeDetail}). ${keeps}${again ? ", and the download tries again later" : "; tap Download now to try again"}.`, // W40 settings: again; W74 integrity: storeFull
+    stored: pick(`Stored on this droid (${MB(tilesEntry.bytes)}) and checked by SHA-256.`, `Stored on this device (${MB(tilesEntry.bytes)}) and checked by SHA-256.`), // W60 a: pick; W55 layers2: its "Works offline" says the rest // W200 small8 (SPEC §356): device
+    error: storeFull ? pick(`The droid's storage is full. ${keeps}.`, `The device's storage is full. ${keeps}.`) : `The download stopped (${storeDetail}). ${keeps}${again ? ", and the download tries again later" : "; tap Download now to try again"}.`, // W40 settings: again; W74 integrity: storeFull // W200 small8 (SPEC §356): device
     unsupported: "This browser cannot store files for the app (it needs the Origin Private File System), so the chart needs a signal.",
     nostore: `This tab can't store files for the app, as in Private Browsing. ${keeps}.`, // W163 iosdownload
   }[storeState] + (stored && !stored.current ? " An older stored chart is in use until the new one is checked." : "");
@@ -1526,7 +1526,7 @@ function showStore() {
 async function showQuota() {
   const qt = await quota();
   const size = (b) => (b >= 1073741824 ? `${(b / 1073741824).toFixed(1)} GB` : MB(b));
-  $("ab-quota").textContent = qt ? `${size(qt.usage)} used of ${size(qt.quota)}${qt.persisted ? ", kept by the browser" : pick(", may be cleared if the droid runs short", ", may be cleared if the phone runs short")}.` : ""; // W22 pwa: iOS's "install keeps your Log" is in the Install row; W60 a: pick
+  $("ab-quota").textContent = qt ? `${size(qt.usage)} used of ${size(qt.quota)}${qt.persisted ? ", kept by the browser" : pick(", may be cleared if the droid runs short", ", may be cleared if the device runs short")}.` : ""; // W22 pwa: iOS's "install keeps your Log" is in the Install row; W60 a: pick // W200 small8 (SPEC §356): device
 }
 function about() {
   $("ab-changes-v").textContent = VERSION; // W98 changelog; W133 settings4 (her note 1): the version shows here alone, the commit in Developer
@@ -1682,7 +1682,7 @@ Promise.race([Promise.all([idle, world.idle()]), stalled]).then(() => { // W47 f
 mountFeedback({ $, version: () => /* W150 logtidy: the Log has no feedback link, so no feedbackPage */ `${VERSION} · ${build.commit.slice(0, 12)}`, // W48 feedback
   app: () => ({ flight: flight.state, source: sim ? "the demo" : "GPS", camera: camera.mode, lingo: mode, // W48 feedback
     router: nav.router, silent: isSilent(), flights: blackbox.flights, packs: packs.list().map((p) => p.state), // W88 feedbackinfo: numbers and words, never a place
-    course: nav.cf && { style: nav.style, metres: nav.cf.length, planned_s: nav.cf.feature.properties.time_s / (nav.cf.pace || 1), ride_s: nav.cf.clock.s, along_m: nav.cf.s } }) }); // W88 feedbackinfo
+    course: nav.cf && { style: nav.style, metres: nav.cf.length, planned_s: routeSeconds(nav.cf.feature.properties, nav.cf.pace || 1), /* W200 parkwalk */ ride_s: nav.cf.clock.s, along_m: nav.cf.s } }) }); // W88 feedbackinfo
 
 // W98 changelog (SPEC §194): what each version changed, from About's What's new; after an update, a note once, parked, with nothing open
 mountChangelog({ page: $("changelog"), row: $("ab-changes"), version: build.version, // W98 changelog

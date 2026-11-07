@@ -137,13 +137,27 @@ export function walkWarnings(route, foot = false) {
   }
   return out.filter((w) => w.m >= WALK_CALL_M).map(({ m, ...w }) => w);
 }
+/** W200 parkwalk (SPEC §357): where a bike course walks through a park whose rules ban riding (the router's `parks`, [from_m,
+ *  to_m, name]), one warning per park [{ at_m, to_m, warn: "park", name }]: its walks within CLUSTER_M one, from WALK_CALL_M walked.
+ *  A row in the turn list (and a line under the cards, parkLine), not a voice line: "Walk your bike ahead." says it. None on a walk. */
+export function parkWalks(route) { // W200 parkwalk
+  if (route?.style === "foot") return []; // W200 parkwalk: on foot it's all walked
+  const out = []; // W200 parkwalk
+  for (const [a, b, name] of route?.parks || []) { const w = out.findLast((x) => x.name === name); if (w && a - w.to_m <= CLUSTER_M) { w.to_m = b; w.m += b - a; } else out.push({ at_m: a, to_m: b, warn: "park", grade: 0, name, m: b - a }); } // W200 parkwalk
+  return out.filter((w) => w.m >= WALK_CALL_M).map(({ m, ...w }) => w); // W200 parkwalk
+} // W200 parkwalk
+/** W200 parkwalk: "Walk your bike through Boston Common" (SCUL: your ship, the codex's), the parks in order, as the app's lists. */
+const parkWords = (names) => { const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0]; return pick(`Walk your ship through ${list}`, `Walk your bike through ${list}`); }; // W200 parkwalk
+/** W200 parkwalk: the preview's line under the cards for the chosen route, or "" where it walks through none. */
+export const parkLine = (route) => { const names = [...new Set(parkWalks(route).map((w) => w.name))]; return names.length ? parkWords(names) : ""; }; // W200 parkwalk
 /** A warning's row in the turn list: "Steps", "Negi g-well, 8 %", with its glyph: the g-well's (design/glyphs/), or the
  *  steps drawn in CSS (`icon`, app/turns.css). W67 graph3: "Space Junk" with its glyph, "Comet tracks" drawn in CSS. */
 const WARN_ROW = { // W67 graph3: [glyph in design/glyphs/, icon in app/turns.css, SCUL, Plain]
   steps: [null, "steps", "Steps", "Steps"], junk: ["space_junk", null, "Space Junk", "Barrier"], tracks: [null, "tracks", "Comet tracks", "Tracks"], // W67 graph3
+  park: [null, "walk", null, null], // W200 parkwalk: the walker (turns.css), its words parkWords'
 }; // W67 graph3
 export const warnRow = (w) => { const k = WARN_ROW[w.warn]; return { ins: { turn: "warn", along_m: w.at_m }, at_m: w.at_m, glyph: null, src: k ? k[0] : "g_well_negi", icon: k ? k[1] : null, // W67 graph3: WARN_ROW
-  text: k ? pick(k[2], k[3]) : pick(`Negi g-well, ${w.grade} %`, `Steep climb, ${w.grade} %`), mark: null, pad: false, warn: w.warn }; }; // W60 b: Plain's climb; W67 graph3
+  text: w.warn === "park" ? parkWords([w.name]) : k ? pick(k[2], k[3]) : pick(`Negi g-well, ${w.grade} %`, `Steep climb, ${w.grade} %`), mark: null, pad: false, warn: w.warn }; }; // W60 b: Plain's climb; W67 graph3; W200 parkwalk: a park's
 /** The turn rows with the warnings among them, in order along the course, the landing pad last. */
 export function withWarnings(rows, warns) {
   const out = rows.filter((r) => !r.pad), pad = rows.filter((r) => r.pad);

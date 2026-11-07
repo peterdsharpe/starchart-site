@@ -20,7 +20,7 @@ const JUNCTION = ["elev_dm", "node_flags"]; // copied with each new junction (lo
 const EDGE = ["len", "cost_fwd", "cost_rev", "curve", "cls", "bike", "flags", "bearing_start", "bearing_end", "lanes", "bike_side"]; // copied with each kept edge
 const MAPPED = ["lon", "lat", "from", "to", "name", "shape0", "shape", "names", "turn_lanes", "r_from", "r_via", "r_to", "r_only",
   "tl_dir", "tl_str", "asl", "wait_dir", "wait_kind", "tr_node", "tr_bear"];
-const OPTIONAL = ["lit", "comfort_dir"]; // W105 night: edge sections a graph may lack (a pack built before them): zero in the merged graph's edges from it; W140 dircomfort: comfort_dir (0, unknown)
+const OPTIONAL = ["lit", "comfort_dir", "park"]; // W105 night: edge sections a graph may lack (a pack built before them): zero in the merged graph's edges from it; W140 dircomfort: comfort_dir (0, unknown); W200 parkwalk: park (0, in no no-ride area; written only where one is, its names the first graph's header's `parks`)
 const FAMILY = (v) => (v === 4 ? 3 : v); // W140 dircomfort: version 4 only adds comfort_dir, an OPTIONAL one, so a version 3 pack merges with a version 4 base (and no later version)
 EDGE.push(...OPTIONAL); // W105 night
 const KNOWN = new Set([...JUNCTION, ...EDGE, ...MAPPED]);

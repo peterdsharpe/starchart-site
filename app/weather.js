@@ -79,17 +79,17 @@ export function mountWeather({ map, $ = (id) => document.getElementById(id), cha
     map.addLayer({ id: LAYER, type: "raster", source: SOURCE, paint: { "raster-opacity": 1, "raster-resampling": "linear", "raster-fade-duration": 0 } }, under);
     // W112 weatherlook (SPEC §223): the contours' areas at 20, 35 and 45 dBZ, filled with rain streaks that stack (more and
     // stronger at each step), the same size at every zoom; no outline, so no line that says nothing (her note: "I cannot
-    // tell if it indicates severity")
+    // tell if it indicates severity"); W200 rainlook (SPEC §355): each step's band alone, its own marks (drops, dashes, streaks), no longer stacked
     map.addSource(LINES, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     hatch();
     map.addLayer({ id: LINES, type: "fill", source: LINES,
       paint: { "fill-pattern": ["match", ["get", "level"], ...LEVELS.slice(0, -1).flatMap((l) => [l, hatchId(l)]), hatchId(LEVELS.at(-1))] } }, map.getLayer(rainBefore) ? rainBefore : under); // W177 weatherlook (SPEC §315): the dashes over the streets, under the bike lanes, the T, the course and every name, so the rain reads as one texture between and over the streets
   }
   /** W112 weatherlook: one level's streaks into `g`, tiled over w x h CSS px at `pr` device px each. */
-  function streaks(g, { streaks: at, alpha, width }, pr, w = HATCH.size, h = HATCH.size) {
+  function streaks(g, { streaks: at, alpha, width, len }, pr, w = HATCH.size, h = HATCH.size) { // W200 rainlook: each step's own length
     g.strokeStyle = rgbOf(colour(theme)); g.globalAlpha = alpha; g.lineWidth = width * pr; g.lineCap = "round";
     g.beginPath();
-    for (let ox = -HATCH.size; ox < w + HATCH.size; ox += HATCH.size) for (let oy = -HATCH.size; oy < h; oy += HATCH.size) for (const [x, y] of at) { g.moveTo((ox + x) * pr, (oy + y) * pr); g.lineTo((ox + x + HATCH.len[0]) * pr, (oy + y + HATCH.len[1]) * pr); } // W177 weatherlook: from a tile before to one after, so a dash cut by the edge goes on
+    for (let ox = -HATCH.size; ox < w + HATCH.size; ox += HATCH.size) for (let oy = -HATCH.size; oy < h; oy += HATCH.size) for (const [x, y] of at) { g.moveTo((ox + x) * pr, (oy + y) * pr); g.lineTo((ox + x + len[0]) * pr, (oy + y + len[1]) * pr); } // W177 weatherlook: from a tile before to one after, so a dash cut by the edge goes on
     g.stroke(); g.globalAlpha = 1;
   }
   /** W112 weatherlook: the streaks' images in the ink of the theme, added or redrawn, and the sheet's key: each step's
@@ -105,7 +105,7 @@ export function mountWeather({ map, $ = (id) => document.getElementById(id), cha
     $("wx-key")?.querySelectorAll("canvas").forEach((k, i) => {
       const w = 32, h = 16, kg = k.getContext("2d"); k.width = w * pr; k.height = h * pr;
       kg.fillStyle = rgbOf(colour(theme)); kg.globalAlpha = (WASH[i + 2] * (theme === "light" ? 0.8 : 1)) / 255; kg.fillRect(0, 0, k.width, k.height);
-      for (const l of HATCH.levels.slice(0, i + 1)) streaks(kg, l, pr, w, h);
+      streaks(kg, HATCH.levels[i], pr, w, h); // W200 rainlook: the step's own marks alone, as the chart draws it
     });
   }
 

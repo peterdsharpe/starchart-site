@@ -124,7 +124,7 @@ body[data-open~="ride-preview"].csheet-r #readout { right: calc(var(--mr) + var(
 .cpreview .facts.metrics { flex-wrap: wrap; /* a long one ("1h 20m", "12.5 LY") puts the last on a line of its own, never cut */ row-gap: 4px; /* W142 remscale: wrapped lines' 44 px targets apart */ font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; white-space: nowrap; }
 .cpreview .facts.metrics i { font-style: normal; font-size: max(11px, 0.875rem); font-weight: 600; letter-spacing: 0.04em; text-transform: none; color: var(--stardust); } /* small and lower case, as the cards' " min" */ /* W142 remscale */
 @container (max-width: 359px) { .cpreview .facts.metrics { gap: 4px 6px; /* W142 remscale: 4px */ font-size: max(11px, 1.0625rem); } .cpreview .facts.metrics i { font-size: max(11px, 0.75rem); letter-spacing: 0; } } /* 320 px: "with transports" whole beside × */
-.cpreview .facts.metrics > :not(.avoided) { flex: none; } .cpreview .facts.metrics .avoided { white-space: normal; } /* W86 preview */
+.cpreview .facts.metrics > :not(.avoided, .parkwalk) { flex: none; } .cpreview .facts.metrics :is(.avoided, .parkwalk) { white-space: normal; } /* W86 preview; W200 parkwalk: .parkwalk */
 .cpreview:has(.cards .wait:not([hidden])) .facts:empty { display: block; min-height: 32px; /* W86 preview: the metrics' height */ } /* W83 progressive: while cards come, the facts' row keeps its place, so the sheet never rises under them; only shown cards (a walker's plan hides the bike cards, still waiting) */
 /* W102 leaveby (SPEC §198): the ride time is a button (a 44 px target in the row's 32 px), dotted under so it reads tappable; after
    a pick it says "Leave 8:37". Its picker floats over the chart beside it, so the sheet keeps its height (§18's 30 %) */
@@ -142,6 +142,7 @@ body[data-open~="ride-preview"].csheet-r #readout { right: calc(var(--mr) + var(
 .leaveby .lb-t { min-width: 4.2ch; text-align: center; font-family: var(--font-display); font-size: calc(28px + (1rem - 16px) * 1.5); font-weight: 700; font-variant-numeric: tabular-nums; } /* W142 remscale */
 .leaveby .lb-step { width: 48px; height: 48px; border-radius: var(--r-pill); border: var(--hairline) solid var(--glass-edge); background: none; color: var(--starlight); font-size: 26px; line-height: 1; } /* W142 remscale: px, the − and + glyphs are icons in a 48 px button */
 body.calm .leaveby { animation: none; }
+.cpreview .facts .parkwalk { flex: 1 0 100%; font: 500 max(11px, 0.8125rem)/1.3 var(--font-body); letter-spacing: 0; text-transform: none; color: var(--stardust); } /* W200 parkwalk (SPEC §357): "Walk your bike through Boston Common", on a line of its own, as the avoided line */
 .cpreview .facts .avoided { flex: 1 0 100%; font: 500 max(11px, 0.8125rem)/1.3 var(--font-body); letter-spacing: 0; text-transform: none; color: var(--stardust); } /* W73 avoid: "1 starpath avoided", small, on a line of its own */ /* W142 remscale */
 .cpreview .facts .avoided.onto::before { --avoid-glyph: var(--prefer-glyph); background: var(--chalk); } /* W133 roadprefs: "Taking Vassar Street" alone: a Prefer's ring and tick, in chalk (app/settings.css has the glyph) */
 .cpreview .facts .avoided.old { color: var(--caution-words, var(--caution)); } /* W80 avoidmap: "Still avoiding Starpath Elm? …", once, 30 days on: in the chart's mark's hue */

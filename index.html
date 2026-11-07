@@ -117,9 +117,9 @@
     <rect class="pd" x="2.4" y="4.4" width="19.2" height="19.2" rx="3.84"/><path class="pws" d="M10.2 11.6V10.4a1.8 1.8 0 0 1 3.6 0V11.6"/><path class="pw" d="M8.2 11.2H15.8L15.3 18.6H8.7Z"/><rect class="pd" x="23" y="11.5" width="22" height="5" rx="2"/><!-- W157 icons3: a shop as the map draws it now, a pink disc and a white bag; W173 icons6: the rounded square again (rx 14 of 50); W192 icons7: rx 10 of 50 -->
     <rect class="pd" x="33.4" y="24.4" width="19.2" height="19.2" rx="3.84"/><path class="pws" d="M40 29.2V32.6Q40 34.6 41.4 34.6V39.6M41.4 29.2V32.4M42.8 29.2V32.6Q42.8 34.6 41.4 34.6M45.6 34V39.6"/><path class="pw" d="M45.6 29Q47.8 30.8 47.1 34.4H45.6Z"/><rect class="pd" x="40" y="44.5" width="20" height="5" rx="2"/><!-- W157 icons3: a place to eat, a white fork and knife -->
     <path class="lh" d="M10 54H10.1M18 54H44"/><path class="lb" d="M10 54H10.1M18 54H44"/></svg></span><span>Places</span></button><!-- W94 bizicons -->
-  <button class="tile" id="layer-weather" aria-pressed="false" data-more="Rain radar and the next two hours."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W52 weather: off by default -->
+  <span class="tilebox"><button class="tile" id="layer-weather" aria-pressed="false" data-more="Rain radar and the next two hours."><span class="pic"><svg viewBox="0 0 64 64" aria-hidden="true"><!-- W52 weather: off by default -->
     <rect class="g" width="64" height="64"/><path class="st" d="M0 20H64M0 45H64M21 0V64M47 0V64"/>
-    <path class="w1" d="M4 41C0 27 14 11 31 12S62 21 60 37 45 59 28 57 7 53 4 41Z"/><path class="w2" d="M17 38C15 29 23 22 32 23S48 29 47 38 37 49 28 48 18 45 17 38Z"/><path class="w3" d="M25 36C24 32 28 29 32 29.5S39 33 38 37 33 42 30 41.5 25.5 39 25 36Z"/><path class="wr" d="M22 15l-2.5 6M42 15l-2.5 6M9 30l-2.5 6M55 26l-2.5 6M10 44l-2.5 6M53 42l-2.5 6M38 50l-2.5 6M25 25l-2.5 6M39 25l-2.5 6M20 35l-2.5 6M46 33l-2.5 6M26 41l-2.5 6M42 41l-2.5 6M31 30l-2.5 6M36 33l-2.5 6"/></svg><!-- W112 weatherlook: the streaks --><!-- W177 weatherlook: dashes slanted as the map's, denser to the middle --></span><span>Weather</span></button>
+    <path class="w1" d="M4 41C0 27 14 11 31 12S62 21 60 37 45 59 28 57 7 53 4 41Z"/><path class="w2" d="M14 38C12 27 22 19 32 20S51 27 50 38 39 52 29 51 15 47 14 38Z"/><path class="w3" d="M22 37C21 31 26 27 32 27.5S42 31 41 37.5 35 46 30 45.5 22.5 42 22 37Z"/><path class="wr wr1" d="M17 17l-.4 1M28 15l-.4 1M40 15l-.4 1M52 22l-.4 1M9 29l-.4 1M56 33l-.4 1M8 42l-.4 1M54 44l-.4 1M17 51l-.4 1M30 54l-.4 1M43 53l-.4 1"/><path class="wr wr2" d="M22 23l-2.5 6M33 21.5l-2.5 6M44 25l-2.5 6M19 33l-2.5 6M48 35l-2.5 6M24 43l-2.5 6M41 42l-2.5 6"/><path class="wr wr3" d="M28 30l-3.8 9M34 29.5l-4.2 10M39.5 31.5l-3.8 9"/></svg><!-- W112 weatherlook: the streaks --><!-- W177 weatherlook: dashes slanted as the map's --><!-- W200 rainlook (SPEC §355): each step its own marks, as the map's: drops for light rain, dashes for steady, long streaks for heavy --></span><span>Weather</span></button><button class="tinfo" id="layer-weather-info" aria-label="What the radiation's marks mean" data-plain-aria-label="What the rain's marks mean"><i class="i i-about"></i></button></span><!-- W200 rainlook (SPEC §355): her row 3, the three steps' legend (app/layers.js WORDS.rainKey), as the other ⓘs -->
   <!-- W122 homerow (SPEC §230): no Anchorages tile (the racks show by themselves from z16) and no Systems tile (the towns' glow is SCUL's, never Plain's) -->
   </div>
 </section>
@@ -226,7 +226,7 @@ Droid on Vibrate, not Silent</small></label><!-- W166 haptics2 (SPEC §293): Chr
   <div class="group">
   <label class="row"><i class="i i-wake"></i><span class="txt">Keep the screen on<small id="ab-wake"></small></span><!-- W133 settings4: its line, While you ride, or why it can't (app/main.js showWake) --><!-- W86 settings: on the first page (was More's) -->
     <input type="checkbox" id="wake" role="switch" checked></label>
-  <label class="row"><i class="i i-battery"></i><span class="txt">Battery saver<small data-plain="Smoother on old phones">Smoother on old droids</small></span><!-- W113 settings2: it calms the motion too; W133 settings4 (her note 4): its line -->
+  <label class="row"><i class="i i-battery"></i><span class="txt">Battery saver<small data-plain="Smoother on old devices">Smoother on old droids</small></span><!-- W113 settings2: it calms the motion too; W133 settings4 (her note 4): its line -->
     <input type="checkbox" id="saver" role="switch"></label>
   </div>
   <h3>Routing</h3><!-- W124 settings3: Pace last -->
@@ -250,7 +250,7 @@ Droid on Vibrate, not Silent</small></label><!-- W166 haptics2 (SPEC §293): Chr
   <div class="group">
   <button class="row" id="install"><!-- W88 settings3: no long press, its guide says it --><!-- W55 layers2: its line went to the long press; W22 pwa: Install, filled by app/install.js; W28 settings: only while not installed; W47 install: it opens the guide -->
     <i class="i i-install"></i><span class="txt"><span class="t">Install Starchart</span><small></small></span><span class="val">›</span></button>
-  <button class="row unhide" id="backup-save"><i class="i i-download"></i><span class="txt">Back up<small data-plain="On this phone, never uploaded">On this droid, never uploaded</small></span></button><!-- W147 backup (SPEC §263, her notes 3 and 5): the Log, the settings, the starred places and the streets (app/log.js) -->
+  <button class="row unhide" id="backup-save"><i class="i i-download"></i><span class="txt">Back up<small data-plain="On this device, never uploaded">On this droid, never uploaded</small></span></button><!-- W147 backup (SPEC §263, her notes 3 and 5): the Log, the settings, the starred places and the streets (app/log.js) -->
   <button class="row unhide" id="backup-restore"><i class="i i-undo"></i><span class="txt">Restore</span></button><!-- W147 backup: its file's line, then Replace -->
   <button class="row unhide" id="check-update"><i class="i i-scan"></i><span class="txt">Check for updates</span></button><!-- W168 settings8: the last of App, a row from What's new; W147 backup (her 12:56 note): was under What's new; W46 updates: app/main.js; SPEC §57; W88 settings3: not a developer's, and no long press: its answer says it -->
   </div>
@@ -259,7 +259,7 @@ Droid on Vibrate, not Silent</small></label><!-- W166 haptics2 (SPEC §293): Chr
   <details class="deeper" id="about-fold">
     <summary class="row"><i class="i i-about"></i><span class="txt">Starchart</span><span class="val">›</span></summary><!-- W168 settings8: About is the title, so the row says what it is about --><!-- W133 settings4 (her note 1): no version here, What's new has it -->
     <p class="lede" data-plain="A bike and pedestrian navigator for Greater Boston, made by arclight and pancake.">A star chart for SCUL pilots: a bike and pedestrian navigator for Greater Boston, made by arclight and pancake.</p><!-- W73 logsafe: Plain's own lede; W147 small6: its makers, by their handles -->
-    <p class="privacy" data-plain="Your location never leaves this phone.">Your location never leaves this droid.</p><!-- W76 privacy (D1): back, as the tiles no longer tell our host where the rider is (app-privacy.spec) -->
+    <p class="privacy" data-plain="Your location never leaves this device.">Your location never leaves this droid.</p><!-- W76 privacy (D1): back, as the tiles no longer tell our host where the rider is (app-privacy.spec) -->
     <div class="note" id="ab-hosts">No accounts, no analytics, no trackers.</div><!-- W192 uitabs (SPEC §339, her row 6): "It talks only to:", its hosts a list (app/main.js about) -->
     <p class="note" id="ab-repo" hidden>The source: <a href="https://github.com/peterdsharpe/starchart" rel="noreferrer">github.com/peterdsharpe/starchart</a>.</p><!-- W74 integrity (D2): the repo is private, so the link 404s; delete `hidden` when it goes public -->
   </details>
@@ -343,7 +343,7 @@ Droid on Vibrate, not Silent</small></label><!-- W166 haptics2 (SPEC §293): Chr
     <li id="welcome-rec"><i class="i i-launch"></i><span data-plain="Or just record a ride.">Or just launch a flight.</span></li><!-- W160 smallui (SPEC §287, her note 14): search and record as two rows, the record with Record's own mark (app/welcome.css); W166 walkui (her note 1): "Or just", under the search's directions, one line at 320 px -->
     <li class="scul-words"><i class="i i-lingo"></i><span>It speaks SCUL: a street is a <b>starpath</b>, a traffic light a <b>pulsar</b>, a bike path a <b>wormhole</b>, and a mile a <b>light year</b>.
       <span class="more">New to SCUL? Read the lingo at <a href="https://scul.org/lingo" target="_blank" rel="noreferrer">scul.org/lingo</a>.</span></span></li><!-- W130 plaindefault: in SCUL only -->
-    <li><i class="i i-here"></i><span data-plain="Your location never leaves this phone.">Your location never leaves this droid.</span></li><!-- W76 privacy (D1): back, as on About -->
+    <li><i class="i i-here"></i><span data-plain="Your location never leaves this device.">Your location never leaves this droid.</span></li><!-- W76 privacy (D1): back, as on About -->
     <li id="welcome-set"><i class="i i-gear"></i><span>Customize appearance, voice and more.</span></li><!-- W150 welcome2 (SPEC §270): no install row and no SCUL offer; Settings has them (Words first); W166 walkui (her note 1): her words, one line from 390 px -->
   </ul>
   <div class="end"><button class="go" value="start">Start</button>
@@ -395,7 +395,7 @@ Droid on Vibrate, not Silent</small></label><!-- W166 haptics2 (SPEC §293): Chr
   <label for="fb-name" class="ask name">Name or contact (optional)</label><!-- W128 small3: remembered from the last send that had one (app/feedback.js NAME) -->
   <input id="fb-name" type="text" maxlength="200" autocapitalize="words" spellcheck="false" enterkeyhint="done">
   <div class="group">
-  <label class="row"><i class="i i-dev"></i><span class="txt">Attach what the app was doing<small data-plain="The screen, the phone and the recent log. Never your location.">The screen, the droid and the recent log. Never your location.</small></span>
+  <label class="row"><i class="i i-dev"></i><span class="txt">Attach what the app was doing<small data-plain="The screen, the device and the recent log. Never your location.">The screen, the droid and the recent log. Never your location.</small></span>
     <input type="checkbox" id="fb-attach" role="switch" checked></label>
   <details id="fb-what"><summary class="row"><i class="i i-about"></i><span class="txt">What goes with it</span><span class="val">›</span></summary>
     <p class="ver">Version: <span id="fb-ver"></span></p>

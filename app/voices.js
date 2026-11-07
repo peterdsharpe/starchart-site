@@ -28,7 +28,7 @@ export const WORDS = { // W97 voices
   row: ["Voice", "Voice"],
   lodestar: ["Lodestar", "Robot"], vega: ["Vega", "Classic"], critter: ["Critter", "Critter"], // W129 critter: was Burble / Silly; W147 voices2: no Rigel / Calm; W177 voices3 (SPEC §316): Warm is Classic, the stored "vega" as before, and Robot says Lodestar's own clips
   play: [(n) => `Play ${n}`, (n) => `Play ${n}`],
-  stored: ["On this droid", "On this phone"],
+  stored: ["On this droid", "On this device"], // W200 small8 (SPEC §356, her row 6): Plain's "device"
   getting: [(pct) => `Getting… ${pct} %`, (pct) => `Getting… ${pct} %`],
   failed: ["Not all came in. Pick it again.", "Not all came in. Pick it again."],
   muted: ["Sound is off.", "Sound is off."],

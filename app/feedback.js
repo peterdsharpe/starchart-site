@@ -15,6 +15,7 @@
 // every string in it but the browser's own line is scrubbed of coordinates.
 import { trailLog, scrub, screenNow, errors, failedFetches } from "./trail-log.js"; // W88 feedbackinfo: errors, failedFetches
 import { get } from "./settings.js"; // W88 feedbackinfo
+import { plannedAt } from "./logbook.js"; // W200 parkwalk
 import { keysWith, MODE_KEYS, modeKey } from "./keys.js"; // W190 settingsreg: the settings it reports; W196 logsettings2: and the mode now's avatar and voice
 import { tip, why, say as speak } from "./tip.js"; // W160 smallui: speak, the button's words read out
 import { pick, lingo } from "./lingo-mode.js"; // W60 c; W196 logsettings2: lingo
@@ -37,10 +38,10 @@ export const WORDS = {
   send: "Send", // W160 smallui: the button's words again; W177 tabsfeedback: at once, when it's gone
   saved: "Saved: it goes when you're back online.",
   failed: "Not sent: the feedback form didn't answer. It's saved, and goes at the next try.",
-  full: ["Not saved: the droid's storage is full.", "Not saved: the phone's storage is full."], // W73 logsafe: the message stays in the box
+  full: ["Not saved: the droid's storage is full.", "Not saved: the device's storage is full."], // W73 logsafe: the message stays in the box // W200 small8 (SPEC §356): device
   sending: "Sending…", // arclight 2026-10-23: at the tap, and at a second tap while it goes
   from: (who) => `From: ${who}`, // W128 small3: the message's first line, where the form has no field of its own for it
-  nothing: ["Nothing but the version. The screen, the droid and the log stay here.", "Nothing but the version. The screen, the phone and the log stay here."], // W60 c: [SCUL, Plain]
+  nothing: ["Nothing but the version. The screen, the droid and the log stay here.", "Nothing but the version. The screen, the device and the log stay here."], // W60 c: [SCUL, Plain] // W200 small8 (SPEC §356): device
 };
 
 /** The config is set when its action is an https address (or this site's own, for tests) and it names the message's field. */
@@ -106,12 +107,12 @@ const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); retu
 // picks go as how many there are.
 /** Every setting's value, by its key without "starchart." (each is one of its fixed words). W190 settingsreg: app/keys.js's
  *  settings, so Walk and T, the route style and the deep view too, each as get() gives it (the voice: this word mode's default
- *  when none was picked). W133 settings4 (SPEC §244): `motion`, with no switch, is what's in force: "calm (the phone's)"
- *  while the phone asks for reduced motion, "calm (Battery saver)" while Battery saver calms it (W113 settings2), or "full". */
+ *  when none was picked). W133 settings4 (SPEC §244): `motion`, with no switch, is what's in force: "calm (the device's)"
+ *  (W200 small8) while the device asks for reduced motion, "calm (Battery saver)" while Battery saver calms it (W113 settings2), or "full". */
 export const settingsNow = (read = get) => {
   const o = Object.fromEntries(keysWith("reported").map((k) => [k.replace(/^starchart[.:]/, ""), read(k)])); // W190 settingsreg
   for (const k of MODE_KEYS) o[k.replace(/^starchart[.:]/, "")] = read(modeKey(k, lingo())); // W196 logsettings2: the avatar, its colour and the voice in use, the mode now's (each mode's own above)
-  o.motion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "calm (the phone's)" : o.smooth === "30" ? "calm (Battery saver)" : "full"; // W133 settings4: as app/settings.js calmFrom
+  o.motion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "calm (the device's)" : o.smooth === "30" ? "calm (Battery saver)" : "full"; // W133 settings4: as app/settings.js calmFrom // W200 small8 (SPEC §356): device
   return o;
 };
 const mins = (s) => (s > 0 ? Math.max(1, Math.round(s / 60)) : null), miles = (m) => Math.round(m / 160.9344) / 10;
@@ -120,7 +121,7 @@ export function ridesNow(flights = []) {
   const f = flights.at(-1);
   if (!f) return { flights: 0 };
   return { flights: flights.length, last: { date: new Date(f.start).toLocaleDateString("en-CA"), mi: miles(f.metres || 0), minutes: f.minutes ?? null,
-    plannedMin: f.plan_s > 0 ? mins(f.plan_s / (f.pace || 1)) : null, flownMin: mins(f.flew_s), ...(f.foot ? { foot: true } : {}) } }; // W127 walklog: a walk says so
+    plannedMin: f.plan_s > 0 ? mins(plannedAt(f)) : null, /* W200 parkwalk: plannedAt */ flownMin: mins(f.flew_s), ...(f.foot ? { foot: true } : {}) } }; // W127 walklog: a walk says so
 }
 /** The course being flown, `c` { style, metres, planned_s, ride_s, along_m }, or "none". */
 export const courseNow = (c) => (c ? { style: c.style || "unknown", mi: miles(c.metres || 0), plannedMin: mins(c.planned_s), minSoFar: Math.round((c.ride_s || 0) / 60),

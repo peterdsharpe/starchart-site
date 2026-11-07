@@ -14,6 +14,10 @@ export const NO_SIGNAL = "No GPS signal yet.", FINDING = "Finding your position�
 
 /** W21 flight: in flight on GPS, the ms since the last fix (or since Launch, before the first), once that is LOST_MS; else 0. */
 export const lostMs = ({ sim, flying, now, since }) => (!sim && flying && now - since >= LOST_MS ? now - since : 0);
+/** W200 small8 (SPEC §356, her row 1, "I prefer it solid"): whether the avatar dims. Only for a stale spot: GPS lost in a
+ *  ride, an estimate through a GPS gap (the location button says "GPS lost"), or location taken away (W25 rest, entry B5).
+ *  At a rough spot (`rough`, a computer's every position) it stays solid, as on a phone: its ring (app/rough.js) says it. */
+export const shipDims = ({ lost, est, off }) => Boolean(lost || est || off);
 /** "12 s", then "3 min", then "1h 20m" (W68 fixes). */
 const ago = (ms) => (ms < 60000 ? `${Math.round(ms / 1000)} s` : dur(Math.floor(ms / 60000))); // W68 fixes: dur
 
@@ -58,7 +62,7 @@ const ALLOW = {
  *  the order to try them, before Try again. `tab` and `platform` are app/install.js detect()'s, `installed` the app on the home
  *  screen, `plain` Plain's words. */
 export function noGpsHelp(cause, { tab = "", platform = "", installed = false, plain = false } = {}) {
-  const device = platform === "computer" ? "computer" : plain ? "phone" : "droid";
+  const device = platform === "computer" ? "computer" : plain ? "device" : "droid"; // W200 small8 (SPEC §356, her row 6): Plain's "device", a tablet's too
   const turnOn = platform === "ios" ? `Turn on Location Services in your ${device}'s Settings, under Privacy & Security.` : `Turn on Location in your ${device}'s settings.`;
   const allow = installed ? `Allow location for Starchart in your ${device}'s settings.` : ALLOW[tab] ?? "Allow location for this site in your browser's settings.";
   const outside = "Step outside, or near a window.";

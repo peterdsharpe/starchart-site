@@ -53,6 +53,7 @@ body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) >
 #layerspick .tile .ts { stop-color: color-mix(in srgb, var(--t-r) 70%, var(--t-rim)); } #layerspick .tile .ts + .ts { stop-color: color-mix(in srgb, var(--t-r) 10%, var(--t-rim)); }
 #layerspick .tile :is(.tl, .ch) { stroke: var(--t-rim); stroke-width: 1.8; paint-order: stroke; }
 #layerspick .tile .cv { fill: none; stroke: var(--t-rim); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-lingo="meatspace"] #layerspick .tile .tl { display: none; } /* W200 comets4 (SPEC §354), her row 4: Plain's trains are their heads alone, their chevrons the way they go, as the map's */
 /* Terrain: the hills' tint, as app/terrain.js (starlight on Dark, stardust on Daystar), and steep ground's hachures in --caution */
 #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--starlight); } #layerspick .tile .h1 { opacity: 0.14; } #layerspick .tile .h2 { opacity: 0.2; } #layerspick .tile .h3 { opacity: 0.28; }
 :root[data-theme="light"] #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--stardust); }
@@ -77,12 +78,14 @@ body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) >
 #layerspick .tile :is(.lh, .lb) { fill: none; stroke-linecap: round; } #layerspick .tile .lh { stroke: var(--void); stroke-width: 7.5; } #layerspick .tile .lb { stroke: var(--stardust); stroke-width: 3.6; }
 /* Weather: the rain's wash in the ink (--starlight), heavier to the middle, and its streaks, as app/weather.js (W112 weatherlook: never green) */
 #layerspick .tile :is(.w1, .w2, .w3) { fill: var(--starlight); } #layerspick .tile .wr { fill: none; stroke: var(--starlight); stroke-width: 2.4; stroke-linecap: round; opacity: 0.9; } /* W112 weatherlook */ /* W177 weatherlook: as bold as the map's dashes (was 2 and 0.8) */ #layerspick .tile .w1 { opacity: 0.22; } #layerspick .tile .w2 { opacity: 0.3; } #layerspick .tile .w3 { opacity: 0.4; }
+#layerspick .tile .wr1 { stroke-width: 3.2; } #layerspick .tile .wr2 { stroke-width: 2.2; } #layerspick .tile .wr3 { stroke-width: 2.6; opacity: 1; } /* W200 rainlook (SPEC §355): drops, dashes and streaks, as the map's (app/weather-logic.js HATCH) */
 /* W122 homerow: the Anchorages and Systems tiles went (SPEC §230), and their pictures' colours with them */
 
 @media (orientation: landscape) and (max-height: 500px) { /* W191 appleft: Layers' and the compass's W58 places went (#8) */
   /* beside the ship, and above Where to? and Launch; it scrolls when it must */
   #layerspick { top: var(--top); width: min(500px, 74vw); max-height: calc(100dvh - var(--top) - max(var(--rail), calc(var(--bar-h, 0px) + 14px)) - 48px - 8px); } /* W56 parking: 500 px, 74vw (was 340, 44vw): six a row */
   #layerspick .tiles { grid-template-columns: repeat(6, minmax(44px, 1fr)); } /* W56 parking, W59 routes: all in one row: no room for two; W114: eight since W90's Flying; W122 homerow: six */
+  #layerspick .tiles { padding-top: 8px; } /* W200 rainlook: the last tile, Weather, has an ⓘ at its corner now: its target clear of the card's × (was 5 px into it) */
   #layerspick .tile { font-size: max(11px, 0.78125rem); } /* W56 parking: "Anchorages" under a 71 px picture at 667 px */ /* W142 remscale */
   /* in flight on a course, under the turn card, which reaches the right column here (app/course.css): the next turn stays in view */
   body:has(.cturn:not([hidden])) > #layerspick { top: calc(var(--top) + var(--card-h, 0px) + 8px); max-height: calc(100dvh - var(--top) - var(--card-h, 0px) - 8px - var(--rail)); }

@@ -2,6 +2,33 @@
   "next": [],
   "versions": [
     {
+      "version": "0.1.92",
+      "release": "Sunflower Galaxy",
+      "date": "2026-11-07",
+      "notes": [
+        {
+          "scul": "A course through Boston Common, Harvard Yard or another park that bans riding says Walk your ship through it, timed at walking pace. Ships go round cemeteries.",
+          "plain": "A route through Boston Common, Harvard Yard or another park that bans riding says Walk your bike through it, timed at walking pace. Bikes go round cemeteries."
+        },
+        {
+          "scul": "Your Pace speeds up the flying only: a space walk keeps walking pace, so a course with one is timed right.",
+          "plain": "Your Pace speeds up the riding only: walking keeps walking pace, so a route with a walk in it is timed right."
+        },
+        {
+          "scul": "Comets that cross keep apart, their heads above every tail.",
+          "plain": "Trains show as a head with no tail, and two that cross keep apart."
+        },
+        {
+          "scul": "Rain's drops show how hard it rains: round drops for light rain, dashes for moderate, long streaks for heavy.",
+          "plain": "Rain's drops show how hard it rains: round drops for light rain, dashes for moderate, long streaks for heavy."
+        },
+        {
+          "scul": "Your ship stays solid on a computer too.",
+          "plain": "Your avatar stays solid on a computer, the app says device where it said phone, and Consider trains in routing shows the T."
+        }
+      ]
+    },
+    {
       "version": "0.1.91",
       "release": "Sombrero Galaxy",
       "date": "2026-11-02",
@@ -138,7 +165,7 @@
         },
         {
           "scul": "A change to the droid's reduced motion reaches every animation at once, and if the chart's style fails to load, picking a theme tries again.",
-          "plain": "A change to the phone's reduced motion reaches every animation at once, and if the map's style fails to load, picking a theme tries again."
+          "plain": "A change to the device's reduced motion reaches every animation at once, and if the map's style fails to load, picking a theme tries again."
         }
       ]
     },
@@ -153,7 +180,7 @@
         },
         {
           "scul": "Tap a Sandworm Nest for its next sandworms by route, from the timetable on your droid, live where the MBTA predicts.",
-          "plain": "Tap a bus stop for its next buses by route, from the timetable on your phone, live where the MBTA predicts."
+          "plain": "Tap a bus stop for its next buses by route, from the timetable on your device, live where the MBTA predicts."
         }
       ]
     },
@@ -500,7 +527,7 @@
         },
         {
           "scul": "With no GPS signal, Starchart shows the steps for your droid. The Log's All flights maps them all, and Pace moved to Settings.",
-          "plain": "With no GPS signal, Starchart shows the steps for your phone. The Log's All rides maps them all, and Pace moved to Settings."
+          "plain": "With no GPS signal, Starchart shows the steps for your device. The Log's All rides maps them all, and Pace moved to Settings."
         },
         {
           "scul": "Bluebikes are pink and street names darker. Comet tails follow the tracks, shared stations show every line's colour, and the Arrow is a clean chevron.",
@@ -538,7 +565,7 @@
       "notes": [
         {
           "scul": "Text follows your droid's text size, chart labels included. Big text grows gently, and the flight's numbers stay compact.",
-          "plain": "Text follows your phone's text size, map labels included. Big text grows gently, and the ride's numbers stay compact."
+          "plain": "Text follows your device's text size, map labels included. Big text grows gently, and the ride's numbers stay compact."
         },
         "At large text sizes, From and To take the full width, long names wrap between words, and nothing slides off the screen."
       ]
@@ -585,7 +612,7 @@
         },
         {
           "scul": "Settings is a tab, with a short line under a row instead of info buttons. No Calm motion switch: motion calms when your droid asks, or with Battery saver.",
-          "plain": "Settings is a tab, with a short line under a row instead of info buttons. No Calm motion switch: motion calms when your phone asks, or with Battery saver."
+          "plain": "Settings is a tab, with a short line under a row instead of info buttons. No Calm motion switch: motion calms when your device asks, or with Battery saver."
         },
         {
           "scul": "Tap a starpath to Prefer, Avoid or Never it. A course's preview is one clean line, and Daystar has one bike blue.",

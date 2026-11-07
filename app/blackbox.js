@@ -144,9 +144,9 @@ export class Recorder {
   snapshot(flush = false) {
     if (!this.guard) return null;
     if (flush) this.chunks?.flush();
-    const { top_mps, climb_m, pulsars, holes, systems, pts, ref, last, moving_s, lastT, plan, plan_s, flew_s, courses, pace, still, stop_s, gap } = this.stats; // W59 pace: moving_s to pace; W86 eta: still, stop_s; W125 tinygap: gap
+    const { top_mps, climb_m, pulsars, holes, systems, pts, ref, last, moving_s, lastT, plan, plan_s, walk_s, flew_s, courses, pace, still, stop_s, gap } = this.stats; // W59 pace: moving_s to pace; W86 eta: still, stop_s; W125 tinygap: gap; W200 parkwalk: walk_s
     return { id: this.id, start: this.start, excluded: this.guard.excluded, footAt: this.footAt, footEx: this.footEx, n: this.chunks?.n ?? 0, seen: { ...this.seen }, base: { ...this.base }, log: this.pull().slice(), // W74 flightlog: log; W127 walklog: footAt, footEx
-      stats: { top_mps, climb_m, pulsars, holes, systems: systems.slice(), pts: pts.slice(), ref, last, moving_s, lastT, plan, plan_s, flew_s, courses, pace, still, stop_s, gap } }; // W59 pace; W86 eta; W125 tinygap: gap
+      stats: { top_mps, climb_m, pulsars, holes, systems: systems.slice(), pts: pts.slice(), ref, last, moving_s, lastT, plan, plan_s, walk_s, flew_s, courses, pace, still, stop_s, gap } }; // W59 pace; W86 eta; W125 tinygap: gap; W200 parkwalk: walk_s
   }
   /** W28 resume: carry on the flight a snapshot kept, in a new page: the same id, track, stats and taps. */
   resume(s) {

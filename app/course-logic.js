@@ -441,9 +441,15 @@ export function firstPick(routes, folds, style) { // W59 routes
   return best === own ? style : best.ids[0];
 }
 
+/** W200 parkwalk (SPEC §357): the seconds of route `r` (or a course's properties, a comet plan's ride) ridden: its time less
+ *  the router's `walk_s`, the seconds on foot (the walks, the steps, the walks to and from the course); all of it without one. */
+export const rideSeconds = (r) => r.time_s - Math.min(r.time_s, Math.max(0, r.walk_s || 0)); // W200 parkwalk
+/** W200 parkwalk: a route's seconds at the pilot's pace `k`: its riding at her pace, its walking at walking pace, unscaled. */
+export const routeSeconds = (r, k = 1) => rideSeconds(r) / k + (r.time_s - rideSeconds(r)); // W200 parkwalk
 /** A route's minutes, by the router's time model (chart/routing/README.md, "Route time"), at least 1. W59 pace: at the
- *  pilot's pace `k` (1.1 at 110 %, app/settings.js pace()); the route chosen never depends on it. */
-export const routeMinutes = (r, k = 1) => Math.max(1, Math.round(r.time_s / k / 60));
+ *  pilot's pace `k` (1.1 at 110 %, app/settings.js pace()); the route chosen never depends on it. W200 parkwalk: her pace scales
+ *  the riding alone (routeSeconds): at 120 % the Common's 10.9 min walk was 9.1 min. */
+export const routeMinutes = (r, k = 1) => Math.max(1, Math.round(routeSeconds(r, k) / 60));
 /** W102 leaveby (SPEC §198): the arrive-by a preview's picker offers first: the next quarter-hour (on the phone's clock) a ride
  *  of `min` minutes can make, leaving at `now` (ms). */
 export const firstArrive = (now, min) => Math.ceil((now + min * 60e3) / 900e3) * 900e3; // W102 leaveby
@@ -752,7 +758,7 @@ export class CourseFlight {
    *  router's time for the course (W19 course) at the pilot's pace (W59 pace), else 11 mph. W86 eta: over the ride's clock. */
   speed() {
     const c = this.clock, secs = c.s + (c.still <= STILL_S ? c.still : 0), planned = this.feature.properties.time_s; // W86 eta
-    return secs >= 60 && this.s > 50 ? this.s / secs : planned > 0 ? (this.length / planned) * this.pace : 11 * MPH; // W59 pace
+    return secs >= 60 && this.s > 50 ? this.s / secs : planned > 0 ? this.length / routeSeconds(this.feature.properties, this.pace) : 11 * MPH; // W59 pace; W200 parkwalk: its walking unscaled
   }
 }
 

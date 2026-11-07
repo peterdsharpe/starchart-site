@@ -20,7 +20,7 @@ import { toCourse, roadLabels, roadName, WALK_SAY_M } from "../chart/routing/ins
 import { labelFor, spotWhat } from "../chart/lingo/lingo.js"; // W176 searchux: spotWhat
 import { mountHints, peekSpot } from "./hints.js"; // W23 touch; W54 course: peekSpot, for a stop's peek
 import { canStore, prune, store, storedTiles } from "./offline.js";
-import { padSide, CourseFlight, OffSpell, ReplotGate, STYLE_CARDS, carFree, clockAt, distLabel, etaLine, leftLine, nameParts, mainName, sideLine, routeMinutes, LY, FT, placeName, // W60 b: placeName
+import { padSide, CourseFlight, OffSpell, ReplotGate, STYLE_CARDS, carFree, clockAt, distLabel, etaLine, leftLine, nameParts, mainName, sideLine, routeMinutes, routeSeconds, LY, FT, placeName, // W60 b: placeName; W200 parkwalk: routeSeconds
   calloutAt, nearlySame, nearestOn, viaIndex, viasAhead, REACHED_M, compassWord, styleOf, iconPlace, foldStyles, bareRuns, bareShare, firstPick, lineInk, runsAt, rideRuns, firstArrive, leaveAt,
   ABOUT_M, angleBetween, barePin, // W56 reroute: a turn just missed, ridden back to
   ownName, // W73 plan: a shared place's own name
@@ -48,7 +48,7 @@ import { tipOnce } from "./tips.js"; // W49 cards: what transport-free counts, t
 import { glideMs } from "../chart/prototype/follow.js"; // W29 polish: the camera's moves glide
 import { glyphIn } from "../chart/prototype/banners.js"; // W135 plainicons: Plain's twins
 import { mountPlaceNames } from "./placenames.js"; // W185 placenames
-import { mountTurns } from "./turns.js"; import { turnRows, cardWords, warnings, withWarnings, warnDue, walkWarnings } from "./turns-logic.js"; // W196 voice4: walkWarnings; // W53 turns; W56 reroute: cardWords; W54 flight: warnings, steps and steep parts
+import { mountTurns } from "./turns.js"; import { turnRows, cardWords, warnings, withWarnings, warnDue, walkWarnings, parkWalks, parkLine } from "./turns-logic.js"; // W200 parkwalk: parkWalks, parkLine; W196 voice4: walkWarnings; // W53 turns; W56 reroute: cardWords; W54 flight: warnings, steps and steep parts
 import { drawLanes, laneLabel } from "./lanes.js"; // W53 lanes
 import { need as crossingsNeed, on as crossingsOn } from "./crossings.js"; // W128 crashes: the high-crash crossings
 import { near as anchoragesNear, loaded as anchoragesIn, words as anchorageWords, need as anchoragesNeed } from "./anchorages.js"; // W56 parking: the anchorages' file, dedicated racks first; W60 c: their words; W102 trim: need, the file once a pad is known
@@ -97,7 +97,7 @@ const painted = () => new Promise((ok) => { requestAnimationFrame(() => setTimeo
 const ROADS = new Set(ROAD_KINDS); // W28 launch: the kinds that are streets and paths; W152 app O3: course-logic.js's list
 // W25 course (find B5): what to do, not a JavaScript error
 const REPLOT_WAIT_MS = 8000; // W31 navvoice: a re-plot's route that takes longer is tried again
-const NO_ROUTER = ["No course: the route network isn't on this phone yet.", "No route: the route network isn't on this phone yet."]; // W60 b: [SCUL, Plain]
+const NO_ROUTER = ["No course: the route network isn't on this droid yet.", "No route: the route network isn't on this device yet."]; // W60 b: [SCUL, Plain] // W200 small8 (SPEC §356): device, and SCUL's droid
 // W49 cards: what carFree() counts (course-logic.js; chart/routing/graph/build_graph.py's wormhole and shielded ways)
 const PORT_TIP = "Port is left, starboard is right."; // W56 reroute: the first time a turn says one
 const FREE_TIP = ["Transport-free: the share of this route on wormholes or behind a curb, posts or parked cars. Paint doesn't count, and crossings still meet traffic.", // arclight 2026-10-23: back to car-free, a higher number a better ride; W140 words
@@ -1326,7 +1326,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
   } // W54 course
   /** W54 course: a kind's places as rows, "Tardis · 0.6 LY along · +1 min"; a row's › opens its peek. */
   function stopList(sts, r, open, from_m = 0) { // W54 course: open null, in flight: the rows say, and a tap does nothing
-    const ol = el("ol", "trows tstoprows"), v = (r.distance_m / Math.max(1, r.time_s)) * pace(); // W54 course: at the route's pace; W59 pace: and the pilot's
+    const ol = el("ol", "trows tstoprows"), v = r.distance_m / Math.max(1, routeSeconds(r, pace())); // W54 course: at the route's pace; W59 pace: and the pilot's; W200 parkwalk: its walks unscaled
     for (const st of sts) { // W54 course
       const li = el("li"), b = el(open ? "button" : "div", "trow stop"); // W54 course
       b.append(glyphImg(st.kind, 32), elDur("span", "w", stopRow(st, v, from_m)), ...(open ? [el("span", "d", "›")] : [])); // W54 course // W68 fixes: its durations' h and m small
@@ -1365,7 +1365,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
    *  near Union Square, about 25 min in" (weather.along()), else null. */
   async function rainFor(r) { // W54 course
     if (!weather?.on || !r.geometry?.length) return null; // W54 course
-    const pts = rainPts(r.geometry, r.distance_m, r.time_s / pace()), i = await weather.along(pts.map(({ lonlat, m }) => ({ lonlat, m }))).catch(() => -1); // W54 course
+    const pts = rainPts(r.geometry, r.distance_m, routeSeconds(r, pace())), i = await weather.along(pts.map(({ lonlat, m }) => ({ lonlat, m }))).catch(() => -1); // W54 course
     if (!(i >= 0)) return null; // W54 course
     const areas = world.systemsAt(pts[i].lonlat), where = areas.find((a) => a.admin_level === 10)?.name || areas.find((a) => a.admin_level === 8)?.name || null; // W54 course
     return rainLine(where, pts[i].m); // W54 course
@@ -1690,7 +1690,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
       facts.classList.toggle("metrics", !!r1); // W86 preview
       facts.replaceChildren(...(r1 ? [mt, el("span", "m-d", `${(r1.distance_m / LY).toFixed(1)}`), el("span", "m-c", `▲ ${Math.round(r1.climb_m / FT)}`), share] : pick === "comet" && comet?.card ? [el("span", "", comet.card.fact), ...(comet.card.leave ? [el("span", "leave", comet.card.leave)] : []), ...comet.card.warn.map((w) => el("span", "warn", w))] : [])); // W49 cards; W62 cometcard: the fact to act on, and a warning only when there is one; W189 transittimes: Leave by, when she'd wait
       if (r1) { fillMt(r1); facts.querySelector(".m-d").append(unit(` ${pickWords("LY", "mi")}`)); facts.querySelector(".m-c").append(unit(" ft")); } // W86 preview: ride time, length, climb, with cars
-      const bent = on1 ? foldBent() : [], forced = on1 ? foldBent("forced") : []; if (bent.length || forced.length) facts.append(avoidedLine(bent, avoidName, ui.plan, forced)); // W133 roadprefs: forced, "No way round …" // W73 avoid: so a street avoided long ago is never forgotten; W80 avoidmap: "Avoiding Starpath Western", or once, 30 days on, "Still avoiding …?"
+      const bent = on1 ? foldBent() : [], forced = on1 ? foldBent("forced") : []; if (bent.length || forced.length) facts.append(avoidedLine(bent, avoidName, ui.plan, forced)); const pl = on1 ? parkLine(routes[on1.dataset.id]) : ""; if (pl) facts.append(el("span", "parkwalk", pl)); // W200 parkwalk (SPEC §357): "Walk your bike through Boston Common" // W133 roadprefs: forced, "No way round …" // W73 avoid: so a street avoided long ago is never forgotten; W80 avoidmap: "Avoiding Starpath Western", or once, 30 days on, "Still avoiding …?"
       if (pick === "comet") stripRow.replaceChildren(); // W62 cometcard: no strip, no turn list
       showPick(on1 && routes[pick]); // W53 turns
       if (on1) Promise.all(s.getAnimations().map((a) => a.finished)).then(() => { if (ui.sheet === s && share.isConnected) tipOnce("comfort", on1, pickWords(comfortTip()), { sheet: true }) /* W110 looks: the course's colour, beside its card, first */ || (share.tagName === "BUTTON" && tipOnce("free", share, pickWords(FREE_TIP), { sheet: true })) /* W173 previewsheet: Plain's has no tip */ || (mt.tagName === "BUTTON" && tipOnce("leaveby", mt, pickWords(WORDS.leaveTip), { sheet: true })); }, () => {}); // W60 b: pickWords; W102 leaveby: the ride time's tip, at the next preview after free's
@@ -1779,7 +1779,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
           if (!a[k].length) return tip(b, pickWords(WORDS.none)); // W173 previewsheet: a 0 says why it lights nothing
           const on = b.getAttribute("aria-pressed") !== "true"; // W173 previewsheet
           for (const c of chips) c.setAttribute("aria-pressed", String(c === b && on)); // W173 previewsheet
-          unlightStops(); if (on) lightStops(a[k], (r.distance_m / Math.max(1, r.time_s)) * pace()); // W173 previewsheet: the camera stays where it is; W196 ui4: with the minutes each adds, at the route's pace and hers (stopList's)
+          unlightStops(); if (on) lightStops(a[k], r.distance_m / Math.max(1, routeSeconds(r, pace()))); /* W200 parkwalk: routeSeconds */ // W173 previewsheet: the camera stays where it is; W196 ui4: with the minutes each adds, at the route's pace and hers (stopList's)
         }); // W173 previewsheet
         return b; // W173 previewsheet
       }); // W173 previewsheet
@@ -1795,7 +1795,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     function openTurns() { // W53 turns
       const r = routes[pick]; // W53 turns
       if (!r || ui.sheet !== s) return; // W53 turns
-      const c = courseOf(r), rows = withWarnings(rowsOf(r, place, padSide(r.geometry, place.lonlat)), warnings(r)); // W53 turns; W54 flight: withWarnings
+      const c = courseOf(r), rows = withWarnings(rowsOf(r, place, padSide(r.geometry, place.lonlat)), [...warnings(r), ...parkWalks(r)]); // W53 turns; W54 flight: withWarnings; W200 parkwalk: the parks it walks
       const head = el("div", "thead"), title = elDur("h4", "", `To ${mainName(lingo, place.kind, placeName(place))} · ${(r.distance_m / LY).toFixed(1)} ${pickWords("LY", "mi")} · ${dur(mins(r))}`); // W53 turns; W60 b; W68 fixes: dur, its h and m small
       const rain = el("p", "train"), chipRow = el("div", "tstops"); // W54 course: radiation on the course, and the stops along it
       rain.hidden = chipRow.hidden = true; // W54 course
@@ -1900,7 +1900,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
       if (how.lead && ship) { const lr = await route(ship, place.lonlat, pick, how.via, null, null, false, link?.file ? false : null).catch(() => null); if (lr) { r = lr; viaStart = true; } } // W107 fixes: a file's course by day's costs, as its preview
       const old = flight.flying && nav.cf ? { route: nav.route, place: nav.place, style: nav.style, via: nav.via, cf: nav.cf, start: nav.start?.place, viaStart: nav.start?.via, file: nav.file } : null; // W107 fixes: file
       engage({ route: r, place, style: pick, via, start: how.lead ? start : null, viaStart, fresh: true, file: !!link?.file }); // W107 fixes: file, a course from a route file
-      planned(r.time_s); // W59 pace: the plan at launch, before pace, for the Log
+      planned(r.time_s, r.walk_s || 0); // W59 pace: the plan at launch, before pace, for the Log
       note("course", `set, ${pick}${via.length ? `, ${via.length} stops` : ""}${old ? ", over the last one" : ""}`); // W48 feedback: never the place
       if (old) snack(pickWords("Course changed", "Route changed"), "", "Undo", 5000, () => { if (flight.flying) engage(old); }); // W25 course: Fly it over a course; W60 b
       const f = lastFix(); // W21 entry: the card shows the first turn at once, not the whole course until the next fix
@@ -1916,7 +1916,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
       if (!r) return; // W62 cometcard: the graph went away; the flight flies on, with no course
       nav.leg = { plan: p, legs: L, place, n: 1 }; // W62 cometcard
       engage({ route: r, place: stationPlace(L.board), style: "quickest", fresh: true }); // W62 cometcard
-      planned(r.time_s); // W62 cometcard: W59 pace's plan, the ride alone
+      planned(r.time_s, r.walk_s || 0); // W62 cometcard: W59 pace's plan, the ride alone
       note("course", "set, comet"); // W62 cometcard
       const f = lastFix(); if (f) { onFix(f); tick(); } // W62 cometcard
     } // W62 cometcard
@@ -2259,7 +2259,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     closed: () => { unlightStops(); flyTurns = null; } }); // W53 turns; W54 course: closed
   let flyTurns = null; // W54 course: the turns' rows while a chip lists its stops in flight
   let flyKey = null, flyList = []; // W53 turns: the course's rows, made again for a new course
-  const flyRows = () => { if (flyKey !== nav.cf) { flyKey = nav.cf; flyList = withWarnings(rowsOf(nav.route, nav.place, nav.cf.prompter.list.at(-1)?.side ?? null), warnings(nav.route)); } return flyList; }; // W53 turns; W54 flight: withWarnings
+  const flyRows = () => { if (flyKey !== nav.cf) { flyKey = nav.cf; flyList = withWarnings(rowsOf(nav.route, nav.place, nav.cf.prompter.list.at(-1)?.side ?? null), [...warnings(nav.route), ...parkWalks(nav.route)]); } return flyList; }; // W53 turns; W54 flight: withWarnings; W200 parkwalk: the parks it walks
   function thenTick() {
     const r = nav.cf?.last, list = nav.cf?.feature.properties.instructions || [];
     const k = r && !r.off && r.phase !== "arrive" && !card.hidden ? list.findIndex((i) => i.along_m > r.s + 5 && i.turn !== "arrive") : -1;
@@ -2581,7 +2581,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     if (!r) { leg.n = 0; return tip(card, "No route yet · trying again"); } // W62 cometcard: the next fix or tap tries again
     gap(false); card.classList.remove("board", "tall"); // W62 cometcard
     engage({ route: r, place: leg.place, style: "quickest", fresh: true }); // W62 cometcard
-    planned(r.time_s); // W62 cometcard: W59 pace: the ride alone, apart from the train
+    planned(r.time_s, r.walk_s || 0); // W62 cometcard: W59 pace: the ride alone, apart from the train
     const f = lastFix(); if (f) { onFix(f); tick(); } // W62 cometcard
   } // W62 cometcard
   // W79 walkgo (SPEC §148): a walker's plan in flight. `nav.leg` as a comet course's (W62), with `walk`, the plan and `i`, its

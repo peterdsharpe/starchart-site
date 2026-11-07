@@ -61,7 +61,10 @@ export const WORDS = { lanes: ["Lanes", "Bike lanes"], // W86 map: Plain names w
   // W196 cards2 (SPEC §349), her row 7: "The bike lanes layer would be [better] with a tooltip with a legend: to explain what different styles
   // mean (dashed line, one continuous line, etc.": each line as the map draws it (chart/style/build_style.py), and what it is.
   lanesKey: [[["path", "Wormhole: a bike path, no transports"], ["shielded", "Protected bike lane"], ["laned", "Painted bike lane"], ["shared", "Sharrows: shared with transports"], ["side", "At one edge: a lane on that side only"], ["bright", "Brighter where the flying is better"]], // W196 cards2: [SCUL, Plain]
-    [["path", "Bike path, no cars"], ["shielded", "Protected bike lane"], ["laned", "Painted bike lane"], ["shared", "Sharrows: shared with cars"], ["side", "At one edge: a lane on that side only"], ["bright", "Brighter where the riding is better"]]] }; // W196 cards2
+    [["path", "Bike path, no cars"], ["shielded", "Protected bike lane"], ["laned", "Painted bike lane"], ["shared", "Sharrows: shared with cars"], ["side", "At one edge: a lane on that side only"], ["bright", "Brighter where the riding is better"]]], // W196 cards2
+  // W200 rainlook (SPEC §355), her row 3: "I cannot tell which intensity level is currently being displayed": each step's marks as the map
+  // draws them (app/weather-logic.js HATCH), named as the weather sheet's key names them
+  rainKey: [[["rain1", "Light radiation"], ["rain2", "Steady radiation"], ["rain3", "Heavy radiation"]], [["rain1", "Light rain"], ["rain2", "Steady rain"], ["rain3", "Heavy rain"]]] }; // W200 rainlook: [SCUL, Plain]
 export const isOn = (key) => get(key) !== "off";
 /** W55 layers2: a tile is on when all its keys are. */
 export const rowOn = (row) => row.keys.every(isOn);
@@ -130,7 +133,7 @@ export function mountLayers({ map, $ = (id) => document.getElementById(id) }) { 
     if (tile.dataset.more) longPress(tile, () => tip(tile, held(row) ? `${tile.dataset.more} ${SAVER_OFF}` : tile.dataset.more, { stay: true })); // W112 taps: an explanation, until a tap; W160 smallui: and why it's off
   }
   const legend = (b, key) => { if (b) b.onclick = () => { const rows = pick(WORDS[key]); tip(b, rows.map(([, t]) => t).join(". "), { stay: true, legend: rows }); }; }; // W196 cards2: an explanation until a tap, a row each (app/tip.js, app.css)
-  legend($("layer-quality-info"), "qualityKey"); legend($("layer-lanes-info"), "lanesKey"); // W140 dircomfort's ⓘ; W196 cards2 (SPEC §349): the colours' legend, and the lanes' lines' beside it
+  legend($("layer-quality-info"), "qualityKey"); legend($("layer-lanes-info"), "lanesKey"); legend($("layer-weather-info"), "rainKey"); // W200 rainlook: the rain's steps; W140 dircomfort's ⓘ; W196 cards2 (SPEC §349): the colours' legend, and the lanes' lines' beside it
   show();
   addEventListener("starchart:settings", (e) => {
     if (e.detail?.key === SAVER) return show(); // W160 smallui: Battery saver holds Terrain off, or lets it be
