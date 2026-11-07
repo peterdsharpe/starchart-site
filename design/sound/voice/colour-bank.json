@@ -1,0 +1,318 @@
+{
+ "_comment": "Lodestar's colour lines (wave 13): rare asides, played by chart/prototype/colour.js, voice only, behind their own switch. A trigger lists what must be true for the line to fire; every key must match. `event` is the event kind (chart/EVENTS.md, plus the scheduler's own: g_well_top, posi_run, pulsar_string, fort_in_sight, lore, daystar_rise, radiation_start, radiation_end, nebula). Other keys match the event's data; a list matches any of its values; a `min_` prefix means at least; `count` is the nth event of that kind in the flight (for hi-fives and cups, the tally). Tick triggers: `flight_h` (whole earth hours flown), `clock` (the local hour it names, for an hour, from 21:00 to 05:00), `saturnight`, `date` (a day of the season calendar), `month` (its name, once a flight after 20 minutes), `fact` (a club fun fact: at most once a flight, in a quiet stretch 20 to 60 minutes in) and `quiet_s` (at least that many seconds without a line). Wave 20 added the categories `city` (on entering a town) and `club_fact`.",
+ "version": 1,
+ "lines": [
+  { "id": "ly_1_d", "text": "Ninety-nine more and it's a Century.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 1 }, "weight": 1 },
+
+  { "id": "ly_20_d", "text": "Twenty light years. The Mission Debriefer will want that number.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 20 }, "weight": 1 },
+
+  { "id": "ly_40_a", "text": "Forty light years. That's about Worcester, as the crow flies.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 40 }, "weight": 1 },
+
+  { "id": "ly_50_a", "text": "Fifty light years. Halfway to a Century.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 50 }, "weight": 1 },
+
+  { "id": "ly_100_e", "text": "One hundred light years. There's a medal for that.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 100 }, "weight": 1 },
+
+  { "id": "ly_26_a", "text": "Twenty-six light years. A Boston Marathon, without the crowds.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 26 }, "weight": 1 },
+
+  { "id": "ly_50_e", "text": "Fifty light years. About Boston to Providence, by road.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 50 }, "weight": 1 },
+
+  { "id": "ly_5_d", "text": "Five light years. About the whole Southwest Corridor.", "category": "milestone", "trigger": { "event": "light_year", "light_years": 5 }, "weight": 1 },
+
+  { "id": "fh_1_d", "text": "An earth hour already. That went quickly.", "category": "flight_time", "trigger": { "flight_h": 1 }, "weight": 1 },
+
+  { "id": "fh_2_c", "text": "Two earth hours. That's a feature film, but outdoors.", "category": "flight_time", "trigger": { "flight_h": 2 }, "weight": 1 },
+
+  { "id": "fh_1_e", "text": "One earth hour. Long enough for both sides of a mixtape.", "category": "flight_time", "trigger": { "flight_h": 1 }, "weight": 1 },
+
+  { "id": "fh_2_e", "text": "Two earth hours. Long enough to have a favourite pulsar.", "category": "flight_time", "trigger": { "flight_h": 2 }, "weight": 1 },
+
+  { "id": "fh_5_d", "text": "Five earth hours. Reykjavik is about that far, by plane.", "category": "flight_time", "trigger": { "flight_h": 5 }, "weight": 1 },
+
+  { "id": "tod_23_d", "text": "Past eleven, and the lasers look their best.", "category": "time_of_day", "trigger": { "clock": "23:00" }, "weight": 1 },
+
+  { "id": "tod_00_d", "text": "Past midnight. Saturnight has become Sunstarday.", "category": "time_of_day", "trigger": { "clock": "00:00", "day": "sunday" }, "weight": 1 },
+
+  { "id": "tod_01_c", "text": "One in the morning. The city belongs to us and the raccoons.", "category": "time_of_day", "trigger": { "clock": "01:00" }, "weight": 1 },
+
+  { "id": "tod_02_b", "text": "Two in the morning. Luna 7-11 hours.", "category": "time_of_day", "trigger": { "clock": "02:00" }, "weight": 1 },
+  { "id": "tod_02_c", "text": "Past two. Nearly time for Dawn Patrol.", "category": "time_of_day", "trigger": { "clock": "02:00" }, "weight": 1 },
+
+  { "id": "dawn_a", "text": "Daystar rising. The lasers can rest.", "category": "time_of_day", "trigger": { "event": "daystar_rise" }, "weight": 1 },
+  { "id": "dawn_b", "text": "The daystar is up. You were here first.", "category": "time_of_day", "trigger": { "event": "daystar_rise" }, "weight": 1 },
+
+  { "id": "satn_c", "text": "Saturnight over Metro Alpha.", "category": "time_of_day", "trigger": { "saturnight": true }, "weight": 1 },
+
+  { "id": "tod_21_a", "text": "Nine o'clock on a Saturnight. Most missions haven't launched yet.", "category": "time_of_day", "trigger": { "clock": "21:00", "day": "saturday" }, "weight": 1 },
+
+  { "id": "tod_04_b", "text": "Four in the morning. The first buses are warming up.", "category": "time_of_day", "trigger": { "clock": "04:00" }, "weight": 1 },
+
+  { "id": "tod_05_a", "text": "Five in the morning. The daystar is on its way.", "category": "time_of_day", "trigger": { "clock": "05:00" }, "weight": 1 },
+
+  { "id": "tod_01_e", "text": "One in the morning. The pulsars are mostly talking to themselves.", "category": "time_of_day", "trigger": { "clock": "01:00" }, "weight": 1 },
+
+  { "id": "posi_a", "text": "That was a long posi g-well. Free light years.", "category": "ride", "trigger": { "event": "posi_run", "min_drop_m": 25 }, "weight": 1 },
+
+  { "id": "bh3_d", "text": "Three black holes in one flight. A mission objective, some nights.", "category": "ride", "trigger": { "event": "black_hole_ahead", "count": 3 }, "weight": 1 },
+
+  { "id": "chas_b", "text": "Crossing the Charles Asteroid Belt, the dry way.", "category": "ride", "trigger": { "event": "byway_enter", "base": ["Harvard", "Longfellow", "Anderson Memorial", "Larz Anderson", "Boston University", "River Street", "River", "Western Avenue", "Western", "Eliot", "Weeks", "Charles River Dam", "Craigie", "Arsenal Street", "Arsenal", "North Beacon Street", "North Beacon"] }, "weight": 1 },
+  { "id": "chas_harvard", "text": "Three hundred sixty-four smoots across, give or take an ear.", "category": "ride", "trigger": { "event": "byway_enter", "base": "Harvard" }, "weight": 1 },
+  { "id": "chas_longfellow", "text": "The Longfellow. Say hello to the salt and pepper shakers.", "category": "ride", "trigger": { "event": "byway_enter", "base": "Longfellow" }, "weight": 1 },
+
+  { "id": "fort_a", "text": "The Fort, up ahead. Home port.", "category": "ride", "trigger": { "event": "fort_in_sight" }, "weight": 1 },
+
+  { "id": "rq5_a", "text": "Five quadrants. The Stellar Cartographer has some drawing to do.", "category": "ride", "trigger": { "event": "quadrant_enter", "count": 5 }, "weight": 1 },
+
+  { "id": "con3_a", "text": "Three constellations already. The Mission Leader may have views.", "category": "ride", "trigger": { "event": "constellation", "count": 3 }, "weight": 1 },
+
+  { "id": "hf5_b", "text": "Five hi-fives. Fifteen bonus points, if anyone's counting.", "category": "tally", "trigger": { "event": "hi_five", "count": 5 }, "weight": 1 },
+
+  { "id": "hf25_a", "text": "Twenty-five hi-fives. Half the city has been greeted.", "category": "tally", "trigger": { "event": "hi_five", "count": 25 }, "weight": 1 },
+
+  { "id": "cup1_a", "text": "First cup crushed. Did it make a cool sound?", "category": "tally", "trigger": { "event": "cup_crush", "count": 1 }, "weight": 1 },
+
+  { "id": "cup3_a", "text": "Three cups crushed. A tidy hat trick.", "category": "tally", "trigger": { "event": "cup_crush", "count": 3 }, "weight": 1 },
+
+  { "id": "hf50_a", "text": "Fifty hi-fives. That's a parade.", "category": "tally", "trigger": { "event": "hi_five", "count": 50 }, "weight": 1 },
+
+  { "id": "rad_on_a", "text": "Radiation. There's a points bonus for this, at least.", "category": "weather", "trigger": { "event": "radiation_start" }, "weight": 1 },
+
+  { "id": "rad_off_b", "text": "Radiation over. You flew right through it.", "category": "weather", "trigger": { "event": "radiation_end" }, "weight": 1 },
+  { "id": "rad_off_d", "text": "Radiation's stopped. No failure for radiation shortfall, then.", "category": "weather", "trigger": { "event": "radiation_end" }, "weight": 1 },
+
+  { "id": "neb_a", "text": "Nebula rolling in.", "category": "weather", "trigger": { "event": "nebula" }, "weight": 1 },
+  { "id": "neb_b", "text": "Nebula. The lasers are doing real work now.", "category": "weather", "trigger": { "event": "nebula" }, "weight": 1 },
+  { "id": "neb_d", "text": "Nebula. The pulsars glow in it.", "category": "weather", "trigger": { "event": "nebula" }, "weight": 1 },
+
+  { "id": "wx_apr_b", "text": "April. The radiation is still on the cold side.", "category": "weather", "trigger": { "month": "april" }, "weight": 1 },
+
+  { "id": "wx_may_a", "text": "May. Lilac season at the Arboretum.", "category": "weather", "trigger": { "month": "may" }, "weight": 1 },
+
+  { "id": "wx_jun_a", "text": "June. The daystar sets late, so the lasers come on late.", "category": "weather", "trigger": { "month": "june" }, "weight": 1 },
+  { "id": "wx_jun_b", "text": "June. The fireflies are on the chart too, unofficially.", "category": "weather", "trigger": { "month": "june" }, "weight": 1 },
+
+  { "id": "wx_aug_a", "text": "August. The cicadas have their own Life Support.", "category": "weather", "trigger": { "month": "august" }, "weight": 1 },
+
+  { "id": "wx_sep_a", "text": "September. The students are back, and so are the moving trucks.", "category": "weather", "trigger": { "month": "september" }, "weight": 1 },
+
+  { "id": "wx_oct_a", "text": "October. The flying salad is on the ground.", "category": "weather", "trigger": { "month": "october" }, "weight": 1 },
+  { "id": "wx_oct_b", "text": "October. The spacesuits are getting thicker.", "category": "weather", "trigger": { "month": "october" }, "weight": 1 },
+
+  { "id": "wx_nov_b", "text": "November. The lasers come on before dinner now.", "category": "weather", "trigger": { "month": "november" }, "weight": 1 },
+
+  { "id": "wx_jan_a", "text": "January. Officially, the fleet is hibernating. You're not.", "category": "weather", "trigger": { "month": "january" }, "weight": 1 },
+
+  { "id": "wx_mar_a", "text": "March. The potholes are in bloom.", "category": "weather", "trigger": { "month": "march" }, "weight": 1 },
+
+  { "id": "wx_feb_b", "text": "February. The road salt gets everywhere, including the chain.", "category": "weather", "trigger": { "month": "february" }, "weight": 1 },
+
+  { "id": "pwh_c", "text": "That little stone tower at Powder House is older than the country.", "category": "place", "trigger": { "event": "black_hole_ahead", "base": "Powder House" }, "weight": 1 },
+
+  { "id": "chr_a", "text": "Along the Charles Asteroid Belt. Flat, and very pretty.", "category": "place", "trigger": { "event": "wormhole_enter", "base": ["Paul Dudley White", "Charles River"] }, "weight": 1 },
+
+  { "id": "hvd_a", "text": "Harvard Constellation. The HONK! parade ends here.", "category": "place", "trigger": { "event": "constellation", "base": "Harvard" }, "weight": 1 },
+
+  { "id": "dav_a", "text": "Davis Constellation. The HONK! parade starts here.", "category": "place", "trigger": { "event": "constellation", "base": "Davis" }, "weight": 1 },
+
+  { "id": "por_a", "text": "Porter Constellation. The comet station under here is famously deep.", "category": "place", "trigger": { "event": "constellation", "base": "Porter" }, "weight": 1 },
+  { "id": "por_b", "text": "Porter Constellation. The big red sculpture turns in the wind.", "category": "place", "trigger": { "event": "constellation", "base": "Porter" }, "weight": 1 },
+
+  { "id": "mm_a", "text": "The Minuteman Wormhole. Trains ran here, once.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Minuteman" }, "weight": 1 },
+  { "id": "mm_b", "text": "The Minuteman. About ten light years of it, end to end.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Minuteman" }, "weight": 1 },
+  { "id": "mm_c", "text": "The Minuteman. Fewer pulsars, more trees.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Minuteman" }, "weight": 1 },
+
+  { "id": "cp_a", "text": "The Community Path. Comets for company, along part of it.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Community Path" }, "weight": 1 },
+
+  { "id": "fa_a", "text": "Fort Antwerp. Home since the Great Migration.", "category": "place", "trigger": { "event": "lore", "name": "Fort Antwerp" }, "weight": 1 },
+
+  { "id": "gf_tyler_a", "text": "Tyler Street. The Fort stood here for about ten seasons.", "category": "place", "trigger": { "event": "lore", "name": "Fort Tyler" }, "weight": 1 },
+
+  { "id": "gf_joy_a", "text": "Joy Street. A Fort stood here, for about a season.", "category": "place", "trigger": { "event": "lore", "name": "Fort Joy" }, "weight": 1 },
+
+  { "id": "bkh_a", "text": "Bunker Hill. The battle was mostly on Breed's Hill, to be fair.", "category": "place", "trigger": { "event": "lore", "name": "Bunker Hill" }, "weight": 1 },
+
+  { "id": "arb_a", "text": "The Arnold Arboretum. SCUL Day country.", "category": "place", "trigger": { "event": "lore", "name": ["Arnold Arboretum", "Peters Hill"] }, "weight": 1 },
+
+  { "id": "jpl_a", "text": "Luna JP Licks. Ice cream molecules, by tradition.", "category": "place", "trigger": { "event": "lore", "name": "JP Licks" }, "weight": 1 },
+
+  { "id": "pear_a", "text": "The Pear. It's an oracle, if you have a question.", "category": "place", "trigger": { "event": "lore", "name": "The Pear" }, "weight": 1 },
+
+  { "id": "eggs_a", "text": "The space eggs. SCUL's number two destination.", "category": "place", "trigger": { "event": "lore", "name": "The Space Eggs" }, "weight": 1 },
+
+  { "id": "pl_davis_person", "text": "Davis Constellation, named for Person Davis, a grain dealer.", "category": "place", "trigger": { "event": "constellation", "base": "Davis" }, "weight": 1 },
+
+  { "id": "pl_porter_steak", "text": "Porter Constellation. The porterhouse steak may have been named here.", "category": "place", "trigger": { "event": "constellation", "base": "Porter" }, "weight": 1 },
+
+  { "id": "pl_harvard_lies", "text": "Harvard Constellation. The statue in the Yard is known for its three lies.", "category": "place", "trigger": { "event": "constellation", "base": "Harvard" }, "weight": 1 },
+
+  { "id": "pl_union_flag", "text": "Union Constellation. Washington's army raised a flag on the hill above, in 1776.", "category": "place", "trigger": { "event": "constellation", "base": "Union" }, "weight": 1 },
+
+  { "id": "pl_kenmore_citgo", "text": "Kenmore Constellation. The Citgo sign has watched over it since 1965.", "category": "place", "trigger": { "event": "constellation", "base": "Kenmore" }, "weight": 1 },
+  { "id": "pl_kenmore_mile", "text": "Kenmore Constellation. One mile to go, if you're running the Marathon.", "category": "place", "trigger": { "event": "constellation", "base": "Kenmore" }, "weight": 1 },
+
+  { "id": "pl_nubian", "text": "Nubian Constellation. It was Dudley Square until 2019.", "category": "place", "trigger": { "event": "constellation", "base": "Nubian" }, "weight": 1 },
+
+  { "id": "pl_lallement_a", "text": "The Pierre Lallement Path. He patented the pedal bicycle in 1866.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Pierre Lallement" }, "weight": 1 },
+  { "id": "pl_swc", "text": "The Southwest Corridor was cleared for a highway that was never built.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Pierre Lallement" }, "weight": 1 },
+
+  { "id": "pl_knox_a", "text": "The Kittie Knox Path. In 1895 she took on a whites-only cycling league.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Kittie Knox" }, "weight": 1 },
+
+  { "id": "pl_pdw_b", "text": "Paul Dudley White was Eisenhower's heart doctor, and a great believer in bikes.", "category": "place", "trigger": { "event": "wormhole_enter", "base": ["Paul Dudley White", "Charles River"] }, "weight": 1 },
+  { "id": "pl_swim", "text": "The Charles, once famously dirty. These days there's a public swim.", "category": "place", "trigger": { "event": "wormhole_enter", "base": ["Paul Dudley White", "Charles River"] }, "weight": 1 },
+
+  { "id": "pl_mm_revere", "text": "The Minuteman. Paul Revere rode out this way, more or less.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Minuteman" }, "weight": 1 },
+
+  { "id": "pl_alewife", "text": "Alewife is named for a fish that still runs up the brook.", "category": "place", "trigger": { "event": "wormhole_enter", "base": ["Alewife", "Alewife Brook", "Alewife Greenway", "Alewife Brook Parkway"] }, "weight": 1 },
+
+  { "id": "pl_freshpond_a", "text": "Fresh Pond. Cambridge drinks from this.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Fresh Pond" }, "weight": 1 },
+
+  { "id": "pl_fens", "text": "The Fens. Olmsted built a park here to fix a smelly marsh.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Fenway" }, "weight": 1 },
+
+  { "id": "pl_jamaica", "text": "Jamaica Pond was left behind by a glacier.", "category": "place", "trigger": { "event": "wormhole_enter", "base": "Jamaicaway" }, "weight": 1 },
+
+  { "id": "pl_bu", "text": "At the BU Bridge, a boat, train, car and plane can stack up.", "category": "place", "trigger": { "event": "byway_enter", "base": "Boston University" }, "weight": 1 },
+
+  { "id": "pl_hb_mit", "text": "The Harvard Bridge. It goes to MIT, not Harvard.", "category": "place", "trigger": { "event": "byway_enter", "base": "Harvard" }, "weight": 1 },
+  { "id": "pl_hb_iso", "text": "Oliver Smoot, of the smoots, later ran the world's standards body.", "category": "place", "trigger": { "event": "byway_enter", "base": "Harvard" }, "weight": 1 },
+  { "id": "pl_hb_dome", "text": "The Harvard Bridge. MIT's dome once had a police car on top.", "category": "place", "trigger": { "event": "byway_enter", "base": "Harvard" }, "weight": 1 },
+
+  { "id": "pl_lf_poet", "text": "The Longfellow. The poet wrote about the bridge that stood here before.", "category": "place", "trigger": { "event": "byway_enter", "base": "Longfellow" }, "weight": 1 },
+
+  { "id": "pl_anderson", "text": "The Anderson Bridge. A son built it in memory of his father.", "category": "place", "trigger": { "event": "byway_enter", "base": "Anderson Memorial" }, "weight": 1 },
+
+  { "id": "pl_pwh_alarm", "text": "Powder House. A raid on its gunpowder set off the 1774 Powder Alarm.", "category": "place", "trigger": { "event": "black_hole_ahead", "base": "Powder House" }, "weight": 1 },
+  { "id": "pl_pwh_mill", "text": "The Powder House was a windmill before it held gunpowder.", "category": "place", "trigger": { "event": "black_hole_ahead", "base": "Powder House" }, "weight": 1 },
+
+  { "id": "pl_bb_abc", "text": "Back Bay. The cross streets run alphabetically, Arlington to Hereford.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Back Bay" }, "weight": 1 },
+
+  { "id": "pl_bh_taller", "text": "Beacon Hill used to be taller. The top went into the Mill Pond.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Beacon Hill" }, "weight": 1 },
+
+  { "id": "pl_ne_molasses", "text": "The North End. In 1919, a wave of molasses came through here.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "North End" }, "weight": 1 },
+
+  { "id": "pl_ch_constitution", "text": "Charlestown. The oldest commissioned warship afloat is moored here.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Charlestown" }, "weight": 1 },
+
+  { "id": "pl_al_sofas", "text": "Allston. On the first of September, the sidewalks fill with sofas.", "category": "place", "trigger": { "event": "quadrant_enter", "base": ["Allston", "Allston Village", "Lower Allston"] }, "weight": 1 },
+
+  { "id": "pl_br_cattle", "text": "Brighton. In the 1800s, this was Boston's cattle market.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Brighton" }, "weight": 1 },
+
+  { "id": "pl_fw_titanic", "text": "Fenway. The ballpark opened five days after the Titanic sank.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Fenway-Kenmore" }, "weight": 1 },
+
+  { "id": "pl_cport", "text": "Cambridgeport was laid out to be a port. It never quite was.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Cambridgeport" }, "weight": 1 },
+
+  { "id": "pl_ncam", "text": "North Cambridge. Danehy Park used to be the city dump.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "North Cambridge" }, "weight": 1 },
+
+  { "id": "pl_coolidge", "text": "Coolidge Corner. John F. Kennedy was born a few blocks away.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Coolidge Corner" }, "weight": 1 },
+
+  { "id": "pl_jp_arb", "text": "Jamaica Plain. Harvard rents the Arboretum from Boston for a dollar a year.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "Jamaica Plain" }, "weight": 1 },
+
+  { "id": "pl_southie", "text": "South Boston. Dawn Patrol meets the daystar out on Castle Island.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "South Boston" }, "weight": 1 },
+
+  { "id": "pl_eastie", "text": "East Boston. The airport is built on old harbour islands and fill.", "category": "place", "trigger": { "event": "quadrant_enter", "base": "East Boston" }, "weight": 1 },
+
+  { "id": "ct_bos_cows", "text": "Boston. Cows grazed on the Common until 1830.", "category": "city", "trigger": { "event": "system_enter", "base": "Boston" }, "weight": 1 },
+  { "id": "ct_bos_subway", "text": "Boston. America's first subway opened under Tremont Street in 1897.", "category": "city", "trigger": { "event": "system_enter", "base": "Boston" }, "weight": 1 },
+  { "id": "ct_bos_club", "text": "Boston. America's first bicycle club started here, in 1878.", "category": "city", "trigger": { "event": "system_enter", "base": "Boston" }, "weight": 1 },
+  { "id": "ct_bos_pope", "text": "Boston. Albert Pope started selling Columbia bicycles here in the 1870s.", "category": "city", "trigger": { "event": "system_enter", "base": "Boston" }, "weight": 1 },
+
+  { "id": "ct_cam_newtowne", "text": "Cambridge. It was called Newtowne until 1638.", "category": "city", "trigger": { "event": "system_enter", "base": "Cambridge" }, "weight": 1 },
+  { "id": "ct_cam_necco", "text": "Cambridge. Necco wafers were made on Mass Ave for most of a century.", "category": "city", "trigger": { "event": "system_enter", "base": "Cambridge" }, "weight": 1 },
+
+  { "id": "ct_som_1842", "text": "Somerville. It split off from Charlestown in 1842.", "category": "city", "trigger": { "event": "system_enter", "base": "Somerville" }, "weight": 1 },
+  { "id": "ct_som_fluff", "text": "Somerville. Marshmallow Fluff was invented here, in 1917.", "category": "city", "trigger": { "event": "system_enter", "base": "Somerville" }, "weight": 1 },
+  { "id": "ct_som_forts", "text": "Somerville. Fort Summer, Fort Joy and Fort Tyler all stood here.", "category": "city", "trigger": { "event": "system_enter", "base": "Somerville" }, "weight": 1 },
+
+  { "id": "ct_brk_1873", "text": "Brookline. It turned down joining Boston in 1873, and stayed out.", "category": "city", "trigger": { "event": "system_enter", "base": "Brookline" }, "weight": 1 },
+
+  { "id": "ct_wat_francis", "text": "Watertown. The first Fort, Fort Francis, was here.", "category": "city", "trigger": { "event": "system_enter", "base": "Watertown" }, "weight": 1 },
+  { "id": "ct_wat_arsenal", "text": "Watertown. The Army ran its Arsenal here for almost two centuries.", "category": "city", "trigger": { "event": "system_enter", "base": "Watertown" }, "weight": 1 },
+
+  { "id": "ct_arl_menotomy", "text": "Arlington. Until 1867, it was called Menotomy.", "category": "city", "trigger": { "event": "system_enter", "base": "Arlington" }, "weight": 1 },
+  { "id": "ct_arl_sam", "text": "Arlington. Samuel Wilson, the original Uncle Sam, was born here.", "category": "city", "trigger": { "event": "system_enter", "base": "Arlington" }, "weight": 1 },
+
+  { "id": "ct_med_jingle", "text": "Medford. A plaque in town says Jingle Bells was written here.", "category": "city", "trigger": { "event": "system_enter", "base": "Medford" }, "weight": 1 },
+  { "id": "ct_med_rum", "text": "Medford was famous for its rum, once.", "category": "city", "trigger": { "event": "system_enter", "base": "Medford" }, "weight": 1 },
+
+  { "id": "ct_new_heartbreak", "text": "Newton. Heartbreak Hill is in here somewhere.", "category": "city", "trigger": { "event": "system_enter", "base": "Newton" }, "weight": 1 },
+
+  { "id": "ct_lex_green", "text": "Lexington. The Revolution's first shots were fired on its green.", "category": "city", "trigger": { "event": "system_enter", "base": "Lexington" }, "weight": 1 },
+
+  { "id": "ct_brk_olmsted", "text": "Brookline. Frederick Law Olmsted lived and worked here.", "category": "city", "trigger": { "event": "system_enter", "base": "Brookline" }, "weight": 1 },
+
+  { "id": "ct_new_villages", "text": "Newton. A city of thirteen villages.", "category": "city", "trigger": { "event": "system_enter", "base": "Newton" }, "weight": 1 },
+
+  { "id": "ct_lex_mm", "text": "Lexington. The Minuteman runs right through the middle.", "category": "city", "trigger": { "event": "system_enter", "base": "Lexington" }, "weight": 1 },
+
+  { "id": "alpha_a", "text": "Alphamission. The space legs are coming back.", "category": "season", "trigger": { "date": "alphamission" }, "weight": 1 },
+  { "id": "alpha_b", "text": "Alphamission. Cryogenic hibernation is over.", "category": "season", "trigger": { "date": "alphamission" }, "weight": 1 },
+
+  { "id": "sculday_a", "text": "SCUL Day. The gang's orbital.", "category": "season", "trigger": { "date": "scul_day" }, "weight": 1 },
+  { "id": "sculday_b", "text": "SCUL Day. Abandon All Hope flies again.", "category": "season", "trigger": { "date": "scul_day" }, "weight": 1 },
+
+  { "id": "cent_a", "text": "Century day. A hundred light years is the plan.", "category": "season", "trigger": { "date": "century" }, "weight": 1 },
+  { "id": "cent_b", "text": "Century day. The intercept crew will be out late.", "category": "season", "trigger": { "date": "century" }, "weight": 1 },
+
+  { "id": "found_a", "text": "Founder's Day. Thirty-odd seasons, and it started with one ship.", "category": "season", "trigger": { "date": "founders_day" }, "weight": 1 },
+
+  { "id": "honk_a", "text": "HONK! weekend. Davis to Harvard, in parade formation.", "category": "season", "trigger": { "date": "honk" }, "weight": 1 },
+
+  { "id": "hw_a", "text": "Hallowheels. The one ride where civilians fly with us.", "category": "season", "trigger": { "date": "hallowheels" }, "weight": 1 },
+  { "id": "hw_b", "text": "Hallowheels. The spacesuits are stranger than usual.", "category": "season", "trigger": { "date": "hallowheels" }, "weight": 1 },
+
+  { "id": "omega_a", "text": "Omegamission. Last flight before hibernation.", "category": "season", "trigger": { "date": "omegamission" }, "weight": 1 },
+  { "id": "omega_b", "text": "Life Day. The Ode gets a new couplet.", "category": "season", "trigger": { "date": "omegamission" }, "weight": 1 },
+
+  { "id": "sculday_c2", "text": "SCUL Day. Peters Hill, then ice cream. The order is negotiable.", "category": "season", "trigger": { "date": "scul_day" }, "weight": 1 },
+
+  { "id": "hw_d", "text": "Hallowheels. Somebody is dressed as a civilian.", "category": "season", "trigger": { "date": "hallowheels" }, "weight": 1 },
+
+  { "id": "omega_d", "text": "Omegamission. The awards are homemade, and so is the potluck.", "category": "season", "trigger": { "date": "omegamission" }, "weight": 1 },
+
+  { "id": "alpha_d", "text": "Alphamission. Every year it gets a new pun for a name.", "category": "season", "trigger": { "date": "alphamission" }, "weight": 1 },
+
+  { "id": "cent_d", "text": "Century day. The bail points are planned, just in case.", "category": "season", "trigger": { "date": "century" }, "weight": 1 },
+
+  { "id": "cf_acronym", "text": "Officially, SCUL stands for SCUL Can't Use Acronyms.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_biggest", "text": "Skunk Day 50, in 2019, launched with seventeen Iron Cogs.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_cat_lb", "text": "Catastrophe, the first flagship, weighs about a hundred and forty pounds.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_cat_tape", "text": "The first flagship had a cassette stereo. Life Support, on tape.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_cloud", "text": "Cloudbuster's mirror ball has a name: the Disco Death Star.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_girls", "text": "In SCUL, all droids are boys, and all ships are girls.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_deadly", "text": "There's a set called the Seven Deadly Choppers. One is Pig Champion.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_skylab", "text": "Skylab, the cursed ship, was retired on SCUL Day 2013.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_mjollnir", "text": "One ship, Mjollnir, is titanium. Most are whatever was in the trash.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_ghost", "text": "A cadet with no ship flies the Ghost Ship, on paper.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_christen", "text": "Ships are christened with PBR, spit, clam sauce, or mayonnaise.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_plunger", "text": "Knightings call for a knightsaber. Sometimes the knightsaber is a plunger.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_founder_knight", "text": "The founder himself wasn't formally knighted until 2017.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_pushup", "text": "A civilian name costs one push-up. They add up over a whole career.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_maggot", "text": "Every New Year, ranks reset and everyone is a maggot again.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_fines", "text": "Minus fifty for passing the navigator. Minus three thousand for a bad preflight.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_tp", "text": "Derby started with toilet-paper tails. Ribbons came later.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_pie", "text": "Some derbies are fought with cream pies. Some with sparklers.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_sculimpics", "text": "At SCULimpics, anyone caught taking things seriously is disqualified.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_kickin", "text": "Christmas in July means punting a plastic Santa. That's Kickin' Claus.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_pear", "text": "The bronze Pear in Dorchester honours a local pear, the Clapp's Favorite.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_capsule", "text": "A SCUL time capsule was buried in 2012, and dug up in 2022.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_pbs", "text": "SCUL was on PBS in 2007, on Design Squad.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_reports", "text": "Mission reports have been written as haiku, Lovecraft, and PHP code.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_squares", "text": "A mission can fail for visiting too many squares.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_stupid", "text": "The Strength medal is known, unofficially, as the Medal of Stupid.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_bikeoween", "text": "In 2013 a civilian shouted Bike-O-Ween, and the name stuck.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_libros", "text": "The Starchasers run Luna Libros, a costumed library tour.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_interuniversal", "text": "SCUL has gone interuniversal: Montreal twice, and Lithuania.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_raccoons", "text": "Lithuania has its own chopper gang, the Raccoons.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_seventh", "text": "Fort Antwerp is the seventh Fort, not counting the nomadic spell.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_zoobs", "text": "One of the taskforce jobs is Minister of Zoobs.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_passport", "text": "The Cadet Passport runs to thirteen pages.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_cult", "text": "It gets said at knightings: we're definitely not a cult.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_first_century", "text": "The first SCUL Century, in 1998, was called Uranus Attack.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_crowdsurf", "text": "At Life Day, crowd-surfing is available on request.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_usb", "text": "The USB wing, the Universal Service Battalion, has built about forty-five ships.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_golden", "text": "The ship Golden Eagle is named after the founder's childhood gang.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_formations", "text": "Fleet formations include the pinwheel, the Flamingo and the Fourier.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_ratrace", "text": "At the Allston Rat Race, SCUL runs a chopper petting zoo.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_honeybee", "text": "SCUL has flown a mission for National Honeybee Day.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_radiobucket", "text": "The radiobag became a radiobox, and then a radiobucket.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_darkmatter", "text": "In the lingo, a toilet is a dark matter containment system.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 },
+  { "id": "cf_pantsical", "text": "A clothing failure, in the lingo, is a pantsical.", "category": "club_fact", "trigger": { "fact": true }, "weight": 1 }
+ ]
+}

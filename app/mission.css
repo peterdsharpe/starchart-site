@@ -1,0 +1,78 @@
+/* W73 mission (app/mission.js, SPEC §122): Burn up and the long-haul screen's button, in flight, at the top left, in
+   Layers' row (under the turn card while a course shows it), so the chart above the readout stays the chart's for a tap
+   (BRIEF §7.8); and the long-haul screen itself */
+.btn.mission { left: var(--ml); top: calc(var(--top) + var(--card-h, 0px)); z-index: 2; }
+body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) > .btn.mission { visibility: hidden; } /* as Layers */
+/* the in-flight GPS notice (app.css: #nofix, in this corner in flight) one row down, under them, never hidden by them */
+body:has(#readout:not([hidden])):has(> #burnup:not([hidden])) #nofix { top: calc(var(--top) + var(--card-h, 0px) + 44px + 8px); }
+/* in a short landscape on a course, the long-haul button goes up beside the turn card (course.css: its landscape width, the
+   same min()), in the first of the three slots the card leaves at the right (Overview and Layers have the others), and the
+   notice keeps app.css's place under the card: under a tall card (170 px) the left column has no row to spare above the
+   banner's pills */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 640px) {
+  /* W191 appleft (SPEC §334): the long-haul button's place here went: W177 buttons2 put it in the column (app/home.css), in every state (#8) */
+  body:has(#readout:not([hidden])):has(> .cturn:not([hidden])):has(> #burnup[hidden]) #nofix { top: calc(var(--top) + var(--card-h, 0px)); }
+}
+#burnup { width: auto; /* W191 appleft (SPEC §334): its place is app/home.css's (--far-*), either hand (#8) */ padding: 0 16px 0 12px; display: flex; gap: 8px; border-radius: var(--r-pill);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.125rem); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#longhaul .lbl { display: none; } /* its name is its aria-label; the button is the icon */
+.i-hangar { -webkit-mask-image: url("../design/glyphs/ui/hangar.svg"); mask-image: url("../design/glyphs/ui/hangar.svg"); }
+.i-amoled { -webkit-mask-image: url("../design/glyphs/ui/amoled.svg"); mask-image: url("../design/glyphs/ui/amoled.svg"); }
+
+/* The long-haul screen: black in every theme, so an OLED phone lights only the numbers. Its colours are Dark's own
+   (design/tokens.css: --void AMOLED, --stardust, --phosphor), dimmed, since Daystar's would light the whole screen. */
+#haul { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh;
+  padding: calc(env(safe-area-inset-top) + 16px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 16px) calc(env(safe-area-inset-left) + 16px);
+  background: var(--fixed-black); color: var(--dark-stardust); font-family: var(--font-display); font-weight: 700; letter-spacing: var(--track-display); text-align: center; }
+#haul[hidden] { display: none; }
+#haul .ly b { display: block; font-size: min(30vw, 30vh); line-height: 1; color: color-mix(in srgb, var(--dark-phosphor) 62%, var(--fixed-black)); font-variant-numeric: tabular-nums; } /* W185 colours: the tokens */
+[data-lingo="meatspace"] #haul .ly b { color: color-mix(in srgb, var(--dark-harbour) 62%, var(--fixed-black)); } /* W185 colours; W171 palette: Plain's, Dark's --harbour dimmed (§299) */
+#haul .lbl { display: block; margin-top: 2px; font-size: max(11px, 1.125rem); text-transform: uppercase; opacity: 0.8; } /* W142 remscale */
+#haul .pair { display: flex; gap: max(12vw, 48px); }
+#haul .pair b { display: block; font-size: min(17vw, 12vh); line-height: 1; font-variant-numeric: tabular-nums; }
+#haul .turn { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; max-width: 100%; }
+#haul .turn[hidden] { display: none; }
+#haul .turn .arrow { width: 44px; height: 44px; filter: brightness(0.7); }
+#haul .turn .dist { font-size: calc(30px + (1rem - 16px) * 1.5); white-space: nowrap; } /* W142 remscale */
+#haul .turn .road { flex-basis: 100%; font-size: max(11px, 1.125rem); } /* under the distance: the whole street, never cut */ /* W142 remscale */
+#haul .back { position: absolute; left: calc(env(safe-area-inset-left) + 16px); right: calc(env(safe-area-inset-right) + 16px); bottom: calc(env(safe-area-inset-bottom) + 16px); width: fit-content; margin-inline: auto; min-height: 44px;
+  padding: 0 12px; border: 0; background: none; color: inherit; font: inherit; font-size: max(11px, 1rem); text-transform: none; letter-spacing: 0; opacity: 0.8; text-wrap: balance; } /* W177 buttons2 (SPEC §312), her note 5: the line at the foot, centred, in words (was a small Chart pill); a tap anywhere goes back (mission.js); the screen's width less 16 px a side, centred (at left 50 % it had half and wrapped at 320 px) */
+#haul .back:active { transform: none; }
+body[data-open~="ride-preview"] .btn.mission { visibility: hidden; } /* a preview opened in flight covers them */
+/* W195 pocket (SPEC §343): Pocket, on the long-haul screen over its foot's line: clearly a button (a pill with its edge, 48 px
+   tall), in the screen's own dim colours. Pocketed, the screen is all black but a faint ring at the thumb's height, the pocket
+   glyph in it, and "Hold to show the map" under it; the ring fills while a hold runs (app/pocket.js), in three still steps in
+   Calm (Calm motion, Battery saver or the phone's reduced motion), and the faint parts come in by a short fade, none in Calm. */
+.i-pocket { -webkit-mask-image: url("../design/glyphs/ui/pocket.svg"); mask-image: url("../design/glyphs/ui/pocket.svg"); }
+#haul .pocket { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px + 44px + 16px); translate: -50% 0; display: flex; align-items: center; gap: 8px;
+  min-height: 48px; padding: 0 20px 0 16px; border: 1.5px solid color-mix(in srgb, var(--dark-stardust) 55%, var(--fixed-black)); border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--dark-stardust) 10%, var(--fixed-black)); color: var(--dark-stardust);
+  font: 700 max(11px, 1.125rem)/1 var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; white-space: nowrap; }
+:root { --pk-l: auto; --pk-r: calc(env(safe-area-inset-right) + 16px); --pk-cols: 1fr auto; --pk-num: 1; --pk-btn: 2; } /* Pocket at the Buttons' side (below), */
+:root[data-hand="left"] { --pk-l: calc(env(safe-area-inset-left) + 16px); --pk-r: auto; --pk-cols: auto 1fr; --pk-num: 2; --pk-btn: 1; } /* either hand (W191 appleft's rule) */
+@media (orientation: portrait) and (max-height: 36em) { /* a short screen for its text size (320 × 568; 411 × 832 at 150 %): the numbers and a course's turn
+  fill it, so Pocket goes up to the top corner at the Buttons' side */
+  #haul .pocket { top: calc(env(safe-area-inset-top) + 16px); bottom: auto; left: var(--pk-l); right: var(--pk-r); translate: none; } }
+@media (orientation: landscape) { /* a phone on its side: the numbers fill the height, so Pocket is a column of its own at the
+  Buttons' side, halfway up, and the numbers centre in the rest (at 568 × 320 and 150 % text they met it) */
+  #haul:not([hidden], .pocketed) { display: grid; grid-template-columns: var(--pk-cols); grid-template-rows: repeat(3, auto); align-content: center; justify-items: center; column-gap: 16px; row-gap: 4vh; }
+  #haul:not([hidden], .pocketed):has(> .turn[hidden]) { grid-template-rows: repeat(2, auto); }
+  #haul:not(.pocketed) > :is(.turn, .ly, .pair) { grid-column: var(--pk-num); }
+  #haul .pocket { position: static; translate: none; grid-column: var(--pk-btn); grid-row: 1 / -1; align-self: center; } }
+#haul .pocket .i { width: 24px; height: 24px; }
+#haul .pocket:active { transform: none; background: color-mix(in srgb, var(--dark-stardust) 22%, var(--fixed-black)); }
+#haul .pk { display: none; }
+#haul.pocketed > :not(.pk) { display: none; }
+#haul.pocketed { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#haul.pocketed .pk { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + max(16px, 15dvh)); color: color-mix(in srgb, var(--dark-stardust) 62%, var(--fixed-black)); animation: pk-in 600ms var(--ease-standard); } /* as the screen's numbers, 62 %: faint, 3.3:1, and still read in daylight */
+@keyframes pk-in { from { opacity: 0; } }
+#haul .ring { position: relative; width: 72px; height: 72px; box-sizing: border-box; display: grid; place-items: center; border: 2.5px solid color-mix(in srgb, var(--dark-stardust) 40%, var(--fixed-black)); border-radius: 50%; } /* the track 1.9:1, a faint target */
+#haul .ring::before { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: color-mix(in srgb, var(--dark-phosphor) 40%, var(--fixed-black)); transform: scale(0); } /* the hold's fill, a disc that grows to the ring: transform only (BRIEF §8.2) */
+[data-lingo="meatspace"] #haul .ring::before { background: color-mix(in srgb, var(--dark-harbour) 40%, var(--fixed-black)); } /* as the screen's LY (above) */
+#haul .ring .i { position: relative; } /* over the fill */
+#haul .ring.holding::before { animation: pk-fill 1500ms linear forwards; } /* app/pocket.js HOLD_MS */
+@keyframes pk-fill { to { transform: scale(1); } }
+#haul .pk .hint { margin: 0; font: 600 max(11px, 1rem)/1.3 var(--font-body); text-align: center; text-wrap: balance; max-width: calc(100vw - 32px); }
+body.calm #haul.pocketed .pk { animation: none; }
+body.calm #haul .ring.holding::before { animation-timing-function: steps(3, end); }

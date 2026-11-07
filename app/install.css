@@ -1,0 +1,57 @@
+/* W22 pwa: Settings' Install row (app/install.js). The glyph, in the UI set's 24-unit style: three apps on a
+   home screen, and a plus for the fourth. */
+.i-install { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='13.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='3.5' y='13.5' width='7' height='7' rx='2'/%3E%3Cpath d='M17 13.5v7M13.5 17h7'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='13.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='3.5' y='13.5' width='7' height='7' rx='2'/%3E%3Cpath d='M17 13.5v7M13.5 17h7'/%3E%3C/svg%3E"); }
+#install .txt .t { display: block; }
+#install { width: 100%; margin: 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); background: none; /* W47 install: a row that opens the guide */
+  color: var(--starlight); text-align: left; font: inherit; font-size: max(11px, 1.0625rem); cursor: pointer; } /* W142 remscale */
+
+/* W47 install (design/app-ui/SPEC.md §58): the install guide, full screen as Settings is (BRIEF §7.8), over it or over the
+   welcome card. Its head and × stay at the top; on a wide screen it sits in a centred column of 640 px at most. */
+#install-guide { inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; transform: none; overflow: auto; overscroll-behavior: contain;
+  --pl: max(calc(16px + env(safe-area-inset-left)), calc((100vw - 640px) / 2)); --pr: max(calc(16px + env(safe-area-inset-right)), calc((100vw - 640px) / 2));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px); border: 0; border-radius: 0; box-shadow: none; }
+#install-guide[open] { animation: sheet-in var(--t-small) var(--ease-enter); }
+#install-guide::backdrop { background: color-mix(in srgb, var(--void) 62%, transparent); }
+#install-guide form { margin: 0; }
+#install-guide .top { padding-top: calc(env(safe-area-inset-top) + 8px); border-radius: 0; box-shadow: 0 1px 0 color-mix(in srgb, var(--space-3) 70%, transparent); }
+#install-guide .head { display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0 0 6px; } /* W133 settings4: after the back arrow, no × */
+#install-guide .head .i { width: 28px; height: 28px; color: var(--phosphor); }
+#install-guide .head h2 { color: var(--phosphor); font-size: calc(28px + (1rem - 16px) * 1.5); line-height: 1; } /* W142 remscale */
+@media (max-width: 359px) { #install-guide .head h2 { font-size: calc(24px + (1rem - 16px) * 1.5); } } /* one line at 320 px */ /* W142 remscale */
+#install-guide .ig-lede { margin: 16px 0 14px; font-size: max(11px, 1.0625rem); line-height: 1.4; max-width: 34em; } /* W142 remscale */
+#install-guide[data-state="installed"] .ig-lede { color: var(--phosphor); }
+/* the browser's own prompt, first: one tap */
+#install-guide .ig-now { display: block; width: 100%; max-width: 360px; height: 52px; margin: 0 0 16px; padding: 0 16px; border: 0; border-radius: var(--r-pill);
+  background: var(--starlight); color: var(--void); font: 600 max(11px, 1.125rem) var(--font-body); } /* W142 remscale */
+#install-guide .ig-or { margin: 0 0 10px; color: var(--stardust); font-size: max(11px, 0.9375rem); } /* W142 remscale */
+/* a computer: the steps folded under one row */
+#install-guide .ig-fold { border-top: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); }
+#install-guide .ig-fold > summary { list-style: none; cursor: pointer; }
+#install-guide .ig-fold > summary::-webkit-details-marker { display: none; }
+#install-guide .ig-fold[open] > summary .val { transform: rotate(90deg); }
+#install-guide .ig-fold[open] > summary { border-bottom: 0; }
+/* the device, as a segmented choice; under it the browsers, as tabs with a line under the chosen one */
+#install-guide .ig-plat { display: flex; margin: 4px 0 0; border: 1px solid var(--space-3); border-radius: var(--r-pill); overflow: hidden; }
+#install-guide .ig-plat button { flex: 1 1 auto; min-height: 44px; padding: 4px 8px; border: 0; background: none; color: var(--stardust);
+  font: 700 max(11px, 0.9375rem)/1.1 var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#install-guide .ig-plat button + button { border-left: 1px solid var(--space-3); }
+#install-guide .ig-plat [aria-selected="true"] { background: var(--accent-fill, color-mix(in srgb, var(--phosphor) 22%, transparent)); color: var(--phosphor); } /* W171 palette */
+#install-guide .ig-tabs { display: flex; gap: 4px; margin: 12px 0 0; border-bottom: 1px solid var(--space-3); }
+#install-guide .ig-tabs button { flex: 1 1 auto; min-height: 48px; padding: 4px 6px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none;
+  color: var(--stardust); font: 600 max(11px, 1rem)/1.15 var(--font-body); } /* W142 remscale */
+#install-guide .ig-tabs [aria-selected="true"] { color: var(--starlight); border-bottom-color: var(--accent, var(--wormhole)); } /* W171 palette */
+/* the steps: numbered, one thing to tap each */
+#install-guide ol.steps { margin: 0; padding: 14px 0 4px; list-style: none; counter-reset: step; }
+#install-guide ol.steps li { counter-increment: step; display: flex; align-items: baseline; gap: 12px; min-height: 32px; font-size: max(11px, 1.0625rem); line-height: 1.4; padding: 6px 0; } /* W142 remscale */
+#install-guide ol.steps li::before { content: counter(step); flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font: 600 max(11px, 0.875rem)/1 var(--font-mono, monospace); color: var(--void); background: var(--wormhole); } /* W142 remscale */
+#install-guide ol.steps li > span { flex: 1; min-width: 0; }
+#install-guide .ig-note { margin: 8px 0 0 38px; color: var(--stardust); font-size: max(11px, 0.9375rem); line-height: 1.4; } /* W142 remscale */
+#install-guide ol:empty + .ig-note, #install-guide .ig-panel > .ig-note:first-child { margin: 16px 0 0; color: var(--starlight); font-size: max(11px, 1.0625rem); } /* W142 remscale */
+/* the browsers' own glyphs, drawn in the UI set's style: ⋮, ≡, ⋯ and Share; the character stays for a screen reader */
+.g { display: inline-block; width: 22px; height: 22px; margin: -4px 2px 0; vertical-align: middle; font-size: 0; color: var(--starlight); background: currentColor;
+  -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.g-more { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='5' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='19' r='2.1' fill='%23000' stroke='none'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='5' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='19' r='2.1' fill='%23000' stroke='none'/%3E%3C/svg%3E"); }
+.g-dots { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='19' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='5' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3Ccircle cx='19' cy='12' r='2.1' fill='%23000' stroke='none'/%3E%3C/svg%3E"); }
+.g-menu { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M4 12h16M4 17.5h16'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5h16M4 12h16M4 17.5h16'/%3E%3C/svg%3E"); }
+.g-share { margin-left: 4px; -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8.5 9.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.5a2 2 0 0 0-2-2h-1.5M12 3v11.5M8.5 6.5 12 3l3.5 3.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8.5 9.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.5a2 2 0 0 0-2-2h-1.5M12 3v11.5M8.5 6.5 12 3l3.5 3.5'/%3E%3C/svg%3E"); }

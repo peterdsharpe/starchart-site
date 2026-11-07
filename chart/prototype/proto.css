@@ -1,0 +1,226 @@
+/* Starchart flight mode. Colours and type come from design/tokens.css. The HUD is the console
+   layer (brief 7.1): phosphor readouts, hairlines, only the top-right corner rounded. Everything
+   here animates only transform and opacity (brief 8, rule 2). */
+html, body { margin: 0; height: 100%; background: var(--void); overflow: hidden; }
+body { font-family: var(--font-body); color: var(--starlight); -webkit-tap-highlight-color: transparent; }
+#map { position: absolute; inset: 0; }
+/* the map credit sits in its own row under the console, where no banner ever covers it */
+.maplibregl-ctrl-attrib { background: rgba(7, 6, 13, 0.7) !important; color: var(--stardust); font-size: 10px; line-height: 16px; }
+.maplibregl-ctrl-attrib a { color: var(--stardust); }
+.maplibregl-ctrl-bottom-left { bottom: 54px; }
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl { margin: 0 0 0 8px; }
+body.embed .maplibregl-ctrl-bottom-left { bottom: 2px; }
+body.season .maplibregl-ctrl-bottom-left { bottom: 58px; }
+
+@font-face { font-family: "Antonio"; src: url("../../design/fonts/Antonio-Variable.woff2") format("woff2"); font-weight: 100 700; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("../../design/fonts/AtkinsonHyperlegibleNext-Variable.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "Space Mono"; src: url("../../design/fonts/SpaceMono-Regular.woff2") format("woff2"); }
+
+.ico { display: inline-block; width: 24px; height: 24px; background: currentColor; flex: none;
+  -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
+
+/* --- HUD: the ship's computer --------------------------------------------------------- */
+#hud {
+  position: absolute; top: 8px; left: 8px; right: 8px; contain: layout paint;
+  padding: 8px 12px 7px;
+  background: rgba(7, 6, 13, 0.84);
+  border: 1px solid var(--phosphor-dim);
+  border-radius: var(--r-lcars);
+  box-shadow: var(--glow-m) rgba(0, 217, 0, 0.16), inset 0 0 0 1px rgba(0, 217, 0, 0.05);
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: var(--track-display);
+  color: var(--phosphor);
+  pointer-events: none;
+}
+#hud .label { font-size: 12px; color: var(--console-grey); font-weight: 600; letter-spacing: 0.1em; }
+.readouts { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 4px; }
+.readout { display: flex; flex-direction: column; line-height: 0.95; }
+.readout .num { font-size: 46px; font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 0 10px rgba(0, 217, 0, 0.35); }
+.readout.warp .num { font-size: 58px; }
+.where { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; padding-top: 5px;
+  border-top: 1px solid var(--phosphor-dim); white-space: nowrap; overflow: hidden; }
+.where .system { flex: none; max-width: 64%; overflow: hidden; text-overflow: ellipsis; }
+.system { font-size: 24px; font-weight: 700; color: var(--starlight); }
+.quadrant { font-size: 18px; min-width: 0; font-weight: 600; color: var(--stardust); overflow: hidden; text-overflow: ellipsis; }
+.status-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 3px; white-space: nowrap; }
+.stardate { font-size: 16px; }
+#stardate { font-family: var(--font-mono); color: var(--phosphor); letter-spacing: 0; text-transform: none; font-size: 16px; }
+.core { display: flex; align-items: center; gap: 6px; }
+.core .ico { width: 16px; height: 16px; color: var(--console-grey); }
+.cells { display: flex; gap: 2px; }
+.cells i { width: 9px; height: 12px; background: var(--phosphor); opacity: 0.18; }
+.cells i:first-child { border-radius: 0; }
+.cells i:last-child { border-radius: 0 4px 0 0; }
+.cells i.on { opacity: 1; box-shadow: 0 0 5px rgba(0, 217, 0, 0.5); }
+.core .pct { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 3.2ch; text-align: right; }
+.core.low .cells i.on, .core.low .pct { color: var(--caution); background-color: var(--caution); }
+.core.low .pct { background: none; }
+
+/* --- course mode: the manoeuvre card ---------------------------------------------------- */
+#maneuver {
+  position: absolute; top: 176px; left: 8px; right: 8px; contain: layout paint;
+  display: grid; grid-template-columns: 84px 1fr; grid-template-rows: auto auto; column-gap: 12px;
+  padding: 10px 12px 8px 10px;
+  background: rgba(7, 6, 13, 0.9);
+  border: 1px solid var(--course); border-radius: var(--r-lcars);
+  box-shadow: var(--glow-m) rgba(255, 138, 31, 0.3);
+  pointer-events: none;
+}
+#maneuver[hidden] { display: none; }
+#mv-arrow { grid-row: 1; width: 84px; height: 84px; }
+.mv-words { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.mv-dist { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: var(--track-display);
+  text-transform: uppercase; color: var(--course); }
+.mv-text { font-size: 21px; line-height: 1.18; font-weight: 600; color: var(--starlight); margin-top: 4px; }
+.mv-foot { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: 7px; padding-top: 5px;
+  border-top: 1px solid rgba(255, 138, 31, 0.35);
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: 15px; font-weight: 600; color: var(--course); }
+
+/* --- the season card ------------------------------------------------------------------- */
+#season {
+  position: absolute; left: 8px; right: 8px; bottom: 150px; padding: 10px 14px 10px; contain: layout paint;
+  background: rgba(7, 6, 13, 0.88); border: 1px solid rgba(244, 239, 226, 0.45); border-radius: var(--r-lcars);
+  box-shadow: var(--glow-m) rgba(244, 239, 226, 0.12); color: var(--chalk); pointer-events: none;
+}
+.season-title { font-family: var(--font-marker); font-size: 24px; line-height: 1; }
+.season-title span { font-family: var(--font-display); font-size: 15px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--stardust); }
+.season-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 8px; }
+.season-stats div { display: flex; flex-direction: column; }
+.season-stats b { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--starlight); font-variant-numeric: tabular-nums; }
+.season-stats span { font-family: var(--font-display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--stardust); }
+.season-note { font-size: 14px; color: var(--stardust); margin-top: 6px; }
+
+/* --- event banners: one compact strip just above the console, below the ship (brief 7.6: nothing
+   covers the road ahead). Slide in 0.6 s, hold 2.6 s, slide out; one below 400 px wide, else two. -- */
+#banners { position: absolute; left: 8px; right: 8px; bottom: 152px; display: flex; flex-direction: column-reverse; gap: 6px;
+  pointer-events: none; contain: layout; }
+body.embed #banners { bottom: 100px; }
+.banner {
+  --hue: var(--phosphor);
+  display: grid; grid-template-columns: 12px 1fr; align-items: stretch;
+  background: rgba(7, 6, 13, 0.9);
+  border: 1px solid var(--hue);
+  border-radius: var(--r-lcars);
+  box-shadow: var(--glow-m) color-mix(in srgb, var(--hue) 40%, transparent);
+  overflow: hidden;
+  transform: translateY(140%); opacity: 0;
+  animation: banner-in 0.6s var(--ease-warp) forwards, banner-out 0.6s ease-in 3.2s forwards;
+}
+.banner .cap { background: var(--hue); }
+.banner .body { padding: 6px 12px 7px; min-width: 0; }
+.banner .title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: 26px;
+  letter-spacing: var(--track-display); line-height: 1.1; color: var(--hue); display: flex; gap: 10px; align-items: center; }
+.banner .title span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.banner .title .glyph { width: 30px; height: 30px; flex: none; }
+.banner .sub { font-size: 18px; line-height: 1.2; color: var(--starlight); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.banner.wormhole { --hue: var(--wormhole); }
+.banner.black_hole { --hue: var(--black-hole); }
+.banner.pulsar { --hue: var(--pulsar); }
+.banner.negi { --hue: var(--negi); }
+.banner.posi { --hue: var(--phosphor); }
+.banner.byway { --hue: var(--starlight); }
+.banner.system { --hue: var(--phosphor); }
+.banner.constellation { --hue: var(--starpath); }
+.banner.ly { --hue: var(--course); }
+.banner.ly .cap { background: linear-gradient(180deg, #ff4fd8, #ff8a1f, #ffd23f, #2ef2ff, #9b5cff); }
+.banner.hold { animation: banner-in 0.6s var(--ease-warp) forwards; }
+.banner.short .sub { display: none; } /* a short screen: the title only, so the banner clears the ship */
+@keyframes banner-in { to { transform: translateY(0); opacity: 1; } }
+@keyframes banner-out { to { transform: translateY(40%); opacity: 0; } }
+
+/* --- the console: silent running, tallies, lingo mode ------------------------------------
+   Every button is 72 px tall (Android asks for 48 dp), with labels at 16 px or more. Silent Running
+   and the lingo switch sit at opposite ends, so a thumb aimed at one never changes the other. */
+#console { position: absolute; left: 8px; right: 8px; bottom: 72px; height: 72px; display: grid;
+  grid-template-columns: 72px 1fr 1fr 72px; gap: 8px; contain: layout paint; }
+@media (min-width: 400px) { #console { grid-template-columns: 84px 1fr 1fr 84px; } }
+body.embed #console { bottom: 20px; }
+#console button { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: var(--track-display);
+  border-radius: var(--r-lcars); cursor: pointer; touch-action: manipulation; }
+.tally { position: relative; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-content: center; align-items: center;
+  column-gap: 8px; row-gap: 2px; padding: 0 10px; overflow: hidden;
+  background: rgba(14, 12, 29, 0.94); border: 1.5px solid var(--chalk); color: var(--chalk); text-align: left; }
+.tally .ico { width: 32px; height: 32px; }
+.tally .t-label { grid-column: 1 / -1; font-size: 16px; line-height: 1; color: var(--stardust); white-space: nowrap; }
+.tally .t-n { font-size: 36px; line-height: 0.95; font-variant-numeric: tabular-nums; justify-self: start; }
+/* a tally is confirmed in its own button: the count pops and the tile glows, and no banner shows */
+.tally::after { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 2px var(--chalk), inset 0 0 18px rgba(244, 239, 226, 0.55); }
+.tally.pop::after { animation: glow 0.9s ease-out; }
+.tally.pop .t-n { animation: pop 0.42s var(--ease-warp); }
+.tally:active { transform: scale(0.97); }
+@keyframes pop { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+@keyframes glow { 0% { opacity: 1; } 100% { opacity: 0; } }
+.pill { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 4px;
+  background: rgba(14, 12, 29, 0.94); border: 1.5px solid var(--space-3); color: var(--starlight);
+  font-size: 16px; line-height: 1; letter-spacing: 0.03em; text-align: center; overflow: hidden; }
+.pill .ico { width: 24px; height: 24px; }
+#mode { color: var(--stardust); }
+/* Silent Running on: a lit outline, never a solid block (the brightest thing on a night chart) */
+#silent[aria-pressed="true"] { border-color: var(--phosphor); color: var(--phosphor);
+  box-shadow: inset 0 0 0 1px var(--phosphor), 0 0 10px rgba(0, 217, 0, 0.35); }
+
+/* --- developer controls (hidden in embed mode) ---------------------------------------- */
+#controls { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 44px; display: flex; gap: 6px; }
+#controls button {
+  flex: 1; border: 1px solid var(--space-3); background: rgba(14, 12, 29, 0.92);
+  color: var(--stardust); font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  text-transform: uppercase; letter-spacing: var(--track-display); border-radius: var(--r-lcars);
+}
+#controls button.on { border-color: var(--phosphor-dim); color: var(--phosphor); }
+#controls #play { color: var(--course); border-color: rgba(255, 138, 31, 0.6); }
+body.embed #controls { display: none; }
+
+/* --- embed: pause (Silent Running is the one sound control) -------------------------------- */
+#paused[hidden] { display: none; }
+#paused { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); padding: 10px 18px;
+  background: rgba(7, 6, 13, 0.9); border: 1px solid var(--course); border-radius: var(--r-lcars); color: var(--course);
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 20px; pointer-events: none; }
+
+/* --- the ship ------------------------------------------------------------------------- */
+.ship { width: 64px; height: 64px; pointer-events: none; will-change: transform; }
+.ship img { width: 100%; height: 100%; display: block; }
+
+/* --- performance HUD (?perf=1) -------------------------------------------------------- */
+#perf { position: absolute; right: 8px; top: 180px; margin: 0; padding: 6px 8px; z-index: 9; pointer-events: none;
+  background: rgba(7, 6, 13, 0.85); border: 1px solid var(--space-3); color: var(--phosphor);
+  font: 11px/1.35 var(--font-mono); white-space: pre; }
+
+/* --- inspect -------------------------------------------------------------------------- */
+#inspect {
+  position: absolute; left: 8px; right: 8px; bottom: 152px; padding: 12px 14px 10px;
+  background: rgba(7, 6, 13, 0.95); border: 1px solid var(--starpath); border-radius: var(--r-lcars);
+  box-shadow: var(--glow-m) rgba(183, 168, 255, 0.25); max-height: 46%; overflow: auto; z-index: 5;
+}
+#inspect .close { position: absolute; top: 4px; right: 8px; background: none; border: 0; color: var(--stardust); font-size: 28px; }
+#inspect .kind { font-family: var(--font-mono); font-size: 12px; color: var(--stardust); }
+#inspect .scul { font-family: var(--font-display); font-weight: 700; font-size: 28px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--starlight); line-height: 1.1; }
+#inspect .plain { font-size: 18px; color: var(--starpath); }
+#inspect .status { margin: 6px 0; font-size: 14px; }
+#inspect .status b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; padding: 1px 8px; border-radius: 0 0.5rem 0 0; margin-right: 6px; }
+#inspect .status b.official { background: var(--phosphor); color: var(--void); }
+#inspect .status b.club { background: var(--pulsar); color: var(--void); }
+#inspect .status b.proposed { background: none; border: 1px dashed var(--luna); color: var(--luna); }
+#inspect dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0 0; font-family: var(--font-mono); font-size: 12px; }
+#inspect dt { color: var(--stardust); }
+#inspect dd { margin: 0; color: var(--starlight); overflow-wrap: anywhere; }
+#controls #inspectBtn.on { border-color: var(--starpath); color: var(--starpath); }
+
+@media (prefers-reduced-motion: reduce) { .banner { animation-duration: 0.01s, 0.01s; } .tally.pop .t-n { animation: none; } }
+/* the Calm chart setting (?calm=1) is the same as the system's reduced motion (brief 7.6, prototype-11) */
+body.calm .banner { animation-duration: 0.01s, 0.01s; }
+body.calm .tally.pop .t-n { animation: none; }
+
+/* narrow phones: the HUD keeps one line per row; the labels give way to the icon and the value */
+@media (max-width: 439px) { .stardate > .label { display: none; } }
+@media (max-width: 379px) { .core > .label { display: none; } }
+
+/* night vision: the chrome turns red with the chart (the chart and sprite are recoloured at build).
+   The same rule as build_style.py night(): luminance x 1.25, capped, then x 1.24 into red, the excess into green and blue. */
+body.night #hud, body.night #banners, body.night #controls, body.night #console, body.night .ship, body.night #inspect,
+body.night #maneuver, body.night #season, body.night #paused {
+  filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='red' color-interpolation-filters='sRGB'%3E%3CfeColorMatrix values='0.2658 0.894 0.0903 0 0 0.2658 0.894 0.0903 0 0 0.2658 0.894 0.0903 0 0 0 0 0 1 0'/%3E%3CfeColorMatrix values='1.24 0 0 0 0 1.24 0 0 0 -1 1.24 0 0 0 -1 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#red");
+}
+
+/* the season chart is a Black Box view: no flight console */
+body.season #hud, body.season #console, body.season #banners { display: none; }
+body.season #season { top: 8px; bottom: auto; }

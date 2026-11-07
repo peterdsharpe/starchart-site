@@ -1,0 +1,255 @@
+/* Starchart design tokens: the single source of colour, type, shape and motion.
+ * Every asset and screen takes its values from here (or from tokens.json, the
+ * same values for SVG, map styles and Android). Change a value here first.
+ *
+ * Colour is semantic: one hue per concept, everywhere (map, HUD, docs).
+ * The fonts are WOFF2 (W102 trim: design/fonts/build_woff2.py, from the TTFs beside them).
+ */
+
+@font-face { font-family: "Antonio"; src: url("fonts/Antonio-Variable.woff2") format("woff2"); font-weight: 100 700; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("fonts/AtkinsonHyperlegibleNext-Variable.woff2") format("woff2"); font-weight: 200 800; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("fonts/AtkinsonHyperlegibleNext-Italic-Variable.woff2") format("woff2"); font-weight: 200 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "Space Mono"; src: url("fonts/SpaceMono-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Space Mono"; src: url("fonts/SpaceMono-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Permanent Marker"; src: url("fonts/PermanentMarker-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+:root {
+  /* ---- Space: surfaces, darkest to lightest ---------------------------- */
+  --void:        #07060d;  /* app and map background; kin to scul.org #080808 */
+  --space-1:     #0e0c1d;  /* land on the chart, base cards */
+  --space-2:     #17142e;  /* raised surfaces, sheets */
+  --space-3:     #2a2452;  /* hairlines, inactive outlines */
+  --stardust:    #9a93c4;  /* secondary text, minor labels */
+  --starlight:   #f3efff;  /* primary text */
+
+  /* ---- Heritage: taken from scul.org's own console look ---------------- */
+  --phosphor:     #00d900; /* scul.org --primary-fg. The ship's computer: HUD readouts, system voice captions, posi */
+  --phosphor-dim: #0b5a14;
+  --console-grey: #aaaaaa; /* scul.org --secondary-fg */
+  --caution:      #afce00; /* scul.org .caution. Warnings: radiation, buoy fields */
+  --negi:         #ee0000; /* scul.org .error / .status-negi. Danger, negi, no-fly transport lanes */
+
+  /* ---- Chart semantics: one hue per kind of thing ---------------------- */
+  --wormhole:     #2ef2ff; /* bike paths and all bike infrastructure: good for ships */
+  --bike-line:    #2ef2ff; /* W116: the bike lines and racks as the map draws them (Daystar's differs: W112 palette's DAY_BIKE) */
+  --black-hole:   #979b9f; /* rotaries (with --void for the event horizon) */
+  --pulsar:       #ffd23f; /* traffic lights; W186 palette: the chrome's, SCUL's as before (the map's is tokens.json color-map's, her yellow; Plain's chrome her yellow's words, below) */
+  --nebula:       #023050; /* water bodies (heavy nebulae) and rivers (asteroid belts) */
+  --nebula-glow:  #3a708a;
+  --terraform:    #1a3a2a; /* parks and green space */
+  --terraform-glow:#1db87b;
+  --starpath:     #b4b7ba; /* streets */
+  --course:       #a19af7; /* your plotted course's chrome and every navigation instruction (W186 palette: her accent, was the orange) */
+  --course-line:  #979b9f; /* W186 palette: the course's line before it is rated, the other options and the lead to the start, her grey */
+  --luna:         #f37819; /* places to stop: lunas, refueling, grenades, shore leave */
+  --chalk:        #f4efe2; /* your own marks: ghost trails, chalk tags, hand notes */
+  --you:          #3f8cff; /* you, live: the location button while following, the accuracy ring, the heading beam, and
+                              where you have flown: the star trail and the Log's drawn track (wave 21).
+                              The maps-app blue (Apple #007aff, Google #4285f4), kept clear of --wormhole cyan and --nebula-glow */
+  /* W186 palette (SPEC §328): the avatar swatches, her accent, yellow, red, green and silver, the same in both themes (were W157's --hivis, --gold) */
+  --avatar-purple: #a19af7; --avatar-yellow: #fadf28; --avatar-red: #d71625; --avatar-green: #1db87b; --avatar-grey: #bbcddd;
+  /* W186 palette: SCUL's own paints, as before her palette: its ships (app/ship-model.js), boot ring (app/hexload.css) and funk; Plain's rider's blush */
+  --scul-luna: #ff4fd8; --scul-course: #ff8a1f; --scul-black-hole: #9b5cff; --rider-cheeks: #ff4fd8;
+  /* W171 palette (SPEC §299): her accent and selected fill; Plain's in place of --phosphor (below, after Daystar's chrome) */
+  --harbour:      #2ad2fb;
+  --harbour-fill: #21333f;
+
+  /* ---- Funk spectrum: celebrations only (warp trail, medals, ceremonies) */
+  --funk: linear-gradient(90deg, #ff4fd8 0%, #ff8a1f 25%, #ffd23f 50%, #2ef2ff 75%, #9b5cff 100%); /* SCUL's; W186 palette: Plain's is her loading animation's (below) */
+
+  /* ---- Type ------------------------------------------------------------ */
+  --font-display: "Antonio", "Oswald", "Arial Narrow", sans-serif;            /* condensed caps, LCARS kin */
+  --font-body:    "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif; /* legible at a glance */
+  --font-mono:    "Space Mono", ui-monospace, monospace;                       /* stardates, coordinates, the About page */
+  --font-marker:  "Permanent Marker", "Comic Sans MS", cursive;                /* stickers and chalk; sparingly */
+  --track-display: 0.06em;  /* letter-spacing for uppercase display text */
+
+  /* ---- Shape ----------------------------------------------------------- */
+  --r-xs: 4px; --r-s: 10px; --r-m: 18px; --r-l: 28px; --r-pill: 999px;
+  --r-lcars: 0 1rem 0 0;    /* scul.org's lcars-container: only the top-right corner rounds */
+  --hairline: 1px;
+  --glow-s: 0 0 6px;        /* use as: box-shadow: var(--glow-s) color-mix(in srgb, var(--phosphor) 45%, transparent) */
+  --glow-m: 0 0 14px;
+  --sticker-edge: 3px;      /* white die-cut border on stickers ("barnacles") */
+  /* W69 artdir (design/ART.md): the corners by role. The app's chrome takes its corners from these alone (app/tests/artdir.test.mjs) */
+  --r-inner: var(--r-s);    /* W69 artdir: a tile inside a card: a thumbnail, the stats' grid, the route cards, an icon */
+  --r-card:  var(--r-m);    /* W69 artdir: everything that floats over the chart: cards, bubbles, banners, snackbars, the turn card, the peek */
+  --r-sheet: var(--r-l) var(--r-l) 0 0; /* W69 artdir: a sheet up from the bottom edge: both top corners */
+  /* W69 artdir: controls are --r-pill (buttons, chips, fields, segments, switches) or round (50 %); where two meet in one bar, the join is --r-xs */
+  /* W69 artdir: the spacing scale, a 4 px grid */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; /* W69 artdir */
+
+  /* ---- Motion ---------------------------------------------------------- */
+  /* W73 polish: the old names are ART's beats now, one vocabulary; the app's CSS uses ART's names (app/tests/motion.test.mjs) */
+  --ease-warp: var(--ease-enter); /* W73 polish: was cubic-bezier(.2, .8, .2, 1) */
+  --ease-orbit: linear;
+  --t-blip: var(--t-press); --t-quick: var(--t-small); /* W73 polish: were 120 and 240 ms */ --t-normal: 280ms; /* wave 18: was 420 ms; every mode change settles within 300 ms */ --t-ceremony: 1200ms;
+  --pulsar-period: 1.6s;     /* one pulse of a traffic light */
+  --black-hole-period: 6s;   /* one turn of an accretion disk */
+  --wormhole-flow: 28px;     /* particle travel per second along a wormhole */
+  --banner-hold: 2.6s;       /* how long an "entering" banner stays */
+  /* ---- W69 motion: the motion language (design/ART.md, Motion; design/app-ui/SPEC.md §107) ------------------- */
+  --t-press: 120ms;          /* W69 motion: a press, a tick, a toggle's colour: the finger's own beat */
+  --t-small: 200ms;          /* W69 motion: a small change in place: a highlight that glides, a row, a chip, a tip */
+  --t-sheet: 320ms;          /* W69 motion: a sheet or a page that comes or goes */
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);    /* W69 motion: something that moves within the screen */
+  --ease-enter: cubic-bezier(.05, .7, .1, 1);    /* W69 motion: decelerate, for what arrives */
+  --ease-exit: cubic-bezier(.3, 0, .8, .15);     /* W69 motion: accelerate, for what leaves */
+  --ease-give: cubic-bezier(.34, 1.56, .64, 1);  /* W69 motion: one gentle overshoot, for playful moments (a thumb, a star) */
+}
+
+/* ---- Daystar: the light theme, for riding by day (app/theme.js sets data-theme) ----------------
+ * The same concepts as above, each hue darkened to read on a pale ground: text meets WCAG AA, lines
+ * and icons 3:1 (chart/style/test_build_style.py). Dark stays the default. Same values as tokens.json
+ * "color-light". */
+:root[data-theme="light"] {
+  --void:        #f2f4f7;  /* the ground: a pale slate page (W86 map: was lavender, "too purple") */
+  --space-1:     #e2e6eb;  /* W86 map */
+  --space-2:     #ffffff;
+  --space-3:     #c9d0d9;  /* W86 map */
+  --stardust:    #4a5563;  /* W86 map */
+  --starlight:   #1b1638;  /* primary text: ink */
+  --phosphor:     #007d12;
+  --phosphor-dim: #9bd3a3;
+  --console-grey: #5e5e5e;
+  --caution:      #5c6c00;
+  --negi:         #c40000;
+  --wormhole:     #005f98; /* W138 dayink: the bike blue for words, the azure of --bike-line at the old teal's lightness (6.2:1 on the ground; was #006478) */
+  --bike-line:    #2ef2ff; /* W116: the map's bike lines by day (chart/style/build_style.py DAY_BIKE_LINE); W160 mapclean: Dark's cyan, was #0079c2; W138 dayink: --wormhole is the words' azure */
+  --black-hole:   #4a5563;
+  --pulsar:       #9a6c00;
+  --nebula:       #d3dae6; /* W86 map: the water, a pale blue-grey */
+  --nebula-glow:  #4d667f; /* W86 map: its rim, a muted indigo, apart from the wormholes' blue */
+  --terraform:    #d2ecdf;
+  --terraform-glow:#107d52;
+  --starpath:     #2b323c; /* W86 map: the streets, graphite */
+  --course:       #504695;
+  --course-line:  #4a5563; /* W186 palette */
+  --luna:         #d97d18;
+  --scul-luna: #b8128f; --scul-course: #c95500; --scul-black-hole: #6b2fe0; /* W186 palette: SCUL's own, as before */
+  --chalk:        #6e6250;  /* chalk on paper reads as pencil */
+  --you:          #1f66e0;
+  --harbour:      #055494; /* W171 palette: her Light accent, 6.4:1 on the cards */
+  --harbour-fill: #c9ddf4;
+  --avatar-purple: #504695; /* W192 icons7 (SPEC §338): the purple avatar on a light map, her day accent (tokens.json color-light; app/avatar.js paintOf) */
+}
+/* W68 daylook: Daystar's chrome, a cool slate and graphite under the phosphor (the chart keeps its own palette above; W86 map: slate too, where it was lavender). Same values as tokens.json "color-light-chrome". */
+:root[data-theme="light"] { /* W68 daylook */
+  --void:        #f2f4f7;  /* W68 daylook: the chrome's ground: the Log, the search, the page behind the chart */
+  --space-1:     #e5e9ee;  /* W68 daylook: cards, Settings' groups, the pills */
+  --space-3:     #c9d0d9;  /* W68 daylook: hairlines, a switch's track */
+  --stardust:    #4a5563;  /* W68 daylook: secondary text */
+  --starlight:   #151a21;  /* W68 daylook: the ink: text, and the Where to? field */
+  --phosphor:     #006e1a; /* W68 daylook: a little deeper, for 4.5:1 on the cards */
+} /* W68 daylook */
+
+/* ---- W171 palette (SPEC §299): her palette, a harbour blue for the app's accent ------------------------
+ * Her row of 2026-10-26 18:33. --harbour is the accent (titles, selected text and icons, links, the Log's chart, the loading bar);
+ * --harbour-fill the selected fill (the tabs' pill, a chosen segment), where the green's pale mint was. Plain takes it and SCUL
+ * keeps the club's phosphor: the selector of the rule below is the one line that picks the modes (`:root` gives both the blue).
+ * --accent and --accent-fill are set only there; the CSS reads them with today's look as the fallback. Same values as
+ * tokens.json "color" and "color-light". W186 palette: the switch takes her palette now (below); --harbour stays the long-haul
+ * screen's (app/mission.css). */
+
+/* ---- W186 palette (SPEC §328): her palette by name, for each theme ---------------------------------------------------
+ * Same values as tokens.json "palette" ("night" here, "day" under Daystar's): --pal-<name> the fill (icons, bars, blocks),
+ * --pal-<name>-words the words (text, thin lines); ink, accent, silver, shading; her night surfaces. app/tests/colours.test.mjs
+ * holds them to tokens.json. */
+:root {
+  --pal-red: #d71625; --pal-red-words: #e52b31; --pal-orange: #f37819; --pal-orange-words: #f37819; --pal-yellow: #fadf28;
+  --pal-yellow-words: #fadf28; --pal-green: #1db87b; --pal-green-words: #1db87b; --pal-cyan: #2ef2ff; --pal-cyan-words: #2ef2ff;
+  --pal-blue: #0e5cf9; --pal-blue-words: #296efb; --pal-magenta: #c81592; --pal-magenta-words: #d62b9e; --pal-grey: #979b9f;
+  --pal-grey-words: #979b9f; --pal-ink: #eef0f2; --pal-accent: #a19af7; --pal-silver: #bbcddd; --pal-shading: #332c61;
+  --pal-ground: #07080a; --pal-card: #0d0f11; --pal-sheet: #17191b; --pal-hairline: #2a2c2f;
+}
+:root[data-theme="light"] {
+  --pal-red: #d11512; --pal-red-words: #d11512; --pal-orange: #ec881a; --pal-orange-words: #151a21; --pal-yellow: #fbe028;
+  --pal-yellow-words: #151a21; --pal-green: #107d52; --pal-green-words: #107d52; --pal-cyan: #2ef2ff; --pal-cyan-words: #0b6da1;
+  --pal-blue: #2e71fa; --pal-blue-words: #2466ee; --pal-magenta: #dc1ac4; --pal-magenta-words: #c912b3; --pal-grey: #4a5563;
+  --pal-grey-words: #4a5563; --pal-ink: #151a21; --pal-accent: #504695; --pal-silver: #48647b; --pal-shading: #c8c6e9;
+}
+/* W186 palette: Plain's look, her app screens. The accent (titles, buttons, the active tab, selected text and icons, links,
+ * distances, the loading bar) and the shading (one solid fill behind what is selected) in place of the harbour blue; warnings
+ * yellow, --caution their marks and --caution-words their words and thin lines (ink by day; elsewhere var(--caution-words, var(--caution)));
+ * --pulsar her yellow's words (the Log's header, a nova); the funk her loading animation's five; danger her red (a fill: the delete,
+ * white on it 5.2:1); flat (no glows). Silver for climbs
+ * (app/log.css); by night her surfaces and ink (at the file's end, over AMOLED's black). SCUL keeps the club's phosphor and its
+ * look: the selector is the one line that picks the mode. */
+:root[data-lingo="meatspace"] {
+  --phosphor: var(--pal-accent); --phosphor-dim: var(--pal-shading); --accent: var(--pal-accent); --accent-fill: var(--pal-shading);
+  --caution: var(--pal-yellow); --caution-words: var(--pal-yellow-words); --negi: var(--pal-red); --pulsar: var(--pal-yellow-words);
+  --funk: linear-gradient(90deg, var(--pal-magenta) 0%, var(--pal-orange) 25%, var(--pal-yellow) 50%, var(--pal-cyan) 75%, var(--pal-accent) 100%);
+  --glow-s: 0 0 0; --glow-m: 0 0 0;
+}
+
+/* ---- W185 colours (SPEC §321): the named colours no theme swaps, for the CSS ------------------------------------------
+ * Same values as tokens.json: "color-fixed" as --fixed-<name>, "mbta" as --mbta-<line>, "mbta-track" as --mbta-track-<name>
+ * (Dark's) and --mbta-track-day-<name>, "quality" as --quality-<name>; --dark-<name> is tokens.json "color"'s, for what is
+ * Dark's in every theme (the long-haul screen). app/tests/colours.test.mjs holds them to tokens.json, and no other CSS has a
+ * colour literal. */
+:root {
+  --fixed-white: #ffffff; --fixed-black: #000000;
+  --fixed-drawing: #ffffff;     /* the places' one white drawing */
+  --fixed-sign: #ffffff;        /* a sign's white: a pin's star */
+  --fixed-favourite: #fadf28;   /* the favourites' star */
+  --fixed-shadow: #000000;      /* every shadow's black (app.css --shade) */
+  --fixed-shade-day: rgba(36, 44, 56, 0.5); /* Daystar's shadow, a slate (app/theme.css --shade) */
+  --fixed-paper: #ffffff;       /* a sticker's die-cut edge, in every theme */
+  --mbta-red: #d71625; --mbta-orange: #f37819; --mbta-blue: #0e5cf9; --mbta-green: #1db87b; --mbta-purple: #c81592;
+  --mbta-day-red: #d11512; --mbta-day-orange: #cd7617; --mbta-day-blue: #2e71fa; --mbta-day-green: #107d52; --mbta-day-purple: #dc1ac4;
+  --mbta-track-orange-tunnel: #c46216; --mbta-track-day-orange: #cd7617; --mbta-track-day-orange-tunnel: #d48f44;
+  --quality-good: #2ef2ff; --quality-green: #1db87b; --quality-yellow: #fadf28; --quality-orange: #f37819; --quality-red: #d71625;
+  --quality-edge: #151a21;      /* Daystar's thin ink edge under the scale's lines */
+  --dark-void: #07060d; --dark-stardust: #9a93c4; --dark-phosphor: #00d900; --dark-harbour: #2ad2fb;
+  --map-void: #07080a;          /* W186 palette: the chart's ground by night (tokens.json color-map), which app/theme.js turns AMOLED black */
+}
+
+/* ---- AMOLED black, in Dark only: the void and the surfaces switch the pixels off -------------- */
+:root[data-theme="dark"][data-amoled] { --void: #000000; --space-1: #000000; --space-2: #000000; }
+
+/* ---- Glass (wave 21): the chrome over the chart is see-through, with a hairline edge -----------
+ * arclight: "the combination of translucency + subtle outlines makes things look very premium". Never
+ * blurred: a backdrop-filter re-blurs the moving chart under every element each frame (brief 8).
+ *   --glass-btn   buttons: the round map buttons, the top row, the bottom bar. About 70 %.
+ *   --glass-card  information: the readout, banners, snackbars, the turn card, the sheets over the chart.
+ *                 A little more opaque, so the numbers read over a busy chart. About 85 %.
+ *   --glass-snack the snackbars: more opaque again, about 92 %, so the chart's labels don't show through their words.
+ *   --glass-edge  the hairline's colour, a light edge at a low alpha (darker on Daystar); --hairline is its width.
+ * Same values as tokens.json "glass". */
+:root {
+  --glass-btn:  color-mix(in srgb, var(--space-1) 70%, transparent);
+  --glass-card: color-mix(in srgb, var(--space-1) 85%, transparent);
+  --glass-snack: color-mix(in srgb, var(--space-1) 92%, transparent);
+  --glass-edge: color-mix(in srgb, var(--starlight) 20%, transparent);
+}
+/* Daystar: white glass, ink hairlines */
+:root[data-theme="light"] {
+  --glass-btn:  color-mix(in srgb, var(--space-2) 72%, transparent);
+  --glass-card: color-mix(in srgb, var(--space-2) 88%, transparent); /* the top of the range: ink labels show through white more than violet ones through space */
+  --glass-snack: color-mix(in srgb, var(--space-2) 94%, transparent);
+  --glass-edge: color-mix(in srgb, var(--starlight) 22%, transparent);
+}
+/* AMOLED: black at a high alpha, so the pixels behind the chrome stay all but off */
+:root[data-theme="dark"][data-amoled] {
+  --glass-btn:  color-mix(in srgb, #000000 88%, transparent);
+  --glass-card: color-mix(in srgb, #000000 92%, transparent);
+  --glass-snack: color-mix(in srgb, #000000 95%, transparent);
+  --glass-edge: color-mix(in srgb, var(--starlight) 18%, transparent);
+}
+
+/* W186 palette: Plain by night, her surfaces and ink over AMOLED's black (Dark is always AMOLED, app/theme.js: the page and the map's
+ * ground stay black, her #07080a's as near as a pixel tells), and its glass from her cards, with her hairline for an edge */
+:root[data-lingo="meatspace"]:not([data-theme="light"]), :root[data-lingo="meatspace"][data-theme="dark"][data-amoled] {
+  --space-1: var(--pal-card); --space-2: var(--pal-sheet); --space-3: var(--pal-hairline);
+  --stardust: var(--pal-grey-words); --starlight: var(--pal-ink);
+  --stardust-on-shading: #989ca0; /* tokens.json palette.veto.night grey-words: her grey on her shading is 4.48:1, this 4.54:1 */
+  --glass-btn: color-mix(in srgb, var(--pal-card) 88%, transparent); --glass-card: color-mix(in srgb, var(--pal-card) 94%, transparent);
+  --glass-snack: color-mix(in srgb, var(--pal-card) 96%, transparent); --glass-edge: var(--pal-hairline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --pulsar-period: 0s; --black-hole-period: 0s; --wormhole-flow: 0px; }
+}
+/* W191 appleft (app SPEC §334): the app's Calm too, its own mark (body.calm: ?calm=1, Battery saver, or the phone's reduced motion; app/boot.js,
+   then app/main.js calmed(), live), so ?calm=1 and Battery saver still the pulse as the phone's setting does (it keyed on the query alone) */
+:root:has(> body.calm) { --pulsar-period: 0s; --black-hole-period: 0s; --wormhole-flow: 0px; }
