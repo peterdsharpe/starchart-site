@@ -1,0 +1,6 @@
+Climbs (W229 climbs, design/app-ui/SPEC.md §482): chart/terrain/build_climbs.py builds the Climbs field from the U.S.
+Geological Survey's 3D Elevation Program (3DEP, formerly the National Elevation Dataset), 1/3 arc-second, as the Terrain
+Tiles on AWS Open Data carry it (https://registry.opendata.aws/terrain-tiles/, terrarium tiles at z13). 3DEP is a public
+domain dataset of the USGS. The Terrain Tiles' attribution notes (https://github.com/tilezen/joerd/blob/master/docs/attribution.md)
+ask for: "United States 3DEP (formerly NED) and global GMTED2010 and SRTM terrain data courtesy of the U.S. Geological Survey."
+Within the chart's bounds the tiles' land is 3DEP's; the build flattens the sea, so no bathymetry is used.

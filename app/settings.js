@@ -13,6 +13,7 @@ import { tip, why } from "./tip.js"; // W24 quiet
 import { can as canBuzz, touch } from "./haptics.js"; // W69 motion; W200 small8: touch
 import { sweep } from "./delight.js"; // W73 delight: the theme sweep
 import { lingo } from "./lingo-mode.js"; // W60 a: Words, with ?lingo= for this visit; W133 settings4: no row says more, so no pick or onLingo
+import { D3, d3Row, LAYER, SAVER } from "./terrain.js"; // W229 climbs: 3D terrain's row
 import { STORE, defaultOf, MODE_KEYS, modeKey } from "./keys.js"; // W190 settingsreg: every key, and each setting's default; W196 logsettings2: each mode's own
 
 /** Every setting, with its values (all strings): app/keys.js STORE's, where each has its default (W190 settingsreg). */
@@ -200,6 +201,16 @@ export function mountSettings({ $ = (id) => document.getElementById(id), sound }
     sw.checked = get(key) === on;
     sw.onchange = () => set(key, sw.checked ? on : off);
     addEventListener("starchart:settings", (e) => { if (e.detail.key === key) sw.checked = get(key) === on; }); // W56 perf: Frame rate's 30 is Battery saver
+  }
+  // W229 climbs (SPEC §482, her point 7): 3D terrain, under Battery saver: her choice, and its line (app/terrain.js d3Row); under Battery saver
+  // it shows off, and a tap says why rather than change it (tip.js why); with the layer off it is still hers to set, its line saying what it needs
+  const hills3d = $("hills3d");
+  if (hills3d) {
+    const row = hills3d.closest(".row"), line = $("hills3d-line");
+    const show = () => { const r = d3Row({ d3: get(D3), smooth: get(SAVER), choice: get(LAYER), words: lingo() }); hills3d.checked = r.checked; if (line) line.textContent = r.line; why(row, r.disabled ? r.line : null); };
+    show();
+    hills3d.onchange = () => set(D3, hills3d.checked ? "on" : "off");
+    addEventListener("starchart:settings", (e) => { if ([D3, SAVER, LAYER, "starchart.lingo"].includes(e.detail?.key)) show(); });
   }
   // W196 logsettings2 (SPEC §348, her row 27): SCUL mode, a switch (was Words' Plain and SCUL), on with SCUL's words; lingo(), so ?lingo= shows
   const lingoSw = $("set-lingo");

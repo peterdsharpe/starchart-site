@@ -10,8 +10,7 @@
 // - Parked, a planned course's preview or the search with its words comes back within PARKED_MS.
 // Pure apart from the store, so Node tests it (app/tests/resume.test.mjs). main.js says what to keep and puts it back.
 
-import { lingo } from "./lingo-mode.js"; // W60 c
-import { dur } from "./duration.js"; // W68 fixes
+// W228 backfill (SPEC §477): no resumedLine ("Ride resumed after 12 min away."): coming back says nothing; #comeback says why
 export const FLIGHT = "starchart:resume", ROUTE = "starchart:resume-course", PARKED = "starchart:parked";
 export const AWAY_MS = 2 * 3600e3; // a flight resumes within 2 h of its last fix
 export const PARKED_MS = 30 * 60e3; // a plan or a search, within 30 min
@@ -23,12 +22,6 @@ const read = (store, key) => { try { return JSON.parse(store.getItem(key)); } ca
 /** W152 app O6: the last parked spot, [lon, lat], or null: none kept, not a pair of numbers, or no storage. main.js and course.js. */
 export const readSpot = (store) => { try { const v = JSON.parse((store ?? localStorage).getItem(SPOT)); return Array.isArray(v) && v.length === 2 && v.every(Number.isFinite) ? v : null; } catch { return null; } };
 const write = (store, key, v) => { try { if (v == null) store.removeItem(key); else store.setItem(key, JSON.stringify(v)); return true; } catch { return false; } };
-
-/** The line in flight after a resume: "Flight resumed after 12 min away."; in Plain "Ride resumed after 12 min away." (W60 c). */
-export const resumedLine = (ms, mode = lingo()) => { // W60 c: mode
-  const away = ms < 60000 ? `${Math.max(1, Math.round(ms / 1000))} s` : dur(Math.floor(ms / 60000)); // W68 fixes: "1h 20m"
-  return mode === "meatspace" ? `Ride resumed after ${away} away.` : `Flight resumed after ${away} away.`; // W60 c
-};
 
 /** What the next open does with a kept flight: "resume", "save" (it had landed, or its last fix is too long ago), or null. */
 export function verdict(kept, now = Date.now()) {

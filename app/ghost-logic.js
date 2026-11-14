@@ -39,14 +39,18 @@ export function ghostLines(lines, tol = GHOST_M) {
 }
 
 /** The `ghosts` source's data from each flight's lines, oldest first: one feature a flight, fainter the older it is, and the
- *  box round them all ([[w, s], [e, n]], or null when there are none). */
-export function ghostCollection(flights) {
-  const fs = flights.filter((l) => l?.length), n = fs.length, box = [[Infinity, Infinity], [-Infinity, -Infinity]];
-  const features = fs.map((lines, i) => {
+ *  box round them all ([[w, s], [e, n]], or null when there are none). W228 backfill: `filled`, each flight's filled stretches
+ *  (by the same index), a feature of its own beside its flight's, marked `filled` (app/ghosts.js draws it thinner). */
+export function ghostCollection(flights, filled = []) {
+  const at = [...flights.keys()].filter((j) => flights[j]?.length), n = at.length, box = [[Infinity, Infinity], [-Infinity, -Infinity]];
+  const feature = (lines, properties) => {
     for (const l of lines) for (const [x, y] of l) { box[0][0] = Math.min(box[0][0], x); box[0][1] = Math.min(box[0][1], y); box[1][0] = Math.max(box[1][0], x); box[1][1] = Math.max(box[1][1], y); }
-    const opacity = +(n < 2 ? NEWEST : OLDEST + ((NEWEST - OLDEST) * i) / (n - 1)).toFixed(3);
     const geometry = lines.length > 1 ? { type: "MultiLineString", coordinates: lines } : { type: "LineString", coordinates: lines[0] };
-    return { type: "Feature", properties: { opacity }, geometry };
+    return { type: "Feature", properties, geometry };
+  };
+  const features = at.flatMap((j, i) => {
+    const opacity = +(n < 2 ? NEWEST : OLDEST + ((NEWEST - OLDEST) * i) / (n - 1)).toFixed(3);
+    return [feature(flights[j], { opacity }), ...(filled[j]?.length ? [feature(filled[j], { opacity, filled: true })] : [])]; // W228 backfill
   });
   return { data: { type: "FeatureCollection", features }, bounds: n ? box : null };
 }

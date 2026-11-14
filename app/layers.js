@@ -23,9 +23,9 @@
 import { get, set } from "./settings.js";
 import { swipeAway, tapAway } from "./swipe.js"; // W201 gestures; W210 popups3: tapAway
 import { longPress } from "./press.js"; import { tip } from "./tip.js"; // W55 layers2: a tile's long press tells more
-import { pick, onLingo } from "./lingo-mode.js"; // W60 c
+import { pick, onLingo, lingo, KEY as WORDS_KEY } from "./lingo-mode.js"; // W60 c; W229 climbs: lingo, KEY
 import { bikeQualityLayer, bikeQualityEdge, EDGE_INK } from "./comfort-along.js"; // W90 comfort; W156 qualitysteps: Daystar's edge
-import { SAVER, SAVER_OFF } from "./terrain.js"; // W160 smallui: Battery saver holds Terrain off
+import { SAVER, SAVER_OFF, climbsIn } from "./terrain.js"; // W160 smallui: Battery saver holds Terrain off; W229 climbs: but not Climbs
 import { RAIN_KEY, keySvg } from "./weather-logic.js"; // W228 looks7: the Weather legend's samples, the map's own marks
 
 /** W88 mapfix (SPEC §178): the cycle tracks beside the streets, drawn as wormholes in layers of their own (chart/style/build_style.py), go with the bike lanes. */
@@ -73,8 +73,9 @@ export const WORDS = { lanes: ["Lanes", "Bike lanes"], // W86 map: Plain names w
 export const isOn = (key) => get(key) !== "off";
 /** W55 layers2: a tile is on when all its keys are. */
 export const rowOn = (row) => row.keys.every(isOn);
-/** W160 smallui: a tile Battery saver holds off (Terrain), whatever its stored choice. */
-export const held = (row) => !!row.saver && get(SAVER) === "30";
+/** W160 smallui: a tile Battery saver holds off (Terrain), whatever its stored choice. W229 climbs (her point 6): not Climbs, flat
+ *  whatever Battery saver says. */
+export const held = (row) => !!row.saver && get(SAVER) === "30" && !climbsIn(lingo());
 
 /** W173 mapstyle2 (SPEC §303), her note: "in route preview please hide other layers (such as bike lanes) because they make the preview route
  *  itself harder to see". The tiles a preview hushes (app/course.js previewLook): their layers step aside and their tiles show off, the
@@ -142,7 +143,7 @@ export function mountLayers({ map, $ = (id) => document.getElementById(id) }) { 
   legend($("layer-quality-info"), "qualityKey"); legend($("layer-lanes-info"), "lanesKey"); legend($("layer-weather-info"), "rainKey"); // W200 rainlook: the rain's steps; W140 dircomfort's ⓘ; W196 cards2 (SPEC §349): the colours' legend, and the lanes' lines' beside it
   show();
   addEventListener("starchart:settings", (e) => {
-    if (e.detail?.key === SAVER) return show(); // W160 smallui: Battery saver holds Terrain off, or lets it be
+    if (e.detail?.key === SAVER || e.detail?.key === WORDS_KEY) return show(); // W160 smallui: Battery saver holds Terrain off, or lets it be; W229 climbs: in SCUL, not in Plain
     if (!LAYERS.some((l) => l.keys.includes(e.detail?.key))) return; // W55 layers2
     showLayers(map, e.detail.key); map.triggerRepaint(); show();
   });

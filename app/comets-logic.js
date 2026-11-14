@@ -61,7 +61,8 @@ export const busUrl = (l, key) => keyed(`${MBTA}/predictions?filter[stop]=${enco
 /**
  * W196 comets3: of busUrl's reply, the bus leg `l` boards at `now` (ms): the first still to come that leaves at the plan's time or after
  * (`l.dep`, two minutes early at most), else the next to come; or, once at the stop, the one chosen before (`trip`). { trip, lonlat,
- * eta } when its prediction carries its bus's place, eta its minutes by the MBTA's guidelines (etaOf); { trip } alone when it has no
+ * eta, due, bearing } when its prediction carries its bus's place, eta its minutes by the MBTA's guidelines (etaOf), due (ms) when it comes to
+ * her stop and bearing the MBTA's heading (degrees from north, or null; W228 transit2); { trip } alone when it has no
  * place yet (nothing is drawn, but at the stop it stays the one to wait for); { gone: true } when `trip` is no longer predicted there
  * (it left); null with no prediction.
  */
@@ -72,7 +73,7 @@ export function busOf(json, l, now, trip = null) {
   const p = trip ? rows.find((q) => q.trip === trip) : rows.find((q) => (q.departure ?? q.arrival) >= l.dep - 120000) || rows[0];
   const v = p && inc.get(p.vehicle);
   if (!v || !Number.isFinite(v.latitude) || !Number.isFinite(v.longitude)) return p ? { trip: p.trip } : null; // no place for its bus yet
-  return { trip: p.trip, lonlat: [v.longitude, v.latitude], eta: etaOf(p, now) };
+  return { trip: p.trip, lonlat: [v.longitude, v.latitude], eta: etaOf(p, now), due: p.arrival ?? p.departure, bearing: Number.isFinite(v.bearing) ? v.bearing : null }; // W228 transit2 (SPEC §481): when it comes to her stop, and its heading
 }
 
 /** W59 cometbikes: the day's trains on `routes` and whether each takes bikes (its bikes_allowed): about 8 KB for the

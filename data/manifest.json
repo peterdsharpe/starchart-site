@@ -1,8 +1,8 @@
 {
   "version": "20261112-bb89010a",
   "osm_date": "2026-11-12",
-  "built_at": "2026-11-14T12:33:18.182Z",
-  "commit": "0c76485f067ffaf181d86654da36c77008e14488",
+  "built_at": "2026-11-14T15:24:12.089Z",
+  "commit": "7db8dff245c2fcc2e19dc1974e99b442106425b6",
   "files": [
     {
       "path": "data/tiles/greater-boston-20261112-bb89010a.pmtiles",
@@ -39,6 +39,20 @@
       "bytes": 1036562,
       "sha256": "2631d6e8f88304e0a7e7761399b3a4e22d8c34b7ca47c1e920241c1444c699a2",
       "kind": "slope",
+      "region": "greater-boston"
+    },
+    {
+      "path": "data/tiles/greater-boston-climbs-c840f04a06ae.pmtiles",
+      "bytes": 3416676,
+      "sha256": "c840f04a06aeb04992886a53f526c5b667cb0778881e1536b1b0d01697b8da24",
+      "kind": "climbs",
+      "region": "greater-boston"
+    },
+    {
+      "path": "data/tiles/greater-boston-climbdir-db448e54a819.pmtiles",
+      "bytes": 956896,
+      "sha256": "db448e54a81925bfd15be7e9353dfb3c830bd692b8435b733141bca52e8d916b",
+      "kind": "climbdir",
       "region": "greater-boston"
     },
     {

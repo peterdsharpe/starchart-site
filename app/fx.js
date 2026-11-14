@@ -24,7 +24,7 @@ export function scaled(v, k) {
 const MAJOR = ["primary", "secondary", "trunk", "motorway"];
 /**
  * The map as ground, while flying: the streets fainter (W160 mapclean: not thinner), street names on the big roads and the
- * hyperspace byways only, no anchorages or sandworm nests. Opacity, width, a filter and visibility only,
+ * hyperspace byways only, no anchorages (W228 transit2: the sandworm nests her trip's alone, app/bus-stops.js). Opacity, width, a filter and visibility only,
  * never a colour, so the same rules work on every theme (the ideas page's GROUND, without its hull colour).
  * [layer, kind, property, value from the style's own].
  */
@@ -46,7 +46,7 @@ export const GROUND = [
   ["anchorages", "layout", "visibility", () => "none"], // W122 homerow: the racks file's layer (app/anchorages.js), shown by itself from z16; restyled() once it is in
   ["anchorage-z18", "layout", "visibility", () => "none"], // W193 racksplit: the racks from z18, the tiles' and the file's (app/anchorages.js RACKS)
   ["anchorages-z18", "layout", "visibility", () => "none"], // W193 racksplit
-  ["sandworm-nest", "layout", "visibility", () => "none"],
+  // W228 transit2 (SPEC §481): no "sandworm-nest" here: in flight the bus stops are her trip's alone, by their filter (app/bus-stops.js)
 ];
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);

@@ -217,6 +217,9 @@
   --quality-edge: #151a21;      /* Daystar's thin ink edge under the scale's lines */
   --dark-void: #07060d; --dark-stardust: #9a93c4; --dark-phosphor: #00d900; --dark-harbour: #2ad2fb;
   --map-void: #07080a;          /* W186 palette: the chart's ground by night (tokens.json color-map), which app/theme.js turns AMOLED black */
+  /* W229 climbs (SPEC §482): her Climbs in Plain, each level's fill and its chevrons' ink, by night and by day (tokens.json climbs) */
+  --climb-gentle: #241253; --climb-medium: #8e2a81; --climb-steep: #f65f78; --climb-gentle-ink: #7056a0; --climb-medium-ink: #e37bd2; --climb-steep-ink: #ffb4c7;
+  --climb-day-gentle: #fed799; --climb-day-medium: #fd9266; --climb-day-steep: #e04c67; --climb-day-gentle-ink: #b8955b; --climb-day-medium-ink: #b3542c; --climb-day-steep-ink: #970030;
 }
 
 /* ---- AMOLED black, in Dark only: the void and the surfaces switch the pixels off -------------- */

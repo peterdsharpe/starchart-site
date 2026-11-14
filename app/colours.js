@@ -216,7 +216,8 @@ export const COLOURS = {
   "shade-day": "rgba(36, 44, 56, 0.5)",
   "paper": "#ffffff",
   "qr-light": "#ffffff",
-  "qr-dark": "#000000"
+  "qr-dark": "#000000",
+  "bus-post": "#c4c8cc"
  },
  "mbta": {
   "red": "#d71625",
@@ -270,6 +271,24 @@ export const COLOURS = {
    "bike": "#0b6da1",
    "water-name": "#4d667f",
    "parking": "#e3e6ea"
+  }
+ },
+ "climbs": {
+  "dark": {
+   "gentle": "#241253",
+   "medium": "#8e2a81",
+   "steep": "#f65f78",
+   "gentle-ink": "#7056a0",
+   "medium-ink": "#e37bd2",
+   "steep-ink": "#ffb4c7"
+  },
+  "light": {
+   "gentle": "#fed799",
+   "medium": "#fd9266",
+   "steep": "#e04c67",
+   "gentle-ink": "#b8955b",
+   "medium-ink": "#b3542c",
+   "steep-ink": "#970030"
   }
  }
 };

@@ -16,7 +16,7 @@
 import { BlackBox, CLASSES, CarGuard, LOGS, LY, classFor, nextClass, tiny } from "./blackbox.js"; // W68 logbulk: tiny; W127 walklog: BlackBox; W147 backup: LOGS
 import { WALKER_SVG } from "./fromto.js"; // W127 walklog: the map's person on foot, a walk's mark
 import { starSVG, get as setting, set as setSetting, paceStep, paceToLearn, walkPaceToLearn } from "./settings.js"; // W59 pace: setting, setSetting, paceStep; W86 eta: paceToLearn; W190 settingsreg: no KEYS (app/keys.js); W211 walkmore: walkPaceToLearn
-import { Chunker, drawnTrack, gpx, gpxName, learnedPace, learnedWalkPace, plannedAt, rideName, statsFrom, thumbSVG, trackLines, unpackThumb, trackRuns, trimRuns } from "./logbook.js"; // W211 walkmore: learnedWalkPace; // W21 gps: drawnTrack; W27 friction: rideName; W29 polish: trackLines; W67 logsafe: trackRuns, trimRuns
+import { Chunker, drawnTrack, gpx, gpxName, learnedPace, learnedWalkPace, plannedAt, rideName, statsFrom, thumbSVG, rideLines, unpackThumb, trackRuns, trimRuns } from "./logbook.js"; /* W228 backfill: rideLines, for trackLines */ // W211 walkmore: learnedWalkPace; // W21 gps: drawnTrack; W27 friction: rideName; W29 polish: trackLines; W67 logsafe: trackRuns, trimRuns
 import { swipeAway, BOTTOM } from "./swipe.js"; // W201 gestures
 import { tip, why, say, onNewAction } from "./tip.js"; // W24 quiet; W73 a11y: say; W196 ui4: onNewAction
 import { LOCK, UNDO, heldLocks, holdLock } from "./resume.js"; import { browserOf } from "./install.js"; // W40 log
@@ -89,6 +89,7 @@ export const WORDS = {
   deleted: ["Flight deleted ", "Ride deleted "],
   walkDeleted: ["Space walk deleted ", "Walk deleted "], // W127 walklog; W196 ui4: no "Ride saved" nor "Walk saved" (her row 19)
   gap: ["Part flew dark (screen off or no GPS), so its distance may be short.", "Part wasn't tracked (screen off or no GPS), so its distance may be short."], // W166 walkui (her note 8): what a gap means; W196 ui4: alone, with no "Walk saved"
+  filled: ["Part filled in along the course.", "Part filled in along the route."], // W228 backfill (SPEC §477): a ride's page, for a stretch filled from the route while she was in another app
   trim: "Trim the ends", whole: "Whole track", short: "Too short to trim.", // W67 logsafe: GPX's menu (SPEC §96)
   // W147 backup (SPEC §263): Back up and Restore are Settings › App's; an empty Log links to Restore, at its foot
   toRestore: "Restore · in Settings", // R2 bigtext (SPEC §450): its › drawn after it, hidden from a screen reader (mountLog's toRestore)
@@ -591,12 +592,12 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
   function routeLayers() {
     if (map.getSource("log-route")) return;
     const before = map.getLayer("system-nebula") ? "system-nebula" : undefined, round = { "line-cap": "round", "line-join": "round" };
-    const zw = (a, b) => ["interpolate", ["linear"], ["zoom"], 11, a, 16, b];
+    const zw = (a, b, fa = a, fb = b) => ["interpolate", ["linear"], ["zoom"], 11, ["case", ["has", "filled"], fa, a], 16, ["case", ["has", "filled"], fb, b]]; // W228 backfill: fa, fb, a filled stretch's (thinner, no glow)
     map.addSource("log-route", { type: "geojson", data: fc([]) });
     map.addSource("log-replay", { type: "geojson", data: fc([]), lineMetrics: true });
-    map.addLayer({ id: "log-route-glow", type: "line", source: "log-route", layout: round, paint: { "line-opacity": 0.35, "line-width": zw(10, 18), "line-blur": zw(6, 10) } }, before); // W21 gps: the trail's glow
-    map.addLayer({ id: "log-route-casing", type: "line", source: "log-route", layout: round, paint: { "line-opacity": 0.85, "line-width": zw(6, 11) } }, before);
-    map.addLayer({ id: "log-route", type: "line", source: "log-route", layout: round, paint: { "line-opacity": 0.95, "line-width": zw(2.6, 5) } }, before);
+    map.addLayer({ id: "log-route-glow", type: "line", source: "log-route", layout: round, paint: { "line-opacity": 0.35, "line-width": zw(10, 18, 0, 0), "line-blur": zw(6, 10) } }, before); // W21 gps: the trail's glow
+    map.addLayer({ id: "log-route-casing", type: "line", source: "log-route", layout: round, paint: { "line-opacity": 0.85, "line-width": zw(6, 11, 3, 5) } }, before);
+    map.addLayer({ id: "log-route", type: "line", source: "log-route", layout: round, paint: { "line-opacity": 0.95, "line-width": zw(2.6, 5, 1, 2) } }, before);
     map.addLayer({ id: "log-replay", type: "line", source: "log-replay", layout: round, paint: { "line-width": zw(2, 4) } }, before);
     map.addLayer({ id: "log-route-start", type: "circle", source: "log-route", filter: ["all", ["==", ["geometry-type"], "Point"], ["!", ["has", "end"]]],
       paint: { "circle-radius": 6, "circle-stroke-width": 2.5 } });
@@ -637,9 +638,9 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
     for (const b of fpage.querySelectorAll(".acts .go")) why(b, fixes.length || unpackThumb(f.thumb).length ? null : w("noTrack")); // W196 logsettings2: Go needs only the end
     routeLayers(); routeInk();
     const dot = (p, props = {}) => ({ type: "Feature", properties: props, geometry: { type: "Point", coordinates: p } });
-    const lines = fixes.length > 1 ? trackLines(fixes) : [pts]; // W29 polish: a gap where no fix came (a resume, the screen off), as the live trail
-    const track = lines.length > 1 ? { type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: lines } } : line(lines[0] ?? pts);
-    map.getSource("log-route")?.setData(fc(pts.length > 1 ? [track, dot(pts[0]), dot(pts.at(-1), { end: true })] : []));
+    const { tracked, filled } = fixes.length > 1 ? rideLines(fixes, f.fills) : { tracked: [pts], filled: [] }; // W29 polish: a gap where no fix came (a resume, the screen off), as the live trail; W228 backfill: a stretch filled from the route drawn apart, thinner
+    const multi = (lines, props = {}) => (lines.length > 1 ? { type: "Feature", properties: props, geometry: { type: "MultiLineString", coordinates: lines } } : { ...line(lines[0] ?? pts), properties: props });
+    map.getSource("log-route")?.setData(fc(pts.length > 1 ? [multi(tracked), ...(filled.length ? [multi(filled, { filled: true })] : []), dot(pts[0]), dot(pts.at(-1), { end: true })] : []));
     frame(pts);
   }
   function frame(pts) {
@@ -670,6 +671,7 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
       node("button", { className: "gpx", onclick: (e) => gpxMenu(e.currentTarget, box.get(f.id) || f) }, "GPX")]; // its name now, after a rename; W67 logsafe: its menu
     for (const b of [...links, ...acts.querySelectorAll(".go")]) why(b, "Loading the track."); // W24 quiet: until the track is in; W196 logsettings2: Go's end too
     const note = f.excluded_m ? node("p", { className: "note" }, node("b", { textContent: w("leftOut", (f.excluded_m / LY).toFixed(1)) }), w("leftWhy")) : ""; // W60 c; W150 logtidy (her note 10): no towns
+    const filled = f.fills?.length ? node("p", { className: "note filled", textContent: w("filled") }) : ""; // W228 backfill (SPEC §477): one short line, under the numbers that count it
     const plan = f.plan_s > 0 && f.flew_s > 0 ? node("p", { className: "plan" }, ...durNodes(w("planned", Math.max(1, Math.round(plannedAt(f) / 60)), Math.max(1, Math.round(f.flew_s / 60))))) : ""; // W59 pace: old flights have no plan, and say nothing; W200 parkwalk: plannedAt // W68 fixes: durNodes
     const seg = node("div", { className: "seg", role: "radiogroup", ariaLabel: "Replay speed" },
       ...[10, 60].map((x) => { const b = node("button", { role: "radio", textContent: `${x}×` }); b.dataset.x = x; return b; }));
@@ -680,7 +682,7 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
       node("div", { className: "topbar" }, back, node("div", { className: "ttl" }, name, node("small", { textContent: `${day(f.start)} · ${clock(f.start)}` }))),
       node("div", { className: "fsheet" }, node("div", { className: "handle", ariaHidden: "true" }), acts,
         node("div", { className: "stats" }, ...tiles.map(([k, v]) => node("div", {}, Array.isArray(v) ? node("b", {}, ...v) : node("b", { textContent: v }), node("span", { textContent: k })))), // W68 fixes: or nodes
-        plan, note, node("div", { className: "foot" }, ...links, node("span", { className: "osm", textContent: "OpenStreetMap" }))), // W59 pace: plan; W150 logtidy: no feedback link. W58's plain credit, as on the chart (About keeps the full one); W196 logsettings2: Replay and GPX
+        plan, note, filled, node("div", { className: "foot" }, ...links, node("span", { className: "osm", textContent: "OpenStreetMap" }))), // W59 pace: plan; W150 logtidy: no feedback link. W58's plain credit, as on the chart (About keeps the full one); W196 logsettings2: Replay and GPX
       rbar);
   }
   function closeFlight(toLog = !fromChart) { // W27 friction: back to the chart when opened from it
@@ -929,7 +931,7 @@ export function mountLog({ map, maplibregl, box, logbook, at, hold = () => {}, d
   let current = () => "";
   function keep(id, fx) {
     const { metres, stats } = statsFrom(fx), g = new CarGuard();
-    for (const f of fx) g.fix({ lonlat: [f.lon, f.lat], t: f.t, speed_mps: null });
+    for (const f of fx) if (!f.filled) g.fix({ lonlat: [f.lon, f.lat], t: f.t, speed_mps: null }); // rel-0.1.121: a filled stretch never through the car guard, as the ride's record (app/blackbox.js fill)
     g.close();
     const f = box.add({ id, start: fx[0].t, end: fx.at(-1).t, metres, minutes: (fx.at(-1).t - fx[0].t) / 60000, excluded_m: Math.min(metres, g.excluded), ...stats });
     if (f) logbook.final(id); // W28 resume: a full store leaves it to try again at the next start

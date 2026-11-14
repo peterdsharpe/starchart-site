@@ -46,18 +46,23 @@ body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) >
    style's line below NEAR_T_Z); the rails' span, the ground between them (.tg), the ties (.ti) and the tunnel's orange (.o.tun) went */
 #layerspick .tile .tr { fill: none; stroke-linejoin: round; stroke-width: var(--t-w); } /* W144 tlines: was 2.2, round caps, 0.85; W150 mapink: 0.7 of W144's 6, as the map's; W173 mapstyle2: the rails' span; W211 mapicons4: the style's (was 6.4); W218 layers3: one line */
 #layerspick .tile .r { stroke: var(--t-r); } #layerspick .tile .o { stroke: var(--t-o); } #layerspick .tile .gn { stroke: var(--t-g); } /* W95 cometlook; W173 mapstyle2: opaque (W144's opacities went) */
-#layerspick .tile .ch { fill: var(--t-r); } #layerspick .tile .tl { fill: url(#comet-tail); } /* W95 cometlook; W196 comets3: no glow */
-/* W196 comets3 (SPEC §346): as the map's comet (app/comets.js): a rim in the ground's colour (white by day) round the head and the tail, the
-   tail fading from 30 % to 90 % of the way to it, opaque, and a chevron cut out of the head the way it goes; no glow or white core */
-#layerspick .tile { --t-rim: var(--void); } :root[data-theme="light"] #layerspick .tile { --t-rim: var(--fixed-white); }
-#layerspick .tile .ts { stop-color: color-mix(in srgb, var(--t-r) 70%, var(--t-rim)); } #layerspick .tile .ts + .ts { stop-color: color-mix(in srgb, var(--t-r) 10%, var(--t-rim)); }
-#layerspick .tile :is(.tl, .ch) { stroke: var(--t-rim); stroke-width: 1.8; paint-order: stroke; }
-#layerspick .tile .cv { fill: none; stroke: var(--t-rim); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; } /* W218 layers3: 1.23 times, with the head (was 1.7) */
-:root[data-lingo="meatspace"] #layerspick .tile .tl { display: none; } /* W200 comets4 (SPEC §354), her row 4: Plain's trains are their heads alone, their chevrons the way they go, as the map's */
+/* W228 transit2 (SPEC §481), her row 10.4: the Transit tile (SCUL Comets) is two bus stops, a station and a line, the map's own pictures
+   (app/index.html; was W95's to W218's comet, its head, tail and chevron, crossing its own ring: her row 7). Plain's stop is her sign, by
+   night as the map's and by day outlined in black (design/glyphs/day/); SCUL's its sandworm nest */
+#layerspick .tile .bs { display: none; } /* W228 transit2 */
+:root[data-lingo="meatspace"] #layerspick .tile .bs-n, :root[data-lingo="meatspace"][data-theme="light"] #layerspick .tile .bs-d, :root:not([data-lingo="meatspace"]) #layerspick .tile .bs-s { display: inline; } /* W228 transit2 */
+:root[data-lingo="meatspace"][data-theme="light"] #layerspick .tile .bs-n { display: none; } /* W228 transit2 */
 /* Terrain: the hills' tint, as app/terrain.js (starlight on Dark, stardust on Daystar), and steep ground's hachures in --caution */
 #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--starlight); } #layerspick .tile .h1 { opacity: 0.14; } #layerspick .tile .h2 { opacity: 0.2; } #layerspick .tile .h3 { opacity: 0.28; }
 :root[data-theme="light"] #layerspick .tile :is(.h1, .h2, .h3) { fill: var(--stardust); }
 #layerspick .tile .hc { fill: none; stroke: var(--caution); stroke-width: 2.2; stroke-linecap: round; }
+/* W229 climbs (SPEC §482, her point 1): Plain's Climbs tile is her thumbnail by theme, as she made it: 132 px shown at 66 px, never
+   scaled, so its chevrons are the map's size; a box bigger than 66 px pads it with the map's ground, a smaller one crops it, centred */
+#layerspick .tile .climbs-pic { display: none; }
+:root[data-climbs] #layer-terrain .pic { position: relative; background: var(--void); }
+:root[data-climbs] #layer-terrain .pic > svg { display: none; }
+:root[data-climbs]:not([data-theme="light"]) #layer-terrain .climbs-pic.dark, :root[data-climbs][data-theme="light"] #layer-terrain .climbs-pic.light {
+  display: block; position: absolute; left: calc(50% - 33px); top: calc(50% - 33px); width: 66px; height: 66px; max-width: none; }
 /* Places: magenta dots, each with its name's stroke in a dark halo, as spot-dot and spot-label */
 /* W59 routes: Lanes: a painted lane dashed, a dimmer one (less comfort), a protected lane's double line, in --bike-line (W116: the map's, Daystar's blue) */
 /* W218 layers3 (SPEC §421): the map's two marks, one width and strength: painted dashed (its 2.5 on, 1.5 off), protected solid; no dimmer one */

@@ -123,6 +123,16 @@ export class Recorder {
     this.stats.fix(g, system);
     this.chunks?.fix(g);
   }
+  /** W228 backfill (SPEC §477): a stretch filled from the route (app/backfill.js backfill's {pts, ts, climb_m, moving_s}, its times
+   *  on the fixes' clock) between the last fix before she left and `to`, the time of B, the fix she came back to, which comes
+   *  next: its points into the track, marked as filled in the ride's `fills`, never through the car guard (B's fix is the one
+   *  after A's to it, as before). */
+  fill(s, to, arrived = false) { // W228 backfill; arrived: FlightStats.fill's
+    if (!this.guard || this.gap || !s?.pts?.length) return;
+    const ts = s.ts.map((t) => Math.round(this.epoch(t)));
+    for (const [i, p] of s.pts.entries()) this.chunks?.fix({ t: ts[i], lon: p[0], lat: p[1], alt: null, speed_mps: null, filled: true }); // rel-0.1.121: filled, so a ride kept from its fixes alone knows them (logbook.js statsFrom)
+    this.stats.fill({ pts: s.pts, from: ts[0] - 1, to: Math.round(this.epoch(to)), climb_m: s.climb_m, moving_s: s.moving_s, arrived });
+  } // W228 backfill
   /** W62 cometcard: a fix on the comet, between a comet course's legs (`gap` set): a gap in the flight, its metres left out as
    *  the car guard's are, with no moving time and nothing in the track. */
   skip(f) {
@@ -145,9 +155,9 @@ export class Recorder {
   snapshot(flush = false) {
     if (!this.guard) return null;
     if (flush) this.chunks?.flush();
-    const { top_mps, climb_m, pulsars, holes, systems, pts, ref, last, moving_s, lastT, plan, plan_s, walk_s, flew_s, courses, pace, still, stop_s, gap, dest, mine, walked_s, wflew_s, walks, wstop_s } = this.stats; // W59 pace: moving_s to pace; W86 eta: still, stop_s; W125 tinygap: gap; W200 parkwalk: walk_s; R1 resume3: dest to wstop_s
+    const { top_mps, climb_m, pulsars, holes, systems, pts, ref, last, moving_s, lastT, plan, plan_s, walk_s, flew_s, courses, pace, still, stop_s, gap, dest, mine, walked_s, wflew_s, walks, wstop_s, fills } = this.stats; // W59 pace: moving_s to pace; W86 eta: still, stop_s; W125 tinygap: gap; W200 parkwalk: walk_s; R1 resume3: dest to wstop_s; W228 backfill: fills
     return { id: this.id, start: this.start, excluded: this.guard.excluded, footAt: this.footAt, footEx: this.footEx, n: this.chunks?.n ?? 0, seen: { ...this.seen }, base: { ...this.base }, log: this.pull().slice(), // W74 flightlog: log; W127 walklog: footAt, footEx
-      stats: { top_mps, climb_m, pulsars, holes, systems: systems.slice(), pts: pts.slice(), ref, last, moving_s, lastT, plan, plan_s, walk_s, flew_s, courses, pace, still, stop_s, gap, dest, mine, walked_s, wflew_s, walks, wstop_s } }; // W59 pace; W86 eta; W125 tinygap: gap; W200 parkwalk: walk_s; R1 resume3
+      stats: { top_mps, climb_m, pulsars, holes, systems: systems.slice(), pts: pts.slice(), ref, last, moving_s, lastT, plan, plan_s, walk_s, flew_s, courses, pace, still, stop_s, gap, dest, mine, walked_s, wflew_s, walks, wstop_s, fills: fills.map((f) => f.slice()) } }; // W59 pace; W86 eta; W125 tinygap: gap; W200 parkwalk: walk_s; R1 resume3; W228 backfill: fills
   }
   /** W28 resume: carry on the flight a snapshot kept, in a new page: the same id, track, stats and taps. */
   resume(s) {
@@ -156,7 +166,7 @@ export class Recorder {
     Object.assign(this, { id: s.id, seen: { ...s.seen }, base: { ...s.base }, footAt: s.footAt ?? null, footEx: s.footEx || 0 }); // W127 walklog: footAt, footEx
     this.lines = logLines(s.log) || []; // W74 flightlog: the log so far, then this page's from its Launch
     this.guard.done = s.excluded || 0; // the car stretches so far; a stretch going on starts again
-    Object.assign(this.stats, s.stats);
+    Object.assign(this.stats, s.stats, { fills: (s.stats?.fills || []).map((f) => f.slice()) }); // W228 backfill: a snapshot from before has none
     if (this.chunks) this.chunks.n = s.n + 1; // R1 resume3 (SPEC §447): one past the kept count, which the 15 s save keeps unflushed: a chunk stored after it isn't written over (a number skipped does no harm)
   }
   /** W203 popups (SPEC §369): whether the flight, landed now at `metres` (end `end`), is one final() would find tiny, so End's

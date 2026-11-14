@@ -54,7 +54,7 @@ import { recheckDue, recheck } from "../chart/routing/bikeshare.js"; // W204 bik
 import { rideKey, rideWatch, rideFix, rideBeat, rideAt, aboard, aboardWatch, WORDS as RIDEW } from "./walk-ride.js"; import { soundMode } from "./calls.js"; // W211 walkride (SPEC §396): a walk's ride followed without being told; W222 ontrain: aboard, aboardWatch
 import { tipOnce } from "./tips.js"; // W49 cards: what transport-free counts, the first time
 import { glideMs } from "../chart/prototype/follow.js"; // W29 polish: the camera's moves glide
-import { glyphIn } from "../chart/prototype/banners.js"; // W135 plainicons: Plain's twins
+import { glyphIn, dayIn } from "../chart/prototype/banners.js"; // W135 plainicons: Plain's twins; W228 transit2: dayIn
 import { mountPlaceNames } from "./placenames.js"; // W185 placenames
 import { mountTurns } from "./turns.js"; import { turnRows, cardWords, cardThen, warnings, withWarnings, warnDue, walkWarnings, parkWalks, parkLine } from "./turns-logic.js"; // W212 turnline: cardThen; W200 parkwalk: parkWalks, parkLine; W196 voice4: walkWarnings; // W53 turns; W56 reroute: cardWords; W54 flight: warnings, steps and steep parts
 import { profileScale } from "./turns-logic.js"; // W219 preview3 (SPEC §424): a bike's rows' one height scale
@@ -165,7 +165,8 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
   const elDur = (tag, cls, text) => { const n = el(tag, cls); n.append(...durNodes(text)); return n; }; // W68 fixes: el(), a duration's h and m small
   const icon = (name) => el("i", `i i-${name}`);
-  const glyphImg = (g, size) => { const i = Object.assign(el("img"), { alt: "", width: Math.round(size * glyphWide(g)), height: size, src: at(`design/glyphs/${glyphIn(g, isPlain())}.svg`) }); i.classList.toggle("wide", glyphWide(g) > 1); return i; }; // W135 plainicons: Plain's twin (SPEC §248); W211 mapicons4: a station of several lines as wide as its roundels, as tall as the rest
+  const byDay = (g) => dayIn(g, document.documentElement.dataset.theme === "light"); // W228 transit2 (SPEC §481): her bus stop sign by day, outlined
+  const glyphImg = (g, size) => { const i = Object.assign(el("img"), { alt: "", width: Math.round(size * glyphWide(g)), height: size, src: at(`design/glyphs/${byDay(glyphIn(g, isPlain()))}.svg`) }); i.classList.toggle("wide", glyphWide(g) > 1); return i; }; // W135 plainicons: Plain's twin (SPEC §248); W211 mapicons4: a station of several lines as wide as its roundels, as tall as the rest
   /** A SCUL name with the lingo's generic word small and dim: "<i class=gen>Starpath</i> Maxwells Green". */
   const named = (tag, cls, kind, name, pre = "") => {
     const n = el(tag, cls, pre);
@@ -673,6 +674,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
   });
   function drawCourse(coords, alt = null, draw = false, walk = null, route = null) { // W59 routes: route, for its bare stretches
     tripOn = flight.flying && nav.leg?.plan && !ui.sheet?.classList.contains("cpreview") ? tripLegs(nav.leg) : null; // W215 journey: in a trip, its legs with this one's course (drawTrip)
+    chartPlan = tripOn ? nav.leg.plan : null; // W228 transit2 (SPEC §481): the plan on the chart; drawComet and chooseWalk set a preview's
     const walked = coords && route?.distance_m > 0 ? (route.style === "foot" ? [[0, route.distance_m]] : route.walks || []) : []; // W86 ride: the stretches it walks; W166 walkui (her note 7): a walk's course is all walked, so footprints all along, as its preview's and a ride's walked stretches
     feetRuns = walked.map(([a, b]) => [a / route.distance_m, b / route.distance_m]); // W86 ride: where the line has a gap, in line-progress
     const c = walked.length ? new Course({ properties: {}, geometry: { type: "LineString", coordinates: coords } }) : null; // W86 ride
@@ -711,6 +713,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
    *  ChartMotion.focus); parked or with no course, none dim. Told only when the line or the flight changes. W166 maplabels
    *  (SPEC §291): the stop signs too, and in a preview, by its chosen route (drawCourse runs as it opens, changes and closes). */
   let focused = null, drawnLine = null; // W166 maplabels: drawnLine
+  let chartPlan = null; // W228 transit2: the trip whose legs the chart shows, a preview's lit row's or the ride's (nav.chartPlan: its bus and its bus stops)
   function focusPulsars() {
     const line = ui.sheet?.classList.contains("cpreview") && drawnLine ? drawnLine : flight.flying && nav.cf ? nav.route?.geometry ?? null : null; // W166 maplabels: a preview's route
     if (line !== focused) pulsars((focused = line));
@@ -720,6 +723,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
   function drawComet(p, alt) { // W62 cometcard
     const L = cometLegs(p), rides = [L.ride0, L.ride1].map((r) => ({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: r.geometry } })); // W62 cometcard
     drawCourse(L.ride0.geometry, alt); // W62 cometcard: the rest of the preview's line, as for a bike route
+    chartPlan = p; // W228 transit2
     map.getSource("course")?.setData({ type: "FeatureCollection", features: rides }); // W62 cometcard: both rides
     map.getSource("course-comet")?.setData(trainLines(p)); // W62 cometcard
     nav.comet = { rides: rides.length, trains: L.trains.map((l) => ({ route: l.route, color: lineColour(l.route, false, l.color), stations: l.path?.length ?? 0 })) }; // W62 cometcard: for tests; W186 palette: her line colour
@@ -2448,6 +2452,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
       const bl = walkP.legs.find((l) => l.type === "bike"); // W204 bikeshare: a Bluebike's ride as the course, in the comfort scale
       const tl = trainLines(walkP); if (bl) tl.features.push(...[bl.from_ll, bl.to_ll].map((coordinates) => ({ type: "Feature", properties: { color: markInk() /* W219 sculgreen: the mode's accent */ }, geometry: { type: "Point", coordinates } }))); // W204 bikeshare: its docks ringed in the accent, as a ride's stations in their line's colour
       drawCourse(bl ? bl.geometry : null, null, false, null, bl || null); walkData(metred(walkLegs(walkP))); /* R1 pocketnet */ map.getSource("course-comet")?.setData(tl); // W73 walk: walks dotted, rides solid; W204 bikeshare: bl, tl
+      chartPlan = walkP; // W228 transit2 (SPEC §481): its bus and its bus stops
       nav.walkDrawn = { walks: walkLegs(walkP).features.length, rides: walkP.legs.filter((l) => l.type === "train").map((l) => ({ route: l.route, color: lineColour(l.route, false, l.color), stops: l.path.length })), ...(bl ? { bike: bl.geometry.length } : {}) }; // W204 bikeshare: bike // W186 palette: her line colour; W192 icons7: a bus's by its hint; W73 walk: for tests
     } // W73 walk
   }
@@ -2879,7 +2884,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     drawCourse(null); // W62 cometcard: the ride ahead; W215 journey: and every leg of the trip, the train she's on full (drawTrip)
     ui.dest ??= pinMarker(leg.place.lonlat, "dest"); // W215 journey (SPEC §412): the trip's pin stays, on board too (touchdown's clear took it)
     const t = leg.legs.trains[leg.k || 0], text = boardText(leg.plan, leg.k || 0); // W62 cometcard; W212 bikeride: the train she's on (after a change, the second: its change alone)
-    arrow.src = at(t.mode === "bus" ? `design/glyphs/${glyphIn("sandworm_nest", isPlain())}.svg` : "design/glyphs/comet_station.svg"); arrowFileShown = ""; arrow.alt = ""; /* W217 turnicons: no rotary's words */ // W62 cometcard; W128 buslegs: a bus stop's; W135 plainicons: Plain's bus
+    arrow.src = at(t.mode === "bus" ? `design/glyphs/${glyphIn("sandworm", isPlain())}.svg` : "design/glyphs/comet_station.svg"); arrowFileShown = ""; arrow.alt = ""; /* W217 turnicons: no rotary's words */ // W62 cometcard; W128 buslegs: a bus stop's; W135 plainicons: Plain's bus; W228 transit2 (SPEC §481): the bus she boards, the round bus (was the stop's, which is her sign now)
     put(dist, clockAt(new Date(t.dep))); put(road, text); // W62 cometcard
     toLine(); put(etaEl, pickWords(COMET.tapOn)); nav.board = text; // W62 cometcard: nav.board, for tests; W215 journey: the trip's place (was "Get off at Central": the ride's card says it, rideCard)
     const riding = leg.ride ? rideCard() : ""; // W212 bikeride: on board, the ride in its place, as a walk's (walkBoard)
@@ -2950,7 +2955,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     gap(true); // W127 walklog: the ride's miles aren't the walk's, as a comet course's train leg
     drawCourse(null); // W79 walkgo: the ride and what's after it; W215 journey: and what's before it, every leg of the trip (drawTrip)
     ui.dest ??= pinMarker(leg.place.lonlat, "dest"); // W215 journey (SPEC §412): the trip's pin stays, on board too (touchdown's clear took it)
-    arrow.src = at(`design/glyphs/${t.mode === "bus" ? glyphIn("sandworm_nest", isPlain()) : "comet_station"}.svg`); arrowFileShown = ""; arrow.alt = ""; /* W217 turnicons: no rotary's words */ // W79 walkgo; W135 plainicons: Plain's bus
+    arrow.src = at(`design/glyphs/${t.mode === "bus" ? glyphIn("sandworm", isPlain()) : "comet_station"}.svg`); arrowFileShown = ""; arrow.alt = ""; /* W217 turnicons: no rotary's words */ // W79 walkgo; W135 plainicons: Plain's bus; W228 transit2: the round bus, the vehicle she boards
     put(dist, clockAt(new Date(t.dep))); put(road, text); // W79 walkgo
     toLine(); put(etaEl, pickWords(WALKW.tapOn)); nav.board = text; // W79 walkgo; W215 journey: the trip's place (was "Get off at Davis": the ride's card says it, rideCard)
     const riding = rideCard(); // W211 walkride: on board, the ride in its place
@@ -3174,7 +3179,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     const ins = cf.feature.properties.instructions.find((i) => i.along_m > r.s + 5 && i.turn !== "arrive");
     if (ins && /\b(port|starboard)\b/i.test(cardMove(ins, lingoMode()))) tipOnce("port", card, PORT_TIP, { flight: true }); // W56 reroute: the first port or starboard on the card; W60 b: in the mode, never in Plain
     if ((r.phase === "arrive" || !ins) && step) { // W215 journey: a stop on the way is a step, with its own picture and what she does there
-      const side = cf.prompter.list.at(-1).side; if (arrowFileShown !== `stop:${step.glyph}`) { arrowFileShown = `stop:${step.glyph}`; arrow.src = at(`design/glyphs/${step.glyph}.svg`); arrow.alt = ""; /* W217 turnicons */ }
+      const side = cf.prompter.list.at(-1).side; if (arrowFileShown !== `stop:${byDay(step.glyph)}`) { arrowFileShown = `stop:${byDay(step.glyph)}`; arrow.src = at(`design/glyphs/${byDay(step.glyph)}.svg`); arrow.alt = ""; /* W217 turnicons; W228 transit2: byDay */ }
       put(dist, mi(Math.min(r.left, r.toPad))); put(road, side === "port" ? `◀ ${step.text}` : side === "starboard" ? `${step.text} ▶` : step.text);
       if (!anchorBtn.hidden) showAnchors(null);
     } else if (r.phase === "arrive" || !ins) {
@@ -3234,6 +3239,8 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     get warns() { return warns; }, // W54 flight: for tests
     get relabeling() { return !!relabelGo; }, // W205 relabel: the preview's callouts still to place after a move, for tests (helpers.mjs settled)
     get aside() { return ui.aside; }, // W219 preview3: the plan put aside and back, for tests
+    get chartPlan() { return chartPlan; }, // W228 transit2 (SPEC §481): the trip on the chart, a preview's lit row's or the ride's (main.js: its bus stops)
+    get previewPlan() { return ui.sheet?.classList.contains("cpreview") ? chartPlan : null; }, // W228 transit2: a preview's alone (app/bus-live.js: its bus)
     get active() { return !!nav.cf; },
     /** W212 walkend: after touchdown, until the ride ends, she rides on (two good fixes away) or a fix shows her gone from the place (main.js: rough fixes kept out of the Log). */
     get arrived() { return !!landing && !landing.gone && !landing.away; }, // W212 walkend

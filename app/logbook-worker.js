@@ -4,7 +4,7 @@
 // cut short. Messages: {seq, op, ...} → {seq, result} or {seq, error}. app/logbook.js is the client.
 // W67 logsafe: a module worker, for the Log's backup (app/logsafe.js).
 import { packBackup, unpackBackup } from "./logsafe.js"; // W67 logsafe; W147 backup: the file is read and written on the page
-import { decodeChunk, drawnTrack, trackLines } from "./logbook.js"; import { GHOST_V, SET, ghostCollection, ghostLines, openGhosts } from "./ghost-logic.js"; // W73 ghosts
+import { decodeChunk, drawnTrack, rideLines } from "./logbook.js"; /* W228 backfill: rideLines, for trackLines */ import { GHOST_V, SET, ghostCollection, ghostLines, openGhosts } from "./ghost-logic.js"; // W73 ghosts
 let db = null;
 function open() {
   if (db) return db;
@@ -25,22 +25,22 @@ const write = async (fn) => { const tx = (await open()).transaction("tracks", "r
 // W73 ghosts (SPEC §121): each flight's ghost trail, made once from its track and kept in the ghosts' own database
 // (app/ghost-logic.js openGhosts), with the set the chart draws.
 const glines = new Map(); // id → lines, this session's
-async function ghostsOf(ids) {
+async function ghostsOf(ids, fills = {}) { // W228 backfill: fills, each flight's filled stretches by its id (its summary's)
   const want = ids.filter((id) => !glines.has(id));
   if (!want.length) return;
   const cached = await openGhosts().then((g) => { const s = g.transaction("lines").objectStore("lines"); return Promise.all(want.map((id) => done(s.get(id)))); }).catch(() => []);
   const made = [];
   for (const [i, id] of want.entries()) {
-    if (cached[i]?.v === GHOST_V) { glines.set(id, cached[i].lines); continue; }
-    const lines = ghostLines(trackLines(drawnTrack((await OPS.chunks({ id })).flatMap(decodeChunk))));
-    if (lines.length) { glines.set(id, lines); made.push([id, lines]); } // none yet (no track): asked again next time
+    if (cached[i]?.v === GHOST_V && (cached[i].filled || !fills[id]?.length)) { glines.set(id, { lines: cached[i].lines, filled: cached[i].filled || [] }); continue; } // W228 backfill: filled; lines kept without it (an older version's) are a ride's with none, else made again
+    const r = rideLines(drawnTrack((await OPS.chunks({ id })).flatMap(decodeChunk)), fills[id]), lines = ghostLines(r.tracked), filled = ghostLines(r.filled); // W228 backfill
+    if (lines.length) { glines.set(id, { lines, filled }); made.push([id, lines, filled]); } // none yet (no track): asked again next time
   }
-  if (made.length) await openGhosts().then((g) => { const tx = g.transaction("lines", "readwrite"); for (const [id, lines] of made) tx.objectStore("lines").put({ v: GHOST_V, lines }, id); return commit(tx); }).catch(() => {});
+  if (made.length) await openGhosts().then((g) => { const tx = g.transaction("lines", "readwrite"); for (const [id, lines, filled] of made) tx.objectStore("lines").put({ v: GHOST_V, lines, filled }, id); return commit(tx); }).catch(() => {}); // W228 backfill: filled
 }
 const forget = (id) => { glines.delete(id); return openGhosts().then((g) => { const tx = g.transaction("lines", "readwrite"); tx.objectStore("lines").delete(id); return commit(tx); }).catch(() => {}); };
 
 const OPS = {
-  put: ({ id, n, head, d, m }) => write((s) => s.put(m ? { head, d, m } : { head, d }, [id, n])), // m: the matched track (wave 21); W40 log: write
+  put: ({ id, n, head, d, m, fl }) => write((s) => s.put({ head, d, ...(m && { m }), ...(fl && { fl }) }, [id, n])), // m: the matched track (wave 21); W40 log: write; rel-0.1.121: fl, a filled stretch's points
   final: ({ id }) => write((s) => s.put({ final: true }, [id, -1])), // W40 log: write
   async chunks({ id }) {
     const all = await done((await open()).transaction("tracks").objectStore("tracks").getAll(range(id)));
@@ -51,11 +51,11 @@ const OPS = {
    *  which MapLibre's worker reads from a ghosts:// address (app/ghosts-worker.mjs), so it never crosses the main thread.
    *  {bounds, n}: their box and count; and the `data` itself where it can't be kept, or when asked (`direct`: that address
    *  can't be read). */
-  async ghosts({ ids, direct = false }) {
-    await ghostsOf(ids);
-    const { data, bounds } = ghostCollection(ids.map((id) => glines.get(id)));
+  async ghosts({ ids, direct = false, fills = {} }) { // W228 backfill: fills
+    await ghostsOf(ids, fills);
+    const { data, bounds } = ghostCollection(ids.map((id) => glines.get(id)?.lines), ids.map((id) => glines.get(id)?.filled)); // W228 backfill: filled
     const kept = !direct && await openGhosts().then((g) => { const tx = g.transaction("lines", "readwrite"); tx.objectStore("lines").put({ v: GHOST_V, data }, SET); return commit(tx); }).then(() => true, () => false);
-    return { bounds, n: data.features.length, ...(kept ? {} : { data }) };
+    return { bounds, n: data.features.filter((f) => !f.properties.filled).length, ...(kept ? {} : { data }) }; // W228 backfill: flights, not their filled parts
   },
   async flights() {
     const keys = await done((await open()).transaction("tracks").objectStore("tracks").getAllKeys());

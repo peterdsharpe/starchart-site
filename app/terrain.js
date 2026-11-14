@@ -13,12 +13,18 @@
 // The exaggeration grows with the pitch, from all but nothing below 8° to ×6 at 25°, and eases there frame by
 // frame only once the 3D tiles have come, so nothing on the screen jumps as the hills rise. The ship (app/ship3d.js)
 // and the motion layer (chart/prototype/gl-layer.js) read the ground's height from MapLibre while it is on.
-import { terrainLayers, terrainSources, terrainSpec, TERRAIN_LAYER_IDS } from "../chart/terrain/style.js";
+//
+// W229 climbs (SPEC §482), pancake's row 5 of 2026-11-13: in Plain the layer is Climbs, her design: how steep the ground is, in three
+// levels in her colours, opaque over the parks and buildings, under the water and everything a rider reads (chart/terrain/style.js
+// climbsLayers, from the manifest's "climbs" field); no tint and no steep ground, and the slope file isn't read. Battery saver no
+// longer holds it off (her point 6); it holds off the raised hills alone, as does Settings › Power › 3D terrain (her point 7). SCUL
+// keeps Terrain as it was (ruling 1, arclight's to change: CLIMBS_IN).
+import { terrainLayers, terrainSources, terrainSpec, TERRAIN_LAYER_IDS, climbsLayers, climbsSource, CLIMB_LAYER_IDS, CLIMB_SOURCE, CLIMBS_OVER } from "../chart/terrain/style.js"; // W229 climbs
 import { canStore, prune, store, storedTiles, StoredSource } from "./offline.js";
 import { metres as metresBetween } from "./geo.js"; // W26 relief
 import { metresPerPixel } from "../chart/prototype/follow.js"; // W26 relief
 import { get } from "./settings.js"; // W191 appleft (SPEC §334)
-import { KEY as WORDS } from "./lingo-mode.js"; // W192 mapfix3: the word mode, whose default Terrain follows
+import { KEY as WORDS, lingo } from "./lingo-mode.js"; // W192 mapfix3: the word mode, whose default Terrain follows; W229 climbs: lingo, which draws Climbs
 
 export const EXAGGERATION = 6, ON_PITCH = 3, OFF_PITCH = 1;
 /** W50 layers: Layers › Terrain (app/layers.js), "on" or "off": off, no tint, no steep ground and no 3D. W192 mapfix3 (SPEC §337): off
@@ -28,7 +34,34 @@ export const LAYER = "starchart.layer.terrain";
  *  Battery saver (starchart.smooth "30") holds the hills off, flat and untinted; the rider's own Terrain choice stays stored and
  *  comes back when it goes off. The Layers tile says why (app/layers.js). */
 export const SAVER = "starchart.smooth", SAVER_OFF = "Off while Battery saver is on.";
-export const terrainShown = (choice, smooth) => choice !== "off" && smooth !== "30";
+/** W229 climbs: the word modes whose layer is Climbs (her design) in place of Terrain's tint and steep ground. SCUL keeps Terrain until
+ *  arclight rules (W229, ruling 1); adding "scul" here takes Climbs there too: the layer, Battery saver's rule (terrainShown, the Layers
+ *  tile's app/layers.js held) and the tile's picture (<html data-climbs>, app/layers.css); its colours are hers unless tokens.json's
+ *  climbs gets a ramp of the mode's own (climbs.scul.dark and .light: the proposal's sheet has two), and the tile keeps SCUL's name and its
+ *  long press (app/index.html's data-more, which says Terrain's tint and steep ground: that switch wants SCUL words for Climbs too). */
+export const CLIMBS_IN = ["meatspace"];
+export const climbsIn = (words) => CLIMBS_IN.includes(words); // W229 climbs
+/** W229 climbs: <html data-climbs> while the mode's layer is Climbs, so the Layers tile shows her picture (app/layers.css), from the first frame and live. */
+const markClimbs = () => globalThis.document?.documentElement?.toggleAttribute?.("data-climbs", climbsIn(lingo())); // W229 climbs
+markClimbs(); globalThis.addEventListener?.("starchart:settings", (e) => { if (e.detail?.key === WORDS) markClimbs(); }); // W229 climbs
+/** W229 climbs (her point 7): Settings › Power › 3D terrain, under Battery saver (app/keys.js): on by default; off, the hills never rise. */
+export const D3 = "starchart.hills3d";
+/** W160 smallui; W229 climbs: is the layer drawn? Not if she turned it off; and with Terrain (SCUL) not under Battery saver, while Climbs
+ *  shows whatever Battery saver says (her point 6: it is flat, and costs no more than another fill). */
+export const terrainShown = (choice, smooth, words = "scul") => choice !== "off" && (climbsIn(words) || smooth !== "30");
+/** W229 climbs (rulings 5 and 6): the hills rise only with the layer drawn, 3D terrain on, Battery saver off and a tilt past ON_PITCH
+ *  (or, risen, OFF_PITCH: want3d). `shown` is terrainShown's answer, `on` whether they are risen now. */
+export const hillsRise = ({ shown, d3, smooth, pitch, on = false }) => !!shown && d3 !== "off" && smooth !== "30" && want3d(pitch, on);
+/** W229 climbs: the 3D terrain switch's look, { checked, disabled, line }, for its stored choice `d3`, Battery saver `smooth`, the
+ *  layer's choice and the word mode. Under Battery saver it shows off and can't be set, saying why (her words); her choice is kept and
+ *  shows again when Battery saver goes. With the layer off it is hers to set, but can't act: its line says what it needs. */
+export const D3_WORDS = { line: ["Makes hills rise when you tilt the chart.", "Makes hills rise when you tilt the map."], // [SCUL, Plain]
+  needs: ["Needs Terrain in Layers.", "Needs Climbs in Layers."] }; // W229 climbs: the layer's name, as its tile says it; one line at 320 px ("Needs Climbs on in Layers." was two)
+export function d3Row({ d3, smooth, choice, words }) {
+  const plain = words !== "scul" ? 1 : 0;
+  if (smooth === "30") return { checked: false, disabled: true, line: SAVER_OFF };
+  return { checked: d3 !== "off", disabled: false, line: choice === "off" ? D3_WORDS.needs[plain] : D3_WORDS.line[plain] };
+}
 /**
  * W20 terrain3d: the exaggeration at a pitch, so that going into 3D doesn't jump. It is all but nothing from
  * where 3D turns on (3°) to RISE_PITCH, which gives the 3D tiles a moment to come, and grows to the full ×6
@@ -90,11 +123,12 @@ export function hillLayers(tokens, { theme } = {}, { slope = true } = {}) {
  * Add the hills to the map once `after` resolves (the chart's first frame). `protocol` is the PMTiles
  * protocol the chart reads through (chart/prototype/chart.js). Returns the debug handle.
  */
-export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.resolve(), theme = () => globalThis.starchartTheme?.current ?? { theme: "dark" }, pinned = () => false, seen = () => Promise.resolve() }) { // W26: pinned, the camera following the ship; W102 trim: seen, once the chart is uncovered
-  const dem = data.files.find((f) => f.kind === "dem"), slope = data.files.find((f) => f.kind === "slope");
-  const state = { on3d: false, ready: false, switches: 0, shown: true };
-  const now = { [LAYER]: get(LAYER), [SAVER]: get(SAVER) }; // W160 smallui: the choice and Battery saver, as the events tell them; W191 appleft (SPEC §334): through the registry, with its defaults (storage off too)
-  state.shown = terrainShown(now[LAYER], now[SAVER]); // W50 layers; W160 smallui: and not under Battery saver
+export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.resolve(), theme = () => globalThis.starchartTheme?.current ?? { theme: "dark" }, pinned = () => false, seen = () => Promise.resolve(), words = lingo }) { // W26: pinned, the camera following the ship; W102 trim: seen, once the chart is uncovered; W229 climbs: words, the word mode
+  const kind = (k) => data.files.find((f) => f.kind === k); // W229 climbs
+  const dem = kind("dem"), slope = kind("slope"), climbs = kind("climbs"), climbdir = kind("climbdir"); // W229 climbs: climbdir, the chevrons' (W229 chevrons), is stored here, read there
+  const state = { on3d: false, ready: false, switches: 0, shown: true, climbs: false }; // W229 climbs: climbs, whether Climbs is drawn
+  const now = { [LAYER]: get(LAYER), [SAVER]: get(SAVER), [D3]: get(D3) }; // W160 smallui: the choice and Battery saver, as the events tell them; W191 appleft (SPEC §334): through the registry, with its defaults (storage off too); W229 climbs: and 3D terrain
+  state.shown = terrainShown(now[LAYER], now[SAVER], words()); // W50 layers; W160 smallui: and not under Battery saver; W229 climbs: but Climbs
   if (!dem) return state;
   const url = (e) => at(e.path);
 
@@ -107,18 +141,38 @@ export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.
     return !!file; // W76 privacy
   }
 
-  let shown = ""; // the ids drawn now, to tell a repaint from a new set of layers
+  // W229 climbs: each file read once, when its layer is first wanted (Plain never reads the slope, SCUL never the climbs), its source added
+  const has = {}, reading = {}; // kind: true once its source is in
+  const sources = (e) => e.kind === "dem" ? terrainSources({ dem: url(e) }) : e.kind === "slope" ? { "terrain-slope": terrainSources({ dem: url(dem), slope: url(e) })["terrain-slope"] } : { [CLIMB_SOURCE]: climbsSource(url(e)) };
+  const need = (e) => !e ? Promise.resolve(false) : has[e.kind] ? Promise.resolve(true) : (reading[e.kind] ??= readStored(e).then((ok) => { // W229 climbs
+    delete reading[e.kind];
+    if (!ok) return false;
+    // SRTM and 3DEP are public domain: their credits are in About's credits, so the chart's credit stays as short as before
+    for (const [id, { attribution, ...src }] of Object.entries(sources(e))) map.addSource(id, src);
+    return (has[e.kind] = true);
+  }));
+  const plainLook = () => climbsIn(words()); // W229 climbs
+  let shown = "", moved = false; // the ids drawn now, to tell a repaint from a new set of layers; W229 climbs: whether the buildings are under Climbs
   function draw() {
-    const want = hillLayers(tokens, theme(), { slope: !!slope });
+    const t = theme().theme === "light" ? "light" : "dark", ramp = tokens.climbs?.[words()]?.[t] ?? tokens.climbs?.[t]; // W229 climbs: a mode's own ramp (climbs.<mode>.<theme>) if it has one, else hers
+    const want = plainLook() ? (has.climbs && ramp ? climbsLayers(ramp) : []) : has.slope || !slope ? hillLayers(tokens, theme(), { slope: !!slope }) : []; // W229 climbs: Climbs, once stored; SCUL's as before
     const ids = want.map(([l]) => l.id).join();
     if (ids === shown) { // the same layers: only the paint (a theme switch)
       for (const [l] of want) for (const k in l.paint) map.setPaintProperty(l.id, k, l.paint[k]);
     } else {
-      for (const id of TERRAIN_LAYER_IDS) if (map.getLayer(id)) map.removeLayer(id);
+      for (const id of [...TERRAIN_LAYER_IDS, ...CLIMB_LAYER_IDS]) if (map.getLayer(id)) map.removeLayer(id); // W229 climbs: and Climbs
       for (const [l, before] of want) map.addLayer(l, map.getLayer(before) ? before : undefined);
       shown = ids;
     }
-    for (const id of TERRAIN_LAYER_IDS) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", state.shown ? "visible" : "none"); // W50 layers
+    for (const id of [...TERRAIN_LAYER_IDS, ...CLIMB_LAYER_IDS]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", state.shown ? "visible" : "none"); // W50 layers
+    state.climbs = !!map.getLayer("climbs") && state.shown; // W229 climbs
+    // W229 climbs (her point 4): under Climbs the buildings go under the shading, as the parks are; with it gone, back where the style has them
+    // (over the water, under the towns' glow and SCUL's tint, which goes in just before the glow): moved back only if they were moved
+    if (state.climbs !== moved) {
+      const to = state.climbs ? "climbs" : [...TERRAIN_LAYER_IDS, "system-area"].find((id) => map.getLayer(id));
+      for (const id of CLIMBS_OVER) if (map.getLayer(id) && to) map.moveLayer(id, to);
+      moved = state.climbs;
+    }
     map.triggerRepaint();
   }
 
@@ -171,7 +225,7 @@ export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.
     return ms < MEDIAN_MS;
   }
   function tilt() {
-    const pitch = map.getPitch(), on = state.shown && want3d(pitch, state.on3d); // W28 settings: always; W50 layers: unless Layers › Terrain is off
+    const pitch = map.getPitch(), on = hillsRise({ shown: state.shown, d3: now[D3], smooth: now[SAVER], pitch, on: state.on3d }); // W28 settings: always; W50 layers: unless Layers › Terrain is off; W229 climbs: and 3D terrain on, Battery saver off (rulings 5, 6)
     if (on !== state.on3d) {
       state.on3d = on;
       state.switches++;
@@ -215,11 +269,11 @@ export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.
 
   let mounting = false; // W76 privacy
   const mount = async () => { // W76 privacy: once the hills are stored, after the chart (below); until then there are none
-    if (mounting) return;
+    if (mounting || state.ready) return; // W229 climbs: once
     mounting = true;
-    if (!(await Promise.all([dem, slope].filter(Boolean).map(readStored))).every(Boolean)) { mounting = false; return; } // W76 privacy
-    // SRTM is public domain: its credit is in About's credits, so the chart's credit stays as short as before
-    for (const [id, { attribution, ...src }] of Object.entries(terrainSources({ dem: url(dem), slope: slope && url(slope) }))) map.addSource(id, src);
+    // W76 privacy; W229 climbs: the DEM (3D), and the mode's own file: Climbs' (none stored yet: no shading, the hills still rise), or SCUL's slope as before
+    if (!(await need(dem)) || (!plainLook() && !(await need(slope)) && slope)) { mounting = false; return; }
+    if (plainLook()) await need(climbs);
     draw();
     tilt();
     map.on("pitch", tilt);
@@ -228,6 +282,7 @@ export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.
     map.on("sourcedata", loaded);
     addEventListener("starchart:theme", draw);
     state.ready = true;
+    mounting = false; // W229 climbs
   };
   after.then(mount).catch((err) => console.error("hills:", err)); // W76 privacy: mount
 
@@ -238,7 +293,7 @@ export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.
     if (storing) return;
     storing = true;
     try {
-      for (const e of [dem, slope]) {
+      for (const e of [dem, slope, climbs, climbdir]) { // W229 climbs: and Climbs' field and direction
         if (!e) continue;
         try {
           const st = await storedTiles(e);
@@ -247,16 +302,18 @@ export function mountTerrain({ map, data, at, tokens, protocol, after = Promise.
         } catch (err) { console.warn(`storing the ${e.kind}:`, err.message); }
       }
     } finally { storing = false; }
-    after.then(seen).then(mount).catch((err) => console.error("hills:", err)); // W76 privacy: stored now, so they draw; W102 trim: once the chart is seen, never under an opaque Settings (SPEC §202)
+    after.then(seen).then(() => (state.ready ? need(plainLook() ? climbs : slope).then(draw) : mount())).catch((err) => console.error("hills:", err)); // W76 privacy: stored now, so they draw; W102 trim: once the chart is seen, never under an opaque Settings (SPEC §202); W229 climbs: a file stored after the mount draws too
   });
 
   // W50 layers: Layers › Terrain, at once
-  addEventListener("starchart:settings", (e) => {
-    if (e.detail?.key !== LAYER && e.detail?.key !== SAVER && e.detail?.key !== WORDS) return; // W160 smallui: and Battery saver; W192 mapfix3: and Words
+  addEventListener("starchart:settings", async (e) => {
+    if (![LAYER, SAVER, WORDS, D3].includes(e.detail?.key)) return; // W160 smallui: and Battery saver; W192 mapfix3: and Words; W229 climbs: and 3D terrain
     if (e.detail.key === WORDS) now[LAYER] = get(LAYER); // W192 mapfix3: a rider who never chose has the new mode's default
     else now[e.detail.key] = e.detail.value;
-    state.shown = terrainShown(now[LAYER], now[SAVER]); // W160 smallui
-    if (state.ready) { draw(); tilt(); }
+    state.shown = terrainShown(now[LAYER], now[SAVER], words()); // W160 smallui; W229 climbs: by the mode
+    if (!state.ready) return;
+    if (e.detail.key === WORDS) await need(plainLook() ? climbs : slope); // W229 climbs: the new mode's own file, read once
+    draw(); tilt();
   });
 
   /** The ground's height at [lon, lat] in metres, exaggeration in, or 0 while the chart is flat. */

@@ -55,22 +55,29 @@
   "height": 144,
   "pixelRatio": 3
  },
- "bus_stop": {
+ "bus": {
   "x": 0,
   "y": 144,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "comet_station": {
+ "bus_stop": {
   "x": 144,
   "y": 144,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "comet_station_blue": {
+ "comet_station": {
   "x": 288,
+  "y": 144,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "comet_station_blue": {
+  "x": 432,
   "y": 144,
   "width": 144,
   "height": 144,
@@ -78,20 +85,20 @@
  },
  "comet_station_blue_green": {
   "x": 0,
-  "y": 1440,
+  "y": 1584,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_blue_orange": {
   "x": 220,
-  "y": 1440,
+  "y": 1584,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_commuter_rail": {
-  "x": 432,
+  "x": 576,
   "y": 144,
   "width": 144,
   "height": 144,
@@ -99,27 +106,27 @@
  },
  "comet_station_commuter_rail_green_orange": {
   "x": 440,
-  "y": 1440,
+  "y": 1584,
   "width": 297,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_commuter_rail_orange": {
   "x": 737,
-  "y": 1440,
+  "y": 1584,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_commuter_rail_red": {
   "x": 0,
-  "y": 1584,
+  "y": 1728,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_green": {
-  "x": 576,
+  "x": 720,
   "y": 144,
   "width": 144,
   "height": 144,
@@ -127,20 +134,20 @@
  },
  "comet_station_green_orange": {
   "x": 220,
-  "y": 1584,
+  "y": 1728,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_green_red": {
   "x": 440,
-  "y": 1584,
+  "y": 1728,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_mattapan": {
-  "x": 720,
+  "x": 864,
   "y": 144,
   "width": 144,
   "height": 144,
@@ -148,13 +155,13 @@
  },
  "comet_station_mattapan_red": {
   "x": 660,
-  "y": 1584,
+  "y": 1728,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_orange": {
-  "x": 864,
+  "x": 1008,
   "y": 144,
   "width": 144,
   "height": 144,
@@ -162,469 +169,476 @@
  },
  "comet_station_orange_red": {
   "x": 880,
-  "y": 1584,
+  "y": 1728,
   "width": 220,
   "height": 144,
   "pixelRatio": 3
  },
  "comet_station_red": {
-  "x": 1008,
-  "y": 144,
+  "x": 0,
+  "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "constellation": {
-  "x": 0,
+  "x": 144,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "coolant": {
-  "x": 144,
+  "x": 288,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "coolant_winter": {
-  "x": 288,
+  "x": 432,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "crossing": {
-  "x": 432,
+  "x": 576,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "daystar": {
-  "x": 576,
+  "x": 720,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "derby_arena": {
-  "x": 720,
+  "x": 864,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "fort": {
-  "x": 864,
+  "x": 1008,
   "y": 288,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "fuel_depot": {
-  "x": 1008,
-  "y": 288,
+  "x": 0,
+  "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "g_well_negi": {
-  "x": 0,
+  "x": 144,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "g_well_posi": {
-  "x": 144,
+  "x": 288,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "gantry": {
-  "x": 288,
+  "x": 432,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "grenade_depot": {
-  "x": 432,
+  "x": 576,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "grocery": {
-  "x": 576,
+  "x": 720,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "hamburger_helper": {
-  "x": 720,
+  "x": 864,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "heavy_radiation": {
-  "x": 864,
+  "x": 1008,
   "y": 432,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "home": {
-  "x": 1008,
-  "y": 432,
+  "x": 0,
+  "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "hospital": {
-  "x": 0,
+  "x": 144,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "klingon_dock": {
-  "x": 144,
+  "x": 288,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "landing_pad": {
-  "x": 288,
+  "x": 432,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "launchpad": {
-  "x": 432,
+  "x": 576,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "lore": {
-  "x": 576,
+  "x": 720,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "luna": {
-  "x": 720,
+  "x": 864,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "meat_repair": {
-  "x": 864,
+  "x": 1008,
   "y": 576,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "meteorites": {
-  "x": 1008,
-  "y": 576,
+  "x": 0,
+  "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "nebula": {
-  "x": 0,
+  "x": 144,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "negi_g_well": {
-  "x": 144,
+  "x": 288,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "obstacle": {
-  "x": 288,
+  "x": 432,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "oneway": {
-  "x": 432,
+  "x": 576,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "pharmacy": {
-  "x": 576,
+  "x": 720,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "pin": {
-  "x": 720,
+  "x": 864,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "plasma": {
-  "x": 864,
+  "x": 1008,
   "y": 720,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "police": {
-  "x": 1008,
-  "y": 720,
+  "x": 0,
+  "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "posi_g_well": {
-  "x": 0,
+  "x": 144,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "pulsar": {
-  "x": 144,
+  "x": 288,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "rack": {
-  "x": 288,
+  "x": 432,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "rack_alt": {
-  "x": 432,
+  "x": 576,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "radiation": {
-  "x": 576,
+  "x": 720,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "rain": {
-  "x": 720,
+  "x": 864,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "refueling_station": {
-  "x": 864,
+  "x": 1008,
   "y": 864,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "restaurant": {
-  "x": 1008,
-  "y": 864,
+  "x": 0,
+  "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "rotary": {
-  "x": 0,
+  "x": 144,
   "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "route_start": {
-  "x": 144,
+  "x": 288,
+  "y": 1008,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "sandworm": {
+  "x": 432,
   "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "sandworm_nest": {
-  "x": 288,
+  "x": 576,
   "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "shield_byway": {
-  "x": 432,
+  "x": 720,
   "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "shield_system": {
-  "x": 576,
+  "x": 864,
   "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "shield_wormhole": {
-  "x": 720,
+  "x": 1008,
   "y": 1008,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "shop": {
-  "x": 864,
-  "y": 1008,
+  "x": 0,
+  "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "shore_leave": {
-  "x": 1008,
-  "y": 1008,
+  "x": 144,
+  "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "space_dock": {
-  "x": 0,
+  "x": 288,
   "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "space_dust": {
-  "x": 144,
+  "x": 432,
   "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "space_junk": {
-  "x": 288,
+  "x": 576,
   "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "space_station": {
-  "x": 432,
+  "x": 720,
   "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "st_outpost": {
-  "x": 576,
+  "x": 864,
   "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
  "steering_dampener": {
-  "x": 720,
-  "y": 1152,
-  "width": 144,
-  "height": 144,
-  "pixelRatio": 3
- },
- "stop": {
-  "x": 864,
-  "y": 1152,
-  "width": 144,
-  "height": 144,
-  "pixelRatio": 3
- },
- "stop_all": {
   "x": 1008,
   "y": 1152,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "system": {
+ "stop": {
   "x": 0,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "tardis": {
+ "stop_all": {
   "x": 144,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "temple_of_knowledge": {
+ "system": {
   "x": 288,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "traffic_light": {
+ "tardis": {
   "x": 432,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "two_way": {
+ "temple_of_knowledge": {
   "x": 576,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "urgent_care": {
+ "traffic_light": {
   "x": 720,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
- "waypoint": {
+ "two_way": {
   "x": 864,
   "y": 1296,
   "width": 144,
   "height": 144,
   "pixelRatio": 3
  },
+ "urgent_care": {
+  "x": 1008,
+  "y": 1296,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
+ "waypoint": {
+  "x": 0,
+  "y": 1440,
+  "width": 144,
+  "height": 144,
+  "pixelRatio": 3
+ },
  "starfield": {
   "x": 0,
-  "y": 1728,
+  "y": 1872,
   "width": 960,
   "height": 960,
   "pixelRatio": 3
  },
  "system_nebula": {
   "x": 0,
-  "y": 2688,
+  "y": 2832,
   "width": 480,
   "height": 288,
   "pixelRatio": 3

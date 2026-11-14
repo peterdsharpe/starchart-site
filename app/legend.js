@@ -44,6 +44,7 @@ export const MEANINGS = Object.fromEntries(Object.entries({
   police: ["free", "Police station: an ST outpost, with SCUL mode off", "Police station"],
   hospital: ["free", "Hospital: a meat repair facility, with SCUL mode off", "Hospital"],
   bus_stop: ["transit", "Bus stop: a sandworm nest, with SCUL mode off", "Bus stop"],
+  bus: ["transit", "Bus: a sandworm, with SCUL mode off", "Your bus, where it is now"], // W228 transit2 (SPEC §481): the live bus alone (app/bus-live.js), its arrow the way it heads
   bluebikes_dock: ["transit", "Bluebikes station: a Klingon dock, with SCUL mode off", "Bluebikes station"], // W215 icons5: her Bluebikes sign
   obstacle: ["hazards", "Obstacle: space junk, with SCUL mode off", "Obstacle"],
   rain: ["hazards", "Rain: radiation, with SCUL mode off", "Rain"], // W135 plainicons
@@ -103,6 +104,7 @@ export const MEANINGS = Object.fromEntries(Object.entries({
   comet_station: ["Comet station: a train or subway station", "Train or subway station"],
   ...stationMeanings(), // W197 stationlines (SPEC §350): every station picture's (was the six pairs of design/glyphs/build.py STATION_LINES, copied)
   sandworm_nest: ["Sandworm nest: a bus stop", "Bus stop"],
+  sandworm: ["transit", "Sandworm: your bus, where it is now", "Your bus, where it is now"], // W228 transit2: SCUL's live bus
   klingon_dock: ["Klingon dock: a Bluebikes station", "Bluebikes station"], // W157 icons3: beside the bus stop, in its format (was a place you pay at)
   buoy_field: ["Buoy field: cones or construction", "Cones or construction"],
   crossing: ["hazards", "High-crash crossing: a record of bike crashes", "High-crash crossing"], // W128 crashes, met by the sprite at the W139 merge
@@ -134,7 +136,7 @@ export const BY_THEME = ["anchorage", "anchorage_covered", "black_hole", "conste
   "landing_pad", "launchpad", "lore", "nebula", "pin", "rack", "rack_alt", "radiation", "rain", "route_start", "shield_byway", "shield_system", "shield_wormhole",
   "space_station", "system", "two_way", "waypoint"];
 const OTHER_THEME = { dark: ["Daystar", "Light"], light: ["Dark", "Dark"] }; // W196 mapstyle4: the other theme's name in Settings › Theme, [SCUL, Plain]
-export const APP_ICONS = ["rack", "waypoint"]; // W166 icons4: app/anchorages.js's racks; app/course.js's dropped pin, the waypoint's (Plain's pin)
+export const APP_ICONS = ["rack", "waypoint", "sandworm"]; // W166 icons4: app/anchorages.js's racks; app/course.js's dropped pin, the waypoint's (Plain's pin); W228 transit2: app/bus-live.js's live bus (Plain's bus)
 const PAINTS = ["icon-image", "fill-pattern", "line-pattern", "background-pattern", "fill-extrusion-pattern"]; // W166 icons4
 const odd = (a, from = 1) => a.filter((_, i) => i >= from && i % 2 === 1); // W166 icons4
 /** W166 icons4: the images an expression `e` can give, a ["get", "kind"] each of `kinds`. */

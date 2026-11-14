@@ -84,6 +84,28 @@ export function terrainLayers(opts, color, light) {
   return out;
 }
 
+/**
+ * W229 climbs (design/app-ui/SPEC.md §482), pancake's design: how steep the ground is, in three levels (4 to 7 %, 7 to 10 %, over
+ * 10 %), opaque, over the ground detail and under the map's information. The source is build_climbs.py's field (README.md, "Climbs"):
+ * the grade in 0.1 %, exact at each level's edge, which a color-relief layer reads through MapLibre's custom DEM encoding and samples
+ * linearly, so the edges are smooth at every zoom and lie on raised hills as the rest of the ground. Each colour starts 0.1 % under
+ * its level (the stops must be whole tenths: MapLibre stores a stop in the tile's own encoding), so an edge blends over 0.1 % of grade.
+ * Water and everything after it draw over the climbs (`CLIMBS_UNDER`); the buildings, which the style draws over the water, move under
+ * them (`CLIMBS_OVER`): on a climb no park green and no building shows through. They show from z12, fading in over half a zoom.
+ */
+export const CLIMBS_UNDER = "nebula-glow-rim", CLIMBS_OVER = ["hulls"], CLIMBS_FROM = 12, CLIMBS_FADE = 0.5;
+export const CLIMB_SOURCE = "climbs", CLIMB_LAYER_IDS = ["climbs"];
+/** The climbs' source, given the absolute URL of its PMTiles: R × 0.1 is the grade in percent. USGS 3DEP is public domain: its credit
+ *  is in About's credits, as SRTM's, so the chart's credit stays OpenStreetMap's alone (W58 clean). */
+export const climbsSource = (url) => ({ type: "raster-dem", url: "pmtiles://" + url, tileSize: 512, encoding: "custom", redFactor: 0.1, greenFactor: 0, blueFactor: 0, baseShift: 0 });
+/** The climbs' layer and the id it goes under, in a theme's colours (`ramp`: { gentle, medium, steep }, design/tokens.json climbs). */
+export function climbsLayers(ramp) {
+  return [[{ id: "climbs", type: "color-relief", source: CLIMB_SOURCE, minzoom: CLIMBS_FROM,
+    paint: { "color-relief-opacity": ["interpolate", ["linear"], ["zoom"], CLIMBS_FROM, 0, CLIMBS_FROM + CLIMBS_FADE, 1],
+      "color-relief-color": ["interpolate", ["linear"], ["elevation"], 3.9, rgba(ramp.gentle, 0), 4, ramp.gentle, 6.9, ramp.gentle, 7, ramp.medium,
+        9.9, ramp.medium, 10, ramp.steep] } }, CLIMBS_UNDER]];
+}
+
 /** The terrain spec for map.setTerrain() at an exaggeration (2, 4 or 6), or null for a flat chart. */
 export const terrainSpec = (exaggeration) => (exaggeration ? { source: "terrain-dem-3d", exaggeration } : null);
 

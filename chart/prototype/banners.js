@@ -24,13 +24,17 @@ export const STYLE = {
  *  the manifest's "plain"), for the map's every symbol layer (app/main.js), the peeks, search rows, the legend and these pills. */
 export const PLAIN_ICON = { black_hole: "rotary", pulsar: "traffic_light", st_outpost: "police", meat_repair: "hospital", grenade_depot: "restaurant", // W135 plainicons; W157 icons3: a donut shop eats
   luna: "shop", refueling_station: "grocery", space_station: "home", sandworm_nest: "bus_stop", space_junk: "obstacle", radiation: "rain", // W135 plainicons; W157 icons3: the convenience store's cart (ice cream eats in both modes)
-  launchpad: "route_start", waypoint: "pin", klingon_dock: "bluebikes_dock" }; // W135 plainicons; W215 icons5: her Bluebikes sign
+  launchpad: "route_start", waypoint: "pin", klingon_dock: "bluebikes_dock", sandworm: "bus" }; // W135 plainicons; W215 icons5: her Bluebikes sign; W228 transit2: the live bus
 /** W63 rider: the style's layers Plain hides (app/main.js): no starry background, no "Here be Freds" past the data, no Fort or lore
  *  highlight (SPEC §91), nor the towns' glow (W122 homerow). W166 icons4: here, so the legend draws only what Plain's map does. */
 export const PLAIN_HIDES = ["starfield", "edge-stars", "edge-flavor", "fort", "system-nebula"];
 /** W135 plainicons: a glyph's picture in Plain (`plain` true) or SCUL. W219 sculgreen (SPEC §430): in SCUL a turn picture
  *  ("maneuver/<name>") is its twin in SCUL's green, design/glyphs/scul/maneuver/<name> (design/glyphs/build.py scul_twin). */
 export const glyphIn = (g, plain) => (plain ? PLAIN_ICON[g] || g : /^maneuver\/[^/]+$/.test(g) ? `scul/${g}` : g); // W135 plainicons; W219 sculgreen
+/** W228 transit2 (SPEC §481): the pictures drawn otherwise by day (design/glyphs/build.py STOP_SIGNS: her bus stop sign, outlined in black by day),
+ *  design/glyphs/day/<name>.svg; a picture `g` (glyphIn's) by day (`light` true) or night. */
+export const DAY_GLYPHS = ["bus_stop"]; // W228 transit2
+export const dayIn = (g, light) => (light && DAY_GLYPHS.includes(g) ? `day/${g}` : g); // W228 transit2
 /** W65 plainlook: a pill's glyph in Plain, where it differs: the road sign for the swirl, and no SCUL landmark on a mile. */
 export const PLAIN_GLYPH = { ...PLAIN_ICON, lore: null }; // W124 mapbits: the traffic light, as the map; W135 plainicons: every twin
 export const NO_BANNER = new Set(["course_turn", "hi_five", "cup_crush", "on_course"]); // the manoeuvre card and the buttons show these; W128 navcalls: and the course on the chart
@@ -122,7 +126,7 @@ export function placeBanner(strip, b, shipEl, { width = innerWidth, gap = 8 } = 
  */
 export function bannerPill(detail, mode, { glyphs }) {
   const [cls, scul] = STYLE[detail.kind] || ["system", null];
-  const glyph = mode === "meatspace" && scul in PLAIN_GLYPH ? PLAIN_GLYPH[scul] : scul; // W65 plainlook
+  const glyph = dayIn(mode === "meatspace" && scul in PLAIN_GLYPH ? PLAIN_GLYPH[scul] : scul, globalThis.document?.documentElement?.dataset?.theme === "light"); // W65 plainlook; W228 transit2: her bus stop sign by day, outlined
   const el = (tag, className) => Object.assign(document.createElement(tag), { className });
   const b = el("div", `bpill ${cls}`), title = el("span", "t");
   if (glyph) b.append(Object.assign(el("img", "glyph"), { alt: "", src: `${glyphs}${glyph}.svg` }));

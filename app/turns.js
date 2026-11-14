@@ -10,7 +10,7 @@
 import { stripModel, rangeLabel, splitAt, flownWords, profileShape } from "./turns-logic.js"; // W219 preview3: profileShape
 import { distLabel, FT } from "./course-logic.js"; // W173 previewsheet: the cursor's readout
 import { pick, plain } from "./lingo-mode.js"; // W60 b; W135 plainicons: plain
-import { glyphIn } from "../chart/prototype/banners.js"; // W135 plainicons: Plain's twins
+import { glyphIn, dayIn } from "../chart/prototype/banners.js"; // W135 plainicons: Plain's twins; W228 transit2: dayIn
 import { el } from "./dom.js"; // W152 app-rest J2
 import { swipeAway, tapAway } from "./swipe.js"; // W201 gestures; W210 popups3: tapAway
 import { own as ownScreen, sync as syncScreen } from "./screen.js"; // W190 screenstate (SPEC §330)
@@ -109,7 +109,9 @@ export function mountTurns({ map, maplibregl, at, arrow, sheetTop = () => Infini
     const ol = el("ol", "trows");
     for (const r of rows) {
       const li = el("li"), b = el("div", `trow${r.pad ? " pad" : ""}${r.warn ? ` warn ${r.warn}` : ""}`); // W54 flight: warn
-      const g = r.icon ? el("i", `i wi i-${r.icon}`) : Object.assign(el("img"), { alt: r.alt || "", width: 32, height: 32, src: r.glyph?.startsWith("data:") ? r.glyph : at(r.src ? `design/glyphs/${glyphIn(r.src, plain())}.svg` : `design/glyphs/${glyphIn(`maneuver/${r.glyph}`, plain())}.svg`) }); /* W219 sculgreen: SCUL's twin */ // W54 flight: a warning's own glyph; W135 plainicons: Plain's twin; W217 turnicons: a rotary's own picture (turnPicture), its words
+      // W54 flight: a warning's own glyph; W135 plainicons: Plain's twin; W217 turnicons: a rotary's own picture (turnPicture), its words; W219 sculgreen: SCUL's twin
+      const own = r.src && `design/glyphs/${dayIn(glyphIn(r.src, plain()), document.documentElement.dataset.theme === "light")}.svg`; // W228 transit2: her bus stop sign by day, outlined (a stop on the way's row)
+      const g = r.icon ? el("i", `i wi i-${r.icon}`) : Object.assign(el("img"), { alt: r.alt || "", width: 32, height: 32, src: r.glyph?.startsWith("data:") ? r.glyph : at(own || `design/glyphs/${glyphIn(`maneuver/${r.glyph}`, plain())}.svg`) }); // rel-0.1.121: the line under 400 characters
       const words = el("span", "w", r.text);
       if (r.mark) words.append(el("em", "", ` · ${r.mark}`));
       b.append(g, words, el("span", "d", dist(r)));

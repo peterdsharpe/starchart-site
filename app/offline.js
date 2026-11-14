@@ -23,10 +23,10 @@ async function tilesDir(folders) { // W81 packstore: folders, ["packs", id] for 
 }
 
 // W17 course: the routing graph and the search index are stored beside the tiles, each with its own state file.
-// W19 terrain: and the hills' elevation and steepness tiles.
+// W19 terrain: and the hills' elevation and steepness tiles. W229 climbs: and Climbs' field and its uphill direction.
 // W61 transit: and the comets' timetable, when the pilot asks for comet plans (app/transit.js).
-const EXT = { tiles: ".pmtiles", graph: ".graph.gz", search: ".search.json.gz", dem: ".dem.pmtiles", slope: ".slope.pmtiles", transit: ".comets.bin.gz", walk: ".transit.bin.gz", ch: ".ch", names: ".names.bin" }; // W204 streetnames: names // W61 transit: transit; W73 walk: walk, every mode's timetable; W85 chpot: ch, the graph's CH-potentials
-const STATE = { tiles: "state.json", graph: "graph-state.json", search: "search-state.json", dem: "dem-state.json", slope: "slope-state.json", transit: "transit-state.json", walk: "walk-state.json", ch: "ch-state.json", names: "names-state.json" }; // W204 streetnames: names // W61 transit: transit; W73 walk; W85 chpot: ch
+const EXT = { tiles: ".pmtiles", graph: ".graph.gz", search: ".search.json.gz", dem: ".dem.pmtiles", slope: ".slope.pmtiles", climbs: ".climbs.pmtiles", climbdir: ".climbdir.pmtiles", transit: ".comets.bin.gz", walk: ".transit.bin.gz", ch: ".ch", names: ".names.bin" }; // W204 streetnames: names // W61 transit: transit; W73 walk: walk, every mode's timetable; W85 chpot: ch; W229 climbs
+const STATE = { tiles: "state.json", graph: "graph-state.json", search: "search-state.json", dem: "dem-state.json", slope: "slope-state.json", climbs: "climbs-state.json", climbdir: "climbdir-state.json", transit: "transit-state.json", walk: "walk-state.json", ch: "ch-state.json", names: "names-state.json" }; // W204 streetnames: names // W61 transit: transit; W73 walk; W85 chpot: ch
 /** Is this stored file one of this kind's? (A hills file ends in .pmtiles too, but is not the chart's.) */
 export const ofKind = (name, kind) => name.endsWith(EXT[kind]) && !Object.keys(EXT).some((k) => k !== kind && EXT[k].endsWith(EXT[kind]) && name.endsWith(EXT[k]));
 const kindOf = (entry) => (entry && EXT[entry.kind] ? entry.kind : "tiles");

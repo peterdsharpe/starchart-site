@@ -75,22 +75,8 @@ export function noGpsHelp(cause, { tab = "", platform = "", installed = false, p
   return null;
 }
 
-/** W21 flight: back from a screen lock or the background after `ms` mid-flight, on GPS: the calls and the track stopped. */
-export const screenOffLine = (ms) => `Screen off ${ago(ms)}: no calls or track.`; // W29 polish: the trail shows the gap
-
-/** W208 pocketbuzz (SPEC §383): back on the screen after it was off this long mid-ride, the gap's bubble, with Pocket in it. */
-export const GAP_TELL_MS = 20000; // W208 pocketbuzz
-/** W208 pocketbuzz: whether the gap's bubble shows: off `ms` in a ride (`flying`, then and now), on a touch screen, where Pocket is
- *  (`touch`), and not told this ride yet (`told`). Else the line above, as before. */
-export const gapTells = ({ ms, flying, touch, told }) => !!(flying && touch && !told && ms >= GAP_TELL_MS); // W208 pocketbuzz
-/** W208 pocketbuzz: its words, [SCUL, Plain]: how long wasn't tracked and why, and Pocket; short once she has used Pocket
- *  (`pocketed`). `turns`, what the turns missed: "buzz" (Buzz only), "voice" (Basic or Detailed), or "" (Off, or no route). */
-export function gapWords(ms, { pocketed = false, turns = "" } = {}) { // W208 pocketbuzz
-  const t = ago(ms), miss = { buzz: " and the turns didn't buzz", voice: " and the turns weren't spoken" }[turns] ?? "";
-  if (pocketed) return [`Off screen for ${t}: flew dark.`, `Off screen for ${t}: not tracked.`]; // 0.1.95's words review: off screen, a locked screen or another app
-  return [`Starchart was off screen for ${t} (screen off or another app), so that part flew dark${miss}. Droids pause websites that aren't on screen. In a pocket, use Pocket droid: the screen goes black and ignores touches, and the flight goes on.`,
-    `Starchart was off screen for ${t} (screen off or another app), so that part wasn't tracked${miss}. Phones pause websites that aren't on screen. In a pocket, use Pocket: the screen goes black and ignores touches, and the ride goes on.`];
-} // W208 pocketbuzz
+// W228 backfill (SPEC §477, her row 1 of the 11-13 evening; UX rules 57 and 88): back from a screen lock or another app mid-ride
+// nothing is said: W21 flight's line ("Screen off 6 min: no calls or track.") and W208 pocketbuzz's bubble (gapWords, gapTells) went.
 
 /** W21 flight: the Position row's words in flight with no fix for `lost` ms. */
 export const lostWords = (lost) => `GPS lost: no signal for ${ago(lost)}.`; // W150 gpshelp: signal

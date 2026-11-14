@@ -341,14 +341,15 @@ export class EventEngine {
       if (this.world.ready && !this.world.ready(here.lonlat)) break;
       this.world.ready?.(c.at(x + 600).lonlat); // ask for the tiles ahead
       this.lastScan = x;
-      this.scanWormhole(here, x);
-      this.scanSystems(here, x);
+      const passed = x < s - 3 * SCAN; // W228 backfill: a step the ship is well past (a jump: back from another app, a GPS gap, tiles that came late; fixes up to 60 m apart scan as before): where it is (a town, a path, a bridge, a hill ahead) is judged at the ship, and each call ahead skips what is behind it
+      if (!passed) this.scanWormhole(here, x); // W228 backfill: !passed
+      if (!passed) this.scanSystems(here, x); // W228 backfill: !passed
       this.scanAhead(here, x);
       this.scanStops(x); // W86 stops
       this.scanBusStops(here, x); // W93 busstop
       this.scanCrossings(x); // W128 crashes
-      this.scanByway(here, x);
-      this.scanGwell(x);
+      if (!passed) this.scanByway(here, x); // W228 backfill: !passed
+      if (!passed) this.scanGwell(x); // W228 backfill: !passed
       if (this.priming && this.system) this.priming = false;
     }
     if (s >= PAD_QUIET) for (const slot of ["system", "quadrant"]) { // W21 flight: the launchpad's, once it has been flown from
@@ -443,7 +444,7 @@ export class EventEngine {
       const kind = f.properties.kind;
       const reach = kind === "black_hole" ? 25 + (f.properties.radius_m || 10) : kind === "pulsar" ? 14 : 90;
       const { d, s: at } = c.distanceTo(p, s + (kind === "pulsar" ? 30 : 20), kind === "constellation" ? Math.min(c.length, s + 300) : kind === "pulsar" ? light : s1); // W196 voice4: light
-      if (d > reach) continue;
+      if (d > reach || at < this.s) continue; // W228 backfill: one the ship is already past (after a jump) is never called
       const key = kind + ":" + p.map((x) => x.toFixed(4)).join(",");
       const props = f.properties;
       const ahead_m = Math.round(at - this.s);
@@ -477,7 +478,7 @@ export class EventEngine {
     for (const p of c.stops || []) { // a live course (app/live-course.js) has none
       if (metres(p, c.pointAt(s)) > 170) continue; // beyond the window as the crow flies
       const { d, s: at } = c.distanceTo(p, s + 30, Math.min(c.length, s + 160));
-      if (d > 14) continue;
+      if (d > 14 || at < this.s) continue; // W228 backfill: at < this.s, passed
       const cell = "stop:" + (p[0] * 1500).toFixed(0) + "," + (p[1] * 2000).toFixed(0);
       if (!this.fresh("stop-any", s, 150) || !this.once(cell, s, AGAIN)) continue;
       this.announced.set("stop-any", s);
@@ -497,7 +498,7 @@ export class EventEngine {
     for (const f of this.world.features("pois", ["sandworm_nest"], here.lonlat, 180)) {
       const p = f.geometry.coordinates;
       const { d, s: at } = c.distanceTo(p, s + 60, Math.min(c.length, s + 160));
-      if (d > BUS_M || !c.lanes.some(([a, b]) => at >= a && at <= b)) continue;
+      if (d > BUS_M || at < this.s || !c.lanes.some(([a, b]) => at >= a && at <= b)) continue; // W228 backfill: at < this.s, passed
       const key = "bus:" + p.map((x) => x.toFixed(5)).join(",");
       if (!this.fresh(key, s, 1e9) || !this.fresh("bus-any", at, 150)) continue; // before the streets are read
       const road = this.world.roadsNear(p, BUS_M + 5).find(STREET);
@@ -519,7 +520,7 @@ export class EventEngine {
       if (metres(p, c.pointAt(s)) > 180) continue; // beyond the window as the crow flies
       const { d, s: at } = c.distanceTo(p, s + 60, Math.min(c.length, s + 160));
       const key = "crossing:" + p.map((x) => x.toFixed(5)).join(",");
-      if (d > CROSS_M || !this.fresh(key, s, 1e9) || !this.fresh("crossing-any", at, 150)) continue;
+      if (d > CROSS_M || at < this.s || !this.fresh(key, s, 1e9) || !this.fresh("crossing-any", at, 150)) continue; // W228 backfill: at < this.s, passed
       this.announced.set(key, s).set("crossing-any", at);
       this.say("crossing_ahead", "High-crash crossing", CROSS_LINE, { ahead_m: Math.round(at - this.s), lonlat: p });
     }

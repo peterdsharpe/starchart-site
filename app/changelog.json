@@ -2,6 +2,33 @@
   "next": [],
   "versions": [
     {
+      "version": "0.1.121",
+      "release": "Elnath",
+      "date": "2026-11-14",
+      "notes": [
+        {
+          "scul": "After another app or a locked screen in flight, nothing says how long you flew dark. Further along your course by ship or on foot, the Log fills that part in.",
+          "plain": "After another app or a locked screen on a ride, no pop-up says part wasn't tracked. Further along your route by bike or on foot, the Log fills that part in."
+        },
+        {
+          "scul": "The sandworm you'll catch now has an arrow for the way it heads, and shows in the course preview too when it is due within 30 minutes.",
+          "plain": "Bus stops now show pancake's bus stop sign. The round yellow bus marks only the bus you'll catch, with an arrow for the way it heads."
+        },
+        {
+          "scul": "Sandworm nests show with Layers' Comets, every one as before. With it off, in the course preview and in flight, only your course's own nests show.",
+          "plain": "The bus you'll catch shows in the route preview too, if due within 30 min. Layers' Trains is now Transit: off, or on a ride, only your route's bus stops show."
+        },
+        {
+          "scul": "In Plain words, Layers' Terrain is now Climbs: pancake's design, three colors for how steep the ground is. SCUL's Terrain is as it was.",
+          "plain": "Layers' Terrain is now Climbs, to pancake's design: three colors show how steep the ground is. The uphill marks in its picture come to the map later."
+        },
+        {
+          "scul": "A new switch under Battery saver, 3D terrain, sets whether hills rise when you tilt the chart with Terrain on.",
+          "plain": "Battery saver no longer turns Climbs off. A new switch under Battery saver, 3D terrain, sets whether hills rise when you tilt the map with Climbs on."
+        }
+      ]
+    },
+    {
       "version": "0.1.120",
       "release": "Dubhe",
       "date": "2026-11-14",

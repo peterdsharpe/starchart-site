@@ -27,7 +27,8 @@ export function encodeChunk(fixes) {
     if (f.alt == null) d[j + 3] = NO_ALT;
     else { const fz = Math.round(f.alt * 10); d[j + 3] = fz - z; z = fz; }
   }
-  if (!fixes.some((f) => f.mlon != null)) return { head, d };
+  const fl = fixes.some((f) => f.filled) ? Uint8Array.from(fixes, (f) => (f.filled ? 1 : 0)) : null; // rel-0.1.121: a filled stretch's points (W228 backfill), marked
+  if (!fixes.some((f) => f.mlon != null)) return fl ? { head, d, fl } : { head, d };
   const m = new Int16Array(fixes.length * 2), clamp = (v) => (Math.abs(v) <= 32767 ? v : 0); // more than 3 km off: the fix
   fixes.forEach((f, i) => {
     if (f.mlon == null) return;
@@ -35,11 +36,11 @@ export function encodeChunk(fixes) {
     m[2 * i] = clamp(Math.round((f.mlon - f.lon) * k));
     m[2 * i + 1] = clamp(Math.round((f.mlat - f.lat) * 1113200));
   });
-  return { head, d, m };
+  return fl ? { head, d, m, fl } : { head, d, m };
 }
 
 /** The fixes of a chunk, as encodeChunk was given them (to 1e-7°, 1 ms and 1 dm). */
-export function decodeChunk({ head, d, m }) {
+export function decodeChunk({ head, d, m, fl }) { // rel-0.1.121: fl
   const out = [{ t: head[0], lon: head[1], lat: head[2], alt: Number.isNaN(head[3]) ? null : head[3] }];
   let t = head[0], x = Math.round(head[1] * E7), y = Math.round(head[2] * E7), z = Number.isNaN(head[3]) ? 0 : Math.round(head[3] * 10);
   for (let j = 0; j < d.length; j += 4) {
@@ -49,6 +50,7 @@ export function decodeChunk({ head, d, m }) {
     out.push({ t, lon: x / E7, lat: y / E7, alt });
   }
   if (m) out.forEach((f, i) => { f.mlon = f.lon + m[2 * i] / (111320 * Math.cos((f.lat * Math.PI) / 180) * 10); f.mlat = f.lat + m[2 * i + 1] / 1113200; });
+  if (fl) out.forEach((f, i) => { if (fl[i]) f.filled = true; }); // rel-0.1.121
   return out;
 }
 
@@ -66,6 +68,27 @@ export function trackLines(fixes, gap = GAP_MS) {
   }
   return lines.filter((l) => l.length >= 2);
 }
+
+/** W228 backfill (SPEC §477): whether a fix at `t` is one of a filled stretch's (`fills`, a ride's [[A's t, B's t]]: the route's
+ *  points between the last fix before she left and the first after she was back, app/backfill.js). */
+export const filledAt = (fills, t) => !!fills?.some(([a, b]) => t > a && t < b); // W228 backfill
+/** W228 backfill: the track's lines as trackLines', and apart from them its filled stretches, each from the fix before it to the
+ *  fix after (a filled stretch is one line, however far apart in time its points are). */
+export function rideLines(fixes, fills = [], gap = GAP_MS) { // W228 backfill
+  const tracked = [], filled = [];
+  let prev = null, was = false;
+  for (const f of fixes) {
+    const k = filledAt(fills, f.t), p = [f.lon, f.lat];
+    if (k) { if (!was) filled.push(prev ? [[prev.lon, prev.lat]] : []); filled.at(-1).push(p); }
+    else {
+      if (was) { filled.at(-1).push(p); tracked.push([]); } else if (!prev || f.t - prev.t > gap) tracked.push([]);
+      tracked.at(-1).push(p);
+    }
+    prev = f; was = k;
+  }
+  const two = (ls) => ls.filter((l) => l.length >= 2);
+  return { tracked: two(tracked), filled: two(filled) };
+} // W228 backfill
 
 /** Collects one flight's fixes and hands each 30 s of them to put(n, chunk); flush() sends the rest. */
 export class Chunker {
@@ -166,8 +189,22 @@ export class FlightStats {
   constructor() {
     Object.assign(this, { top_mps: 0, climb_m: 0, pulsars: 0, holes: 0, systems: [], pts: [], ref: null, last: null, dest: "", mine: false, // R1 resume3: mine, course()'s, here so every field is listed
       moving_s: 0, lastT: null, plan: null, plan_s: 0, walk_s: 0, flew_s: 0, courses: 0, pace: 0, still: 0, stop_s: 0, gap: false, // W59 pace; W86 eta: still, stop_s; W125 tinygap: gap; W200 parkwalk: walk_s
-      foot_s: 0, wplan: null, walked_s: 0, wflew_s: 0, walks: 0, wstop_s: 0, wstill: 0 }); // W211 walkmore: her walks' courses, planned against walked; wstill, a walker's stop (under FOOT_MPS)
+      foot_s: 0, wplan: null, walked_s: 0, wflew_s: 0, walks: 0, wstop_s: 0, wstill: 0, fills: [], taught: null }); // W211 walkmore: her walks' courses, planned against walked; wstill, a walker's stop (under FOOT_MPS); W228 backfill: fills, taught (reached()'s)
   }
+  /** W228 backfill (SPEC §477): a stretch filled from the route (app/backfill.js), from A's time to B's (`from`, `to`, the fixes'
+   *  epoch ms, B's own fix next): its points in the thumbnail, its climb and moving time counted, no gap; marked in `fills`. The
+   *  plans going on are dropped, so her pace never learns from a time partly guessed; B's height starts the climb again.
+   *  `arrived`: the route touched down before the fill (on a rough fix, while she waited for a good one), so what that touchdown
+   *  taught her pace (reached()) is taken back too. */
+  fill({ pts, from, to, climb_m = 0, moving_s = 0, arrived = false }) { // W228 backfill
+    this.fills.push([from, to]);
+    this.moving_s += moving_s; this.climb_m += climb_m; this.ref = null;
+    this.lastT = to; this.still = this.wstill = 0; this.plan = this.wplan = null;
+    const t = arrived && this.taught; // the whole route's planned time against only the tracked part's: she would look faster
+    if (t) { for (const k of ["plan_s", "flew_s", "courses", "walk_s", "walked_s", "wflew_s", "walks"]) this[k] -= t[k]; Object.assign(this, { stop_s: t.stop_s, wstop_s: t.wstop_s, pace: t.pace }); this.taught = null; }
+    for (const p of pts) if (!this.last || metres(this.last, p) >= 10) { this.pts.push(p); this.last = p; }
+    if (this.pts.length > MAX_PTS) this.pts = simplify(this.pts, MAX_PTS / 2);
+  } // W228 backfill
   /** W27 friction: the course flown, by its destination's name; the last one set counts. */
   course(dest, mine = false) { if (dest) { this.dest = dest; this.mine = !!mine; } } // 0.1.104: mine, the name is her own for the place (a favourite's nickname)
   /** W59 pace: a course launched: the router's minutes for it (before pace), and the pace then; a new one replaces it. W200
@@ -180,10 +217,13 @@ export class FlightStats {
   reached() {
     const w = this.wplan; // W211 walkmore: a walk's, beside a ride's
     this.wplan = null;
+    const t = this.taught = { plan_s: 0, flew_s: 0, courses: 0, walk_s: 0, walked_s: 0, wflew_s: 0, walks: 0, stop_s: this.stop_s, wstop_s: this.wstop_s, pace: this.pace }; // W228 backfill: what this touchdown teaches, for fill() to take back
     if (w) { this.walked_s += w.s; this.wflew_s += this.foot_s - w.from; this.walks++; this.wstop_s = Math.max(this.wstop_s, w.stop); } // W211 walkmore
+    if (w) Object.assign(t, { walked_s: w.s, wflew_s: this.foot_s - w.from, walks: 1 }); // W228 backfill
     const p = this.plan;
     this.plan = null;
     if (!p) return;
+    Object.assign(t, { plan_s: p.s, flew_s: this.moving_s - p.from, courses: 1, walk_s: p.walk || 0 }); // W228 backfill
     this.plan_s += p.s; this.flew_s += this.moving_s - p.from; this.courses++;
     this.walk_s += p.walk || 0; // W200 parkwalk
     this.pace ||= p.pace;
@@ -216,6 +256,7 @@ export class FlightStats {
   summary() {
     return { top_mps: +this.top_mps.toFixed(1), climb_m: Math.round(this.climb_m), pulsars: this.pulsars, holes: this.holes,
       systems: this.systems.slice(), thumb: packThumb(this.pts), moving_s: Math.round(this.moving_s), ...(this.dest ? { dest: this.dest } : {}), ...(this.mine ? { destMine: true } : {}), ...(this.gap ? { gap: true } : {}), // W27 friction: dest; W68 logbulk: moving_s, for the tiny rule; W125 tinygap: gap
+      ...(this.fills.length ? { fills: this.fills.map((f) => f.slice()) } : {}), // W228 backfill: fills
       ...(this.courses ? { plan_s: Math.round(this.plan_s), flew_s: Math.round(this.flew_s), courses: this.courses, pace: this.pace, stop_s: Math.round(this.stop_s), ...(this.walk_s ? { walk_s: Math.round(this.walk_s) } : {}) } : {}), // W59 pace: only a course flown to its pad; W86 eta: stop_s; W200 parkwalk: walk_s, the plans' seconds on foot
       ...(this.walks ? { walked: { plan_s: Math.round(this.walked_s), flew_s: Math.round(this.wflew_s), walks: this.walks, stop_s: Math.round(this.wstop_s) } } : {}) }; // W211 walkmore: her walks' courses walked to their ends: planned at 100 %, and walked
   }
@@ -260,25 +301,35 @@ export function learnedWalkPace(flights) { // W211 walkmore
   return { pct: (100 * sum("plan_s")) / sum("flew_s"), walks: fs.length };
 } // W211 walkmore
 
-/** The summary of a flight from its fixes alone: a flight cut short, kept at the next start. */
+/** The summary of a flight from its fixes alone: a flight cut short, kept at the next start. rel-0.1.121: a filled stretch's points
+ *  (`filled`, W228 backfill) give no speed, a guess being no top speed (their times are spread evenly, 1 ms from A's and B's), and
+ *  are marked in `fills` from the fix before them to the fix after, as the ride's own record marks them. */
 export function statsFrom(fixes) {
   const s = new FlightStats();
-  let m = 0;
+  let m = 0, run = [], from = 0; // rel-0.1.121: a filled stretch's points so far, and the time of the fix before them
   for (let i = 0; i < fixes.length; i++) {
     const f = fixes[i], prev = fixes[i - 1];
     const d = prev ? metres([prev.lon, prev.lat], [f.lon, f.lat]) : 0, dt = prev ? (f.t - prev.t) / 1000 : 0;
     m += d;
-    s.fix({ ...f, speed_mps: dt > 0 ? d / dt : null });
+    if (f.filled) { // rel-0.1.121: into the stats as the ride's record put them (FlightStats.fill), never as fixes
+      if (!run.length) from = prev?.t ?? f.t - 1;
+      run.push([f.lon, f.lat]);
+      if (!fixes[i + 1]?.filled) { const to = fixes[i + 1]?.t ?? f.t + 1; s.fill({ pts: run, from, to, moving_s: (to - from) / 1000 }); run = []; } // rel-0.1.121: moving the whole time away (the live cap needs her pace, which a kept track lacks); no climb (its heights aren't kept)
+      continue;
+    }
+    s.fix({ ...f, speed_mps: dt > 0 && !prev.filled ? d / dt : null }); // rel-0.1.121: none from a filled point
   }
   return { metres: m, stats: s.summary() };
 }
 
 /** W67 logsafe: the fixes in runs, broken where no fix came for `gap` ms (a resume, the screen off, a comet course's train leg,
- *  which records nothing), as trackLines breaks the Log's line. */
+ *  which records nothing), as trackLines breaks the Log's line. W228 backfill: and where a filled stretch (`filled` fixes) starts
+ *  and ends, a run of its own however far apart its points are. */
 export function trackRuns(fixes, gap = GAP_MS) {
   const runs = [];
   for (const [i, f] of fixes.entries()) {
-    if (!i || f.t - fixes[i - 1].t > gap) runs.push([]);
+    const p = fixes[i - 1];
+    if (!i || (f.t - p.t > gap && !(f.filled && p.filled)) || !f.filled !== !p.filled) runs.push([]); // W228 backfill: filled
     runs.at(-1).push(f);
   }
   return runs;
@@ -302,13 +353,16 @@ export function trimRuns(runs, home = null, r = TRIM_M) {
   return out;
 }
 
+/** W228 backfill (SPEC §477): a filled point's tags in a GPX: where it came from, and GPX 1.1's own "GPS had no fix". */
+const FILLED = "<src>route</src><fix>none</fix>"; // W228 backfill
 const esc = (s) => String(s).replace(/[<>&"']/g, (c) => `&#${c.charCodeAt(0)};`);
 /** The track as GPX 1.1: one <trk>, a <trkpt> per raw fix with its <time> and <ele>, the name and stardate in <metadata>.
  *  W67 logsafe: a <trkseg> for each run (trackRuns), so a gap isn't a straight line; `trim`, the ends trimmed (trimRuns).
  *  W67 routefile: `wpt`, a course's turns [{ lonlat, name }], as <wpt>; a course's points have no time. */
 export function gpx(f, fixes, { trim = false, home = null, wpt = [], mode = lingo() } = {}) { // W73 logsafe: mode
   const name = rideName(f, mode, true), { start } = f; // W40 log: the ride's name, as the Log shows it; W73 logsafe: mode; 0.1.104: as a file names it (no place she has her own name for)
-  const pt = (f) => `<trkpt lat="${(f.raw?.[1] ?? f.lat).toFixed(7)}" lon="${(f.raw?.[0] ?? f.lon).toFixed(7)}">${f.alt == null ? "" : `<ele>${f.alt.toFixed(1)}</ele>`}${f.t == null ? "" : `<time>${new Date(f.t).toISOString()}</time>`}</trkpt>`; // W67 routefile: a plan has no times
+  const pt = (f) => `<trkpt lat="${(f.raw?.[1] ?? f.lat).toFixed(7)}" lon="${(f.raw?.[0] ?? f.lon).toFixed(7)}">${f.alt == null ? "" : `<ele>${f.alt.toFixed(1)}</ele>`}${f.t == null ? "" : `<time>${new Date(f.t).toISOString()}</time>`}${f.filled ? FILLED : ""}</trkpt>`; // W67 routefile: a plan has no times; W228 backfill: FILLED
+  if (f.fills?.length) fixes = fixes.map((x) => (filledAt(f.fills, x.t) ? { ...x, filled: true } : x)); // W228 backfill (SPEC §477): a filled stretch is a <trkseg> of its own
   const runs = trim ? trimRuns(trackRuns(fixes), home) : trackRuns(fixes); // W67 logsafe
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Starchart" xmlns="http://www.topografix.com/GPX/1/1">\n`
     + `<metadata><name>${esc(name)}</name>${mode === "meatspace" ? "" : `<desc>Stardate ${defaultName(start)}</desc>`}<time>${new Date(start).toISOString()}</time></metadata>\n`
@@ -338,8 +392,8 @@ export class Logbook {
     return new Promise((resolve, reject) => { this.calls.set(seq, { resolve, reject }); this.worker.postMessage({ seq, op, ...args }, transfer); });
   }
   /** Store chunk n of a flight. W40 log: a chunk the store refused (full) calls onfail(id), once a flight. */
-  put(id, n, { head, d, m }) {
-    return this.call("put", { id, n, head, d, m }, m ? [head.buffer, d.buffer, m.buffer] : [head.buffer, d.buffer])
+  put(id, n, { head, d, m, fl }) { // rel-0.1.121: fl, a filled stretch's points (encodeChunk)
+    return this.call("put", { id, n, head, d, m, fl }, [head.buffer, d.buffer, ...(m ? [m.buffer] : []), ...(fl ? [fl.buffer] : [])])
       .catch(() => { if (!(this.failed ??= new Set()).has(id)) { this.failed.add(id); this.onfail?.(id); } });
   }
   /** Mark a flight's chunks final: its summary is written. */
@@ -361,5 +415,5 @@ export class Logbook {
   replace(log) { return this.call("replace", { log }); }
   /** W73 ghosts (SPEC §121): the ghost trails of the flights `ids`, oldest first, kept as the set MapLibre's worker reads:
    *  {bounds, n}, and `data`, the GeoJSON, when `direct` or where it couldn't be kept. */
-  ghosts(ids, direct = false) { return this.call("ghosts", { ids, direct }); }
+  ghosts(ids, direct = false, fills = {}) { return this.call("ghosts", { ids, direct, fills }); } // W228 backfill: fills, each flight's filled stretches by its id
 }

@@ -25,6 +25,9 @@ const INK = [0.34, 0.6], GLOW = 0.1;
  *  themes. The chart's own ghosts stay faint chalk, at chart/style/build_style.py's widths. */
 const zw = (a, b) => ["interpolate", ["linear"], ["zoom"], 11, a, 16, b]; // app/log.js routeLayers' zw: a ride's widths
 const SEASON = { width: zw(2.6, 5), casing: zw(6, 11), opacity: 0.85, blur: 0 };
+/** W228 backfill (SPEC §477): a ride's filled stretch (the route's line while she was in another app) is drawn thinner, `k` of a
+ *  width (`e`, a zoom curve of numbers, the style's or SEASON's), so it is told from the tracked line at a glance, as on its page. */
+const thin = (e, k = 0.4) => (Array.isArray(e) && e[0] === "interpolate" ? [...e.slice(0, 3), ...e.slice(3).map((v, i) => (i % 2 && typeof v === "number" ? ["case", ["has", "filled"], +(v * k).toFixed(2), v] : v))] : e); // W228 backfill
 const rgb = (hex) => (/^#[0-9a-f]{6}$/i.test(hex) ? [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) : null);
 /** `k` of colour `a` over colour `b` (both #rrggbb), as #rrggbb. */
 export function mix(a, b, k) {
@@ -39,11 +42,11 @@ export function mountGhosts({ map, maplibregl, box, logbook }) {
   const worker = maplibregl.importScriptInWorkers(new URL("./ghosts-worker.mjs", import.meta.url).href).then(() => true, () => false);
   /** The Log's set of flights changed: send the source its new data, if the set it draws is another. Resolves once it is sent. */
   function refresh() {
-    const ids = haunting(box.flights).map((f) => f.id), k = ids.join(); // W150 logtidy: every one (W144 logmiles' period went)
+    const fs = haunting(box.flights), ids = fs.map((f) => f.id), k = ids.join(), fills = Object.fromEntries(fs.filter((f) => f.fills).map((f) => [f.id, f.fills])); // W150 logtidy: every one (W144 logmiles' period went); W228 backfill: fills
     if (k === key) return pending;
     key = k;
     const my = ++seq;
-    return (pending = worker.then((ok) => logbook.ghosts(ids, direct || !ok)).catch(() => null).then((r) => {
+    return (pending = worker.then((ok) => logbook.ghosts(ids, direct || !ok, fills)).catch(() => null).then((r) => {
       if (my !== seq) return;
       if (!r) { key = null; return; } // asked again at the next change
       ({ n, bounds } = r);
@@ -65,11 +68,11 @@ export function mountGhosts({ map, maplibregl, box, logbook }) {
     map.setPaintProperty("ghost-trail", "line-opacity", 1);
     const [lo, hi] = season ? [css("--you"), css("--you")] : [mix(chalk, ground, old), mix(chalk, ground, now)]; // W150 logtidy: the season chart's blue, both themes
     map.setPaintProperty("ghost-trail", "line-color", ["interpolate", ["linear"], ["coalesce", ["get", "opacity"], NEWEST], OLDEST, lo, NEWEST, hi]);
-    map.setPaintProperty("ghost-trail", "line-width", season ? SEASON.width : base.width);
+    map.setPaintProperty("ghost-trail", "line-width", thin(season ? SEASON.width : base.width)); // W228 backfill: thin
     map.setPaintProperty("ghost-trail", "line-dasharray", season ? undefined : base.dash); // W150 logtidy: solid, as a ride's
     map.setPaintProperty("ghost-trail-glow", "line-color", season ? ground : chalk);
     map.setPaintProperty("ghost-trail-glow", "line-opacity", season ? SEASON.opacity : GLOW);
-    map.setPaintProperty("ghost-trail-glow", "line-width", season ? SEASON.casing : base.glow);
+    map.setPaintProperty("ghost-trail-glow", "line-width", thin(season ? SEASON.casing : base.glow)); // W228 backfill: thin
     map.setPaintProperty("ghost-trail-glow", "line-blur", season ? SEASON.blur : base.blur);
     map.triggerRepaint();
   }

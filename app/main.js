@@ -15,7 +15,7 @@ import { EventEngine } from "../chart/prototype/events.js";
 import { markClips } from "./landmarks.js"; // W157 landmarks
 import { firstOf, openWorld } from "../chart/prototype/world.js"; // W82 packmap: firstOf
 import { ChartMotion, keepLayer } from "../chart/prototype/gl-layer.js"; // W39 ship: keepLayer
-import { Governor, lively } from "../chart/prototype/perf.js"; import { mountFrameRate } from "./framerate.js"; import { gpsLine, noFixNotice, roughM, waitingWords, lostMs, lostWords, screenOffLine, noGpsHelp, gapTells, gapWords, FINDING } from "./fixnote.js"; /* W210 gpslost: no shipDims */ /* W208 pocketbuzz: gapTells, gapWords */ // W20 chrome; W21 glass: noFixNotice; W21 flight: lost
+import { Governor, lively } from "../chart/prototype/perf.js"; import { mountFrameRate } from "./framerate.js"; import { gpsLine, noFixNotice, roughM, waitingWords, lostMs, lostWords, noGpsHelp, FINDING } from "./fixnote.js"; /* W210 gpslost: no shipDims */ /* W228 backfill: no screenOffLine, gapTells, gapWords */ // W20 chrome; W21 glass: noFixNotice; W21 flight: lost
 import { initSound, isSilent } from "../chart/prototype/sound.js";
 import { num } from "../chart/prototype/params.js"; // W60 a: the mode is app/lingo-mode.js's
 import { FollowCamera, frameDt, glideMs, pixels, AutoZoom, streetMps } from "../chart/prototype/follow.js"; // W29 polish: glideMs; W31 navview: AutoZoom, streetMps
@@ -42,7 +42,7 @@ import { ShipModel3D } from "./ship-model-layer.js"; // W21 shipin
 import { KEY as AVATAR, COLOR_KEY as AVATAR_COLOR, avatarHex, avatarOf, mountAvatar, ownKey } from "./avatar.js"; // W86 avatar; W101 avatars: avatarOf; W124 avatars3: AVATAR_COLOR; W196 logsettings2: ownKey, the word mode's own
 import { mountVoices, voiceNow } from "./voices.js"; // W97 voices; W204 streetnames: voiceNow
 import { mountStreetNames } from "./streetnames.js"; // W204 streetnames
-import { mountLog } from "./log.js"; import { Logbook, GAP_MS as LOG_GAP_MS } from "./logbook.js"; /* W208 pocketbuzz: LOG_GAP_MS */ // W17 log
+import { mountLog } from "./log.js"; import { Logbook, GAP_MS as LOG_GAP_MS } from "./logbook.js"; /* W208 pocketbuzz: LOG_GAP_MS */ import { backfill, toEnd } from "./backfill.js"; /* W228 backfill */ // W17 log
 import { mountGhosts } from "./ghosts.js"; // W73 ghosts
 import { mountTerrain } from "./terrain.js"; // W19 terrain
 import { spoken, sounded, soundMode, setSound, cycleSound, muteVisit, SOUND, soundWords, warmVoice, keepLingo, CUES, quiet, detailed } from "./calls.js"; /* W208 pocketbuzz: quiet; W204 streetnames: detailed */ /* W86 settings: sounded */ /* W177 buttons2: cycleSound, CUES; no chooser */ import { longPress } from "./press.js"; import { aboutStores, screenLine } from "./about.js"; // W18 controls
@@ -57,10 +57,10 @@ import { CourseFlow } from "./course-flow.js"; // W22 pretty
 import { mountComfortHeat } from "./comfort-heat.js"; // W23 comfort
 import { swipeAway, BOTTOM } from "./swipe.js"; // W201 gestures
 import { tip, untip, why, say, onNewAction } from "./tip.js"; // W24 quiet: the one bubble; W73 a11y: say; W196 ui4: onNewAction; W222 chrome6: untip
-import { tipOnce, tipGate, launchCard, showTip, seen, closeTip } from "./tips.js"; /* W208 pocketbuzz: showTip, seen, closeTip */ // W28 launch: first-time tips, and the first Launch's card
+import { tipOnce, tipGate, launchCard, seen } from "./tips.js"; /* W228 backfill: no showTip, closeTip (W208 pocketbuzz's bubble went); rel-0.1.121: seen, the Pocket tip's "pocketed" */ // W28 launch: first-time tips, and the first Launch's card
 import { mountDownloads, mountPackRows } from "./downloads.js"; // W26 downloads; W82 packui: mountPackRows
 import { mountNoMap } from "./nomap.js"; // W201 downloads2 (SPEC §361): no map here
-import { backGuard, flightKeeper, flightLock, keepParked, keptFlight, resumedLine, takeParked, verdict, KEEP_MS, SPOT, readSpot } from "./resume.js"; // W28 resume; W40 log: flightLock; W152 app O6: SPOT, readSpot
+import { backGuard, flightKeeper, flightLock, keepParked, keptFlight, takeParked, verdict, KEEP_MS, SPOT, readSpot } from "./resume.js"; // W28 resume; W40 log: flightLock; W152 app O6: SPOT, readSpot
 import { mountComets } from "./comets.js"; import { cometHooks } from "./hints.js"; // W29 comets
 import { mountBusLive } from "./bus-live.js"; // W196 comets3: the bus a course's bus leg boards, live
 import { mountRideLive, RIDE } from "./walk-ride.js"; import { useTracks, warmTracks } from "./ride-line.js"; // W211 walkride (SPEC §396): a walk's ride, followed by its timetable and her train's prediction; W215 journey: RIDE, its lost signal; W222 ontrain: useTracks
@@ -69,7 +69,8 @@ import { mountLegend } from "./legend.js"; // W113 settings2: Developer's Icon l
 import { chromeClear } from "./layout.js"; // W191 appleft (SPEC §334): the room the chrome takes at each side, measured once
 import { own as ownScreen, sync as syncScreen, watch as watchScreen, covered as overChart, isOpen } from "./screen.js"; // W190 screenstate (SPEC §330): which screen, and what covers the chart, told once
 import { mountFeedback, gpsQuality, feedbackHost } from "./feedback.js"; /* W88 feedbackinfo: gpsQuality; rel-0.1.89: feedbackHost */ import { note, changed, watchApp } from "./trail-log.js"; // W48 feedback
-import { mountLayers, showLayers } from "./layers.js"; // W50 layers; W70 deep: showLayers, the tunnels with the Comets tile
+import { mountLayers, showLayers, LAYERS as TILES, rowOn, hushed } from "./layers.js"; // W50 layers; W70 deep: showLayers, the tunnels with the Comets tile; W228 transit2: the Transit tile's state
+import { mountBusStops } from "./bus-stops.js"; // W228 transit2 (SPEC §481): with the Transit tile off, only her trip's bus stops
 import { mountAnchorages, outsideFile, RACKS } from "./anchorages.js"; // W56 parking; W122 homerow: outsideFile; W193 racksplit: RACKS
 import { openNow, winterIcon } from "./stops-logic.js"; // W203 fountains; W209 water3: winterIcon
 import { mountStarred } from "./starred.js"; // W67 places
@@ -238,8 +239,8 @@ const PAD = sim ? demoGJ.features[0].geometry.coordinates[0].slice(0, 2) : FORT;
 const pose = createPose({ source: sim ? "sim" : "gps", sim: { speed, seed: 1, route: demoGJ, multipath: q.get("multipath") === "1" } }); // W21 gps: ?multipath=1
 let gpsFrom = Infinity, waitedOut = false, sheetCause = null; // W150 gpshelp: when GPS started (after the welcome, or Try again; never before: no line, no sheet under the welcome), the clock; the no-signal line is up; the cause the sheet shows
 let gps = pose.status, lastFix = null, fixedAt = -Infinity, launchedAt = -Infinity; // W21 flight: fixedAt, launchedAt
-const screenOff = { at: 0, until: 0, text: "" }; // W21 flight: a screen lock mid-flight (below)
-let gapTold = 0; // W208 pocketbuzz (SPEC §383): how long this ride's bubble said the screen was off (once a ride, 0: not yet); past the Log's gap, it was the ride's gap, so its Land note doesn't say it again
+let hiddenAt = 0, backAt = -Infinity; // W21 flight: when the page went out of sight mid-flight (a screen lock, another app); W228 backfill: when it came back, so GPS lost counts from then
+let away = null; // W228 backfill (SPEC §477): the moment she left on a route ({a, cf, held, back}, leaving() below), till the first good fix after she is back
 const onPose = { fix: null, status: null }; // the handlers, once the screen is built
 pose.on("status", (st) => { gps = st; onPose.status?.(); });
 pose.on("fix", (f) => { lastFix = f; fixedAt = performance.now(); onPose.fix?.(f); }); // W21 flight: fixedAt
@@ -302,14 +303,17 @@ const syncPacks = () => (packSync = packSync.then(async () => { // W82 packmap: 
 /** W82 packdraw (SPEC §160): the edge's void, sea, coast and towns (`new-england`, over the chart's lines and fills) cut away in
  *  each stored pack's box, and the chart's point labels let into it (packmap.js); back as the style has them with none. */
 const edgeJson = () => (edgeData ??= fetch(style.sources["new-england"].data).then((r) => r.json()).catch((err) => { edgeData = null; throw err; })); // W82 packdraw
+let busStops = null; // W228 transit2: mounted with the course (below)
 async function drawPacks(m) { // W82 packdraw
   if (!packBoxes.length && !edgeCut) return; // W82 packdraw
   const ne = packBoxes.length ? await edgeJson() : null; // W82 packdraw: precached
   const boxes = packBoxes; edgeCut = boxes.length > 0; // W82 packdraw: the latest, after the wait
   m.getSource("new-england")?.setData(edgeCut ? outsideBoxes(ne, boxes) : style.sources["new-england"].data); // W82 packdraw
   const line = motion?.focusLine; if (line) motion.focus(null); // W177 mapmarks2, at the review: a route's lights and stop signs with their own filters, widened below
+  busStops?.drop(); // W228 transit2: the stops' own filters, widened below
   for (const l of style.layers) { const f = withinBoxes(l.filter, boxes); if (f && m.getLayer(l.id) && withinBoxes(m.getFilter(l.id), [])) m.setFilter(l.id, edgeCut ? f : l.filter); } // W82 packdraw; at the review: a filter another module set (anchorages' "none") is left alone
   if (line) motion.focus(line); // W177 mapmarks2: and the route's again, from those
+  busStops?.again(); // W228 transit2: and her trip's bus stops, from those
 } // W82 packdraw
 /** W82 packmap: load every chart tile again, an errored one too. MapLibre 6's refreshTiles("chart") (its reload(true)) leaves an
  *  errored tile "loading" for good, so each tile is named, which loads it afresh; the out-of-view cache goes, as reload's does.
@@ -735,7 +739,10 @@ let stationTable = null; comets.table = () => (stationTable ??= fetch(at("chart/
 comets.stations = () => transit.stations(); // W111 stationlines: a station's lines with Comets off, and the tracks beside it:
 useTracks(() => fetch(at("chart/style/tlines-v1.geojson")).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status}`))))); idle.then(warmTracks); // W222 ontrain (SPEC §433): a train's line on its tracks (ride-line.js), read once the map is first idle (precached, 70 KB) or when a line is asked for first
 const rideLive = mountRideLive({ leg: () => (flight.flying ? nav.leg : null), limiter: comets.limiter }); // W211 walkride: her train's arrival at her stop, while she rides it and the app is in sight
-const busLive = mountBusLive({ map, maplibregl, leg: () => (flight.flying ? nav.leg : null), limiter: comets.limiter, glyph: () => at(`design/glyphs/${glyphIn("sandworm_nest", plain())}.svg`), words: (eta) => pick(`Your sandworm: ${eta}`, `Your bus: ${eta}`) }); // W196 comets3 (SPEC §346): the bus a course's bus leg boards, live, with its minutes
+const transitTile = TILES.find((r) => r.id === "layer-comets"); // W228 transit2
+busStops = mountBusStops({ map, plan: () => nav.chartPlan, every: () => rowOn(transitTile) && !hushed(transitTile), flying: () => flight.flying }); // W228 transit2 (SPEC §481): every stop with the tile on, else her trip's alone, and in a ride hers alone
+const busLive = mountBusLive({ map, maplibregl, leg: () => (flight.flying ? nav.leg : null), limiter: comets.limiter, glyph: () => at(`design/glyphs/${glyphIn("sandworm", plain())}.svg`), words: (eta) => pick(`Your sandworm: ${eta}`, `Your bus: ${eta}`), // W196 comets3 (SPEC §346): the bus a course's bus leg boards, live, with its minutes
+  preview: () => nav.previewPlan, arrow: () => at(`design/glyphs/live/bus_arrow${document.documentElement.dataset.theme === "light" ? "_day" : ""}.svg`) }); // W228 transit2 (SPEC §481): the live bus alone, her round sign (was the stop's), with its heading arrow, in a preview too
 comets.tracks = async (ll, m) => { if (!world.ready(ll, m)) await world.idle(); return world.ready(ll, m) ? world.near("transit", ll, m) : []; }; // the z15 tiles, as course.js's roads (MapLibre's hold no hidden layer's features); no cutoff: a closed peek ignores the answer
 const bikes = mountBikeshare(); // W204 bikeshare (SPEC §372): Bluebikes' feed, with Consider Bluebikes on
 const walk = mountWalk({ data, at, router: () => nav.routerReady(), weather, bikes }); // W73 walk: on foot and by T; W198 walkcards: the sky tips her cards; W204 bikeshare: bikes
@@ -910,7 +917,7 @@ map.on("pitch", showBearing); // W15 chart
 /** W18 controls: north up, the compass fading with the glide rather than after it (settled within 300 ms). */
 function northUp() { camera.northUp(); wantHeading = false; compass.classList.add("hide"); setTimeout(() => { compassOff = null; showBearing(); }, camera.glideEnd - Date.now()); } // then true again, if a drag cut the glide short; W29 polish: after the glide, which scales with the turn
 compass.onclick = () => { northUp(); }; // W18 controls; W177 buttons2 (her note 11): no bubble, the dial says it (W34 cues had "North up.")
-map.on("moveend", () => { if (compassOff && !flight.flying) tipOnce("compass", compass, "Hold the compass to tilt the chart."); }); // W28 launch: a first-time tip
+map.on("moveend", () => { if (compassOff && !flight.flying) tipOnce("compass", compass, pick("Hold the compass to tilt the chart.", "Hold the compass to tilt the map.")); }); // W28 launch: a first-time tip; rel-0.1.121: Plain's map, as Settings' 3D terrain says
 longPress(compass, () => { // W18 controls: flat or tilted, and Tilt while flying (Settings) to match
   const ahead = flight.flying && camera.mode === "heading", tilted = ahead ? setting("starchart.tilt") === "tilted" : map.getPitch() > 1;
   setSetting("starchart.tilt", tilted ? "flat" : "tilted"); // heading-up eases to it (app/fx.js)
@@ -1014,11 +1021,11 @@ logbook.onfail = () => log.say("Track not saved: storage full"); // W40 log: onc
 // (app/resume.js); parked, the preview or the search that is open. In flight, the first back at the root stays.
 const keeper = flightKeeper(localStorage), kept = ours ? keptHere : null; // W40 log: ours
 const epochOf = (t) => Date.now() - (performance.now() - t);
-let lastKept = 0; // a resumed flight's last fix, until a new one comes
+let lastKept = 0, lastKeptFix = null; // a resumed flight's last fix, until a new one comes; W228 backfill: and where it was
 function keepFlight(hiding = false) {
   const rec = flight.state !== "parked" && record.snapshot(hiding);
   if (!rec) return;
-  keeper.keep({ rec, launched: epochOf(flight.t0), last: fixedAt >= launchedAt ? epochOf(fixedAt) : lastKept || epochOf(flight.t0),
+  keeper.keep({ rec, launched: epochOf(flight.t0), last: fixedAt >= launchedAt ? epochOf(fixedAt) : lastKept || epochOf(flight.t0), fix: fixedAt >= launchedAt ? lastFix?.lonlat : lastKeptFix, /* W228 backfill: A, for a stretch filled after a reload */
     metres: flight.metres(course ? course.s : 0), minutes: readouts.earthMinutes, trail: trail.lines, tally: { hi_five: tally.hi_five, cup_crush: tally.cup_crush },
     course: nav.kept, camera: camera.mode === "follow" ? "follow" : "heading", landed: flight.state === "landed",
     view: { ...(shipShown ? { at: ship.lngLat.slice() } : {}), zoom: +map.getZoom().toFixed(2), bearing: Math.round(map.getBearing()), pitch: Math.round(map.getPitch()) } }); // W213 resume2: where the chart opens when it comes back
@@ -1108,7 +1115,7 @@ for (const type of ["starchart:settings", "starchart:theme"]) addEventListener(t
 document.addEventListener("visibilitychange", wakeChart); map.on("move", wakeChart); // W56 perf
 const shown = [NaN, NaN, NaN]; // the lon, lat and heading last drawn
 onPose.fix = (f) => {
-  lastFixAt = performance.now(); pushFix(f);
+  lastFixAt = performance.now(); if (backTo(f)) return heldMoments(); /* W228 backfill: a rough fix back from another app waits for a good one; the route's calls go on */ pushFix(f);
   if (flight.flying && !(f.accuracy_m > ACC_MAX_M)) goodAt = { t: f.t, s: course ? course.s : 0 }; // W212 walkend
   roadZoom(f); // W31 navview
   if (est) { est = null; showLocate(); } // W31 navview: the real fix takes over from the estimate, where it is
@@ -1205,6 +1212,7 @@ function step(t) {
   if (!calm && !resting && (motion.count + flow.count > 0 || ship.moving)) map.triggerRepaint(); // W22 pretty: flow.count; W21 shipin: only while something animates; the 4 Hz idle step looks at the pose; W56 perf: not resting
   if (comets.tick(t)) map.triggerRepaint(); // W29 comets: only when one in view has moved half a px
   busLive.tick(); // W196 comets3: asks when one is due, while a bus leg is ahead
+  busStops.tick(); // W228 transit2: the stops' filter when the trip, the tile or the flight changes
   rideLive.tick(); // W211 walkride: asks when one is due, while she rides
   if (perf) perf.tick(performance.now() - t0);
   // W77 rest: nothing on the screen can change by itself any more: parked and resting, no finger, glide, turn, estimate or
@@ -1328,7 +1336,6 @@ function launch(t, k = null) { // W28 resume: k, a kept flight to carry on
   pose.start();
   simRunning = sim;
   if (!flight.launch(t, 0)) return;
-  gapTold = 0; // W208 pocketbuzz: a new ride's gap is told again
   goodAt = null; held = []; // W212 walkend
   nav.launched(); // W104 oss2 fix pass 2: a search's lit places go out
   if (!k) pulse(); // W69 motion: Launch's firm pulse (app/haptics.js); a resumed flight carries on quietly
@@ -1340,7 +1347,8 @@ function launch(t, k = null) { // W28 resume: k, a kept flight to carry on
   engine = new EventEngine(course, lingo, world, (e) => { if (!((afoot || plain()) && e.kind === "light_year") && e.kind !== "quadrant_enter") dispatchEvent(new CustomEvent("starchart:event", { detail: e })); }, { mode: () => mode, lead: (k) => (k === "pulsar" ? lightLead(lastFix?.speed_mps) : null) }); // W196 voice4 (SPEC §344): no neighbourhood calls, a light nearer by the speed; W60 d: the lingo mode, read at every line; W79 walkgo: light years are a ship's, none on a walk; her note 2026-10-23 ("the milestone sound for each mile is distracting and unnecessary"): none in Plain either, an ordinary bike map's ride; SCUL keeps its light years
   if (k) engine.resume(k.metres); // W28 resume: where it was, said once already
   lastS = -1;
-  if (lastFix) pushFix(lastFix);
+  away = k ? keptAway(k) : null; // W228 backfill: a ride carried on may fill the stretch since its last fix, from the first good fix after
+  if (lastFix && !away) pushFix(lastFix); // W228 backfill: a fix from before Launch isn't B's way onto the route
   trail.clear(); // W16: a new trail from the launchpad
   if (k) trail.before = (k.trail || []).filter((l) => l.length >= 2); // W28 resume: the trail as it was, then a gap
   if (lastFix) trail.push(lastFix.match?.smooth ?? lastFix.lonlat); // W21 gps; the smoothed GPS, as in flight
@@ -1358,24 +1366,25 @@ function launch(t, k = null) { // W28 resume: k, a kept flight to carry on
   if (afoot) record.foot(0); else if (record.footAt != null) { afoot = true; afootWords(); nav.syncGait(); } // W79 walkgo; W127 walklog: a walk, kept as a walk; a walk carried on (resume) is still one; W190 statefacts: and its walker shows
   if (record.guard) owner.claim(record.id); // W40 log: this tab's flight, until the final Land
   chatter.launch(); // W15 settings
-  lastKept = 0; if (k) resumed(k); // W28 resume
+  lastKept = 0; lastKeptFix = null; if (k) resumed(k); // W28 resume; W228 backfill: lastKeptFix
+  if (away) away.a.aboard = aboard(); // W228 backfill: on board at A as the kept leg has her (a walk's ride, a Bluebike's), the live test's own
   guard.on(); keepFlight(); // W28 resume
 }
-/** W28 resume: the kept flight's clock, tallies and course, and a line that says it resumed. */
+/** W28 resume: the kept flight's clock, tallies and course (W228 backfill: no line that says it resumed). */
 function resumed(k) {
   flight.t0 = performance.now() - (Date.now() - k.launched); // the minutes count on through the gap
-  lastKept = k.last || k.launched;
+  lastKept = k.last || k.launched; lastKeptFix = k.fix ?? null; // W228 backfill
   tally.set(k.tally);
   nav.flownS = k.metres;
   if (k.course) try { nav.restore(k.course); } catch (err) { console.warn("resume course:", err.message); }
-  Object.assign(screenOff, { id: "resumed", until: performance.now() + 10000, text: resumedLine(Date.now() - (k.last || k.launched)) });
-  showNoFix();
+  showNoFix(); // W228 backfill (SPEC §477): no "Ride resumed after 12 min away." line: coming back says nothing (#comeback said why)
 }
 let modeAtLand = "heading";
 $("land").onclick = (e) => {
   flip(e); // W18 controls
+  settle(); // W228 backfill: still waiting for a good fix back from another app, the wait ends (an arrival on rough fixes may fill the stretch)
   hud(); // the numbers as they are at the tap
-  const end = landAt; landAt = null; held = []; // W212 walkend: by itself, at the last good fix; the rough ones after it never in the Log
+  const end = landAt ?? (goodAt?.end && nav.arrived ? goodAt : null); landAt = null; held = []; // W212 walkend: by itself, at the last good fix; the rough ones after it never in the Log; W228 backfill: or a ride filled to the route's end (arrived on rough fixes alone) at that end, while she stays at the pad: the time she then stands indoors is no gap and no ride time
   const byItself = selfLand; selfLand = false; // W219 voice5: autoland's, or a walk's end
   if (!flight.land(performance.now(), course ? course.s : 0)) return;
   if (end?.t >= flight.t0) { flight.end = { t: end.t, s: Math.min(end.s, flight.end.s) }; hud(); } // W212 walkend: its time and metres, the Undo's window from now
@@ -1481,11 +1490,11 @@ if (isHidden("gps-lost")) hideForGood("gps-lost", false); // W210 gpslost (SPEC 
 const ROUGH_SEEN = "starchart:rough-seen", roughSeen = () => { try { return sessionStorage.getItem(ROUGH_SEEN) === "1"; } catch { return false; } };
 $("nofix").querySelector(".nx").addEventListener("click", () => { if (nofix.id === "rough-position") try { sessionStorage.setItem(ROUGH_SEEN, "1"); } catch { /* storage off */ } }); // W27 friction
 function showNoFix() {
-  const now = performance.now(), n = flight.flying && now < screenOff.until ? { id: screenOff.id || "screen-off", text: screenOff.text } // W28 resume: id // W21 flight: back from a screen lock
-    // 0.1.99 (her row of 2026-11-10, UX rule 57): on board with no fix nothing is said here. W211 walkride's line ("No GPS underground:
-    // following the timetable") had to be sent away on every ride, and nothing is wrong: lost() is 0 on board, so no "GPS lost" either
-    : noFixNotice({ sim, shown: shipShown, gps: gps.gps, now, log: pose.core.log, fix: pose.core.fix, lost: lost(), since: gpsFrom, plain: plain() }); // W21 glass; W21 flight: lost; W150 gpshelp: since; W210 gpslost: plain
-  nofix.show((n.id === "rough-position" && !flight.flying && roughSeen()) || n.id === "gap" /* W208 pocketbuzz: the gap's bubble says it */ ? "" : n.id, n.text); // W21 glass; W27 friction: roughSeen
+  // W228 backfill (SPEC §477): no line back from a screen lock or another app (W21 flight's, W28 resume's), nor W208's bubble's quiet
+  // 0.1.99 (her row of 2026-11-10, UX rule 57): on board with no fix nothing is said here. W211 walkride's line ("No GPS underground:
+  // following the timetable") had to be sent away on every ride, and nothing is wrong: lost() is 0 on board, so no "GPS lost" either
+  const now = performance.now(), n = noFixNotice({ sim, shown: shipShown, gps: gps.gps, now, log: pose.core.log, fix: pose.core.fix, lost: lost(), since: gpsFrom, plain: plain() }); // W21 glass; W21 flight: lost; W150 gpshelp: since; W210 gpslost: plain
+  nofix.show(n.id === "rough-position" && !flight.flying && roughSeen() ? "" : n.id, n.text); // W21 glass; W27 friction: roughSeen
   $("nofix").classList.toggle("lost", n.id === "gps-lost"); // W210 gpslost (SPEC §387): the chip, with its mark (app.css)
   const wasOut = waitedOut; // W222 chrome6
   waitedOut = !sim && !shipShown && gps.gps === "waiting" && n.id === "no-fix"; // W150 gpshelp: 15 s and no position
@@ -1511,8 +1520,9 @@ function estimate(now) {
 }
 /** Where the estimate has the ship at `now`: {lonlat, heading}. */
 const estAt = (now) => nav.cf.course.at(Math.min(nav.cf.length, est.s + (est.v * (now - est.t)) / 1000));
-/** W21 flight: in flight on GPS, the ms with no fix (since Launch, before the first), from 5 s on; else 0. */
-function lost(raw = false) { return nav.riding && !raw ? 0 : lostMs({ sim, flying: flight.flying, now: performance.now(), since: Math.max(fixedAt, launchedAt) }); } // W211 walkride: on a walk's ride a lost signal is the subway's: no alarm (the button, the avatar, the line); raw, the speed readout's and the feedback's state, as it is
+/** W21 flight: in flight on GPS, the ms with no fix (since Launch, before the first), from 5 s on; else 0. W228 backfill: or since she came
+ *  back from another app (backAt): GPS is asked again only then. */
+function lost(raw = false) { return nav.riding && !raw ? 0 : lostMs({ sim, flying: flight.flying, now: performance.now(), since: Math.max(fixedAt, launchedAt, backAt) }); } // W211 walkride: on a walk's ride a lost signal is the subway's: no alarm (the button, the avatar, the line); raw, the speed readout's and the feedback's state, as it is
 if (!sim) noFixTimer = setInterval(showNoFix, 1000); // W20 chrome; W77 rest: noFixTimer
 onPose.status = () => {
   if (!sim && NO_POSITION.has(gps.gps) && !noGpsShown && flight.state === "parked") autoNoGps(); // W21 glass: unless hidden for good; W21 flight: never by itself in flight; W27 friction: nor once seen in this state
@@ -1568,24 +1578,65 @@ $("wake").onchange = (e) => {
   wake();
 };
 pose.on("visibility", ({ visible }) => { if (visible) wake(); }); // the browser drops the lock when hidden
-// W21 flight: back mid-flight after a screen lock or the background, one line with its × says what stopped (GPS: the watch did)
+// W21 flight: back mid-flight after a screen lock or the background. W228 backfill (SPEC §477, her row 1 of the 11-13 evening; UX
+// rules 57 and 88): it says nothing (W21's line went, and W208 pocketbuzz's bubble): leaving for a moment is normal use. No fix came
+// while it was off, so the trail shows a gap; on a route the first good fix back may fill it (backTo)
 pose.on("visibility", ({ visible }) => {
   const t = performance.now();
-  if (!visible) { screenOff.at = flight.flying ? t : 0; return; }
-  if (sim || !screenOff.at || t - screenOff.at < 5000) return;
-  const off = t - screenOff.at; // W208 pocketbuzz
-  Object.assign(screenOff, { id: "screen-off", until: t + 10000, text: screenOffLine(off), at: 0 }); // W28 resume: id
+  if (!visible) { hiddenAt = flight.flying ? t : 0; settle(); away = leaving(); return; } // W228 backfill: leaving (rough fixes still waiting go in first)
+  if (sim || !hiddenAt || t - hiddenAt < 5000) { away = null; return; } // W228 backfill: a moment's look away needs nothing filled
+  hiddenAt = 0; backAt = t; if (away) away.back = t; // W228 backfill
   trail.gap(); drawTrail(); // W29 polish: no fixes came while it was off, so the trail shows a gap, as after a resume
-  // W208 pocketbuzz (SPEC §383): 20 s or more, on a phone, once a ride: a bubble says how long wasn't tracked and why, with Pocket in
-  // it, in place of the line and the tip below (one message), and the Land note won't say it again; the tips' gate, else as before
-  const turns = !nav.active ? "" : soundMode() === "buzz" ? "buzz" : quiet() ? "" : "voice"; // W208 pocketbuzz
-  if (gapTells({ ms: off, flying: flight.flying, touch: touch(), told: gapTold > 0 })) { // W208 pocketbuzz
-    closeTip(); // the Buzz-only ride's tip, still up from the start, gives way to it
-    if (showTip("gap", $("pocket") /* W210 pocket2: was the long-haul button */, pick(...gapWords(off, { pocketed: seen("pocketed"), turns })), { flight: true, act: { label: pick("Pocket droid", "Pocket"), icon: "pocket", run: () => mission.pocketIn() } })) { gapTold = off; Object.assign(screenOff, { id: "gap", text: "" }); showNoFix(); return; } // the line's 10 s kept quiet ("gap", showNoFix), as it kept "GPS lost" quiet
-  } // W208 pocketbuzz
-  showNoFix();
-  if (touch()) tipOnce("pocket", $("pocket"), pick("To keep the flight going in a pocket, tap Pocket droid.", "To keep the ride going in a pocket, tap Pocket."), { flight: true }); // W195 pocket (SPEC §343): once, the way in, by its button's name; W200 small8: on a touch screen, where Pocket is; W210 pocket2 (SPEC §386): on Pocket's own button (was "Dim screen, then Pocket")
+  showNoFix(); // W228 backfill: the once-ever tip below stays, how a new rider learns Pocket
+  // rel-0.1.121 (SPEC §477): only to a rider who has never used Pocket ("pocketed", app/mission.js): one who has needs no pop-up on her return
+  if (touch() && !seen("pocketed")) tipOnce("pocket", $("pocket"), pick("To keep the flight going in a pocket, tap Pocket droid.", "To keep the ride going in a pocket, tap Pocket."), { flight: true }); // W195 pocket (SPEC §343): once, the way in, by its button's name; W200 small8: on a touch screen, where Pocket is; W210 pocket2 (SPEC §386): on Pocket's own button (was "Dim screen, then Pocket")
 });
+/** W228 backfill (SPEC §477): on a train or a bus (a walk's ride, a comet course's train leg): the on-train rule's (§433), never filled. */
+const aboard = () => !!(nav.riding || record.gap);
+/** W228 backfill: what the return needs of the moment she left, on a route: A, the last fix, with where the route had it and
+ *  whether she was aboard, and the route she was following; else null. */
+const leaving = () => (flight.flying && !sim && lastFix && nav.cf ? { a: { lonlat: lastFix.lonlat, t: lastFix.t, s: nav.cf.s, aboard: aboard() }, cf: nav.cf, held: [] } : null);
+/** W228 backfill: the same for a ride carried on in a new page (app/resume.js): A, its last fix as kept, at the record's own time
+ *  for it (stats.lastT, on this page's clock); its route is the one put back. Null without a kept fix or route. */
+const keptAway = (k) => (k.fix && k.course && Number.isFinite(k.rec?.stats?.lastT) ? { a: { lonlat: k.fix, t: k.rec.stats.lastT - performance.timeOrigin, s: k.course.s || 0 }, cf: null, held: [], back: performance.now() } : null); // aboard: launch()'s, once the kept leg is back
+/** W228 backfill (SPEC §477): a fix after she came back. Till the first good one, a rough one waits (for the Log's gap at most);
+ *  the first good one is B. On the route she was following (the one she left on, even if it arrived meanwhile on a rough fix),
+ *  further along at her pace, the stretch is filled from the route (app/backfill.js): in the ride's distance (the course gets the
+ *  route's points) and its record, marked, and the rough ones are dropped; else they go in as they came (settle), and the gap
+ *  stays, unsaid. Whether `f` waits. */
+function backTo(f) {
+  const w = away;
+  if (!w?.back) return false;
+  const rough = f.accuracy_m > ACC_MAX_M;
+  if (rough && flight.flying && performance.now() - w.back < LOG_GAP_MS) { w.held.push(f); w.seen = nav.cf; return true; } // seen: the route before the course's own handler takes it (touchdown may end it)
+  away = null;
+  const cf = nav.cf ?? w.arrived, on = !rough && flight.flying && cf && (!w.cf || cf === w.cf);
+  const fill = on ? backfill({ ...alongOf(cf), a: w.a, b: { lonlat: f.lonlat, t: f.t, aboard: aboard() } }) : null;
+  if (fill) putFill(fill, f.t, !!w.arrived); else settle(w, rough);
+  return false;
+}
+/** W228 backfill: the route `cf` for app/backfill.js: its line, her pace on it (the plan's), its height profile. */
+const alongOf = (cf) => { const P = cf.feature.properties; return { course: cf.course, v: P.time_s > 0 ? cf.length / routeSeconds(P, cf.pace) : cf.speed(), elev: nav.route?.geometry === cf.feature.geometry.coordinates ? nav.route.elev : null }; };
+/** W228 backfill: a filled stretch into the ride's distance and record, up to `t` (B's time, or the rough fix's at the route's end).
+ *  `arrived`: the route touched down in the wait, before the fill: what it taught her pace goes (FlightStats.fill). */
+function putFill(fill, t, arrived = false) { for (const p of fill.pts) course?.push(p, course.headingNow); record.fill(fill, t, arrived); goodAt = { t, s: course ? course.s : 0 }; note("flight", `Back: ${Math.round(fill.m)} m filled along the route`); }
+/** W228 backfill: the wait for a good fix ended with none (30 s, Land, or out of sight again): if the route she left on arrived
+ *  meanwhile on a rough fix, the stretch to its end (app/backfill.js toEnd: the first rough fix within its own accuracy of the
+ *  end, the time fitting her pace); else the rough fixes that waited go in as they came (after Arrived held from the Log, as any
+ *  are: W212 walkend's `held`), and nothing waits any more. `end`: the wait ended with no good fix. */
+function settle(w = away, end = true) {
+  away = null;
+  if (!w || !flight.flying) return;
+  const r = w.held?.[0], fill = end && w.arrived && r ? toEnd({ ...alongOf(w.arrived), a: w.a, r: { lonlat: r.lonlat, t: r.t, accuracy_m: r.accuracy_m, aboard: aboard() } }) : null;
+  if (fill) { putFill(fill, r.t, true); goodAt.end = true; return; } // the ride's end, while she stays at the pad: End ends it here, as autoland ends one at its last good fix
+  for (const h of w.held || []) { pushFix(h); if (nav.arrived) held.push(h); else record.fix(h, engine?.system?.name); }
+}
+/** W228 backfill: the route she left on touched down on a rough fix while she waited for a good one (course.js touchdown() ends the
+ *  course): it is still the route the stretch is filled along. A re-plot or her own End is no arrival. */
+addEventListener("starchart:event", (e) => { if (e.detail.kind === "touchdown" && !nav.cf && away?.back && away.seen && (!away.cf || away.seen === away.cf)) away.arrived = away.seen; });
+/** W228 backfill: while a rough fix waits, the route's own calls go on (stop signs, crossings, bus stops, pulsars: its engine, as
+ *  each fix's moments() runs it), from where the route has her; the ride's distance waits with the fix. */
+function heldMoments() { if (ready && flight.flying) try { nav.moments(course ? course.s : 0); } catch (err) { console.error(err); } }
 
 // ---- Settings and About: a bottom sheet (R12) ---------------------------------------------------------
 addEventListener("starchart:settings", (e) => { if (e.detail.key === "starchart.smooth") calmed(); }); // W28 settings: Motion; W133 settings4: Battery saver calms the motion (no Calm motion switch); W113 settings2: Battery saver (Frame rate 30) calms the motion; W133 settings4: alone
@@ -1608,7 +1659,7 @@ function landed() { // W17 log; W21 logfix: a full store says so; W27 friction: 
   const f = record.final({ metres: readouts.metres, minutes: readouts.earthMinutes, ...(flight.end ? { end: Date.now() - (performance.now() - flight.end.t) } : {}) });
   if (f) {
     if (!log.dropTiny(f, shortLand /* W203 popups: End's bar said it */)) log.saved();
-    if (f.gap && !(gapTold > LOG_GAP_MS)) log.gapped(f); /* W208 pocketbuzz: unless its bubble told her of a stretch the Log counts as a gap (one shorter isn't the gap, which then came from something else) */ /* W125 tinygap: once, after Land; W166 walkui: what it means; W196 ui4 (her row 19): with no "Walk saved" */
+    if (f.gap) log.gapped(f); /* W228 backfill: no bubble told her of it (W208 pocketbuzz's went); a ride whose every gap was filled has none */ /* W125 tinygap: once, after Land; W166 walkui: what it means; W196 ui4 (her row 19): with no "Walk saved" */
   } else /* W68 logbulk: dropTiny */ if (!sim) log.say(pick("Log full: flight not saved", "Log full: ride not saved")); /* W60 a: pick; W127 walklog: a walk is kept too */
   if (afoot) { afoot = false; afootWords(); } /* W79 walkgo */
   chatter.end(); keeper.forget(); owner.release(); dropTrail(); /* W128 small3 */
@@ -1847,6 +1898,7 @@ window.starchart = {
   avoidLayer, // W80 avoidmap: for tests, .data()
   map, pose, world, camera, motion, flight, gov, // W56 perf: gov, the frame governor (.auto, .held, .measured)
   busLive, // W196 comets3: for tests, .stats
+  get busStops() { return busStops; }, // W228 transit2: for tests, .stats, .drop()
   rideLive, // W211 walkride: for tests, .stats
   get streetNames() { return streetNames; }, // W204 streetnames: for tests
   get asleep() { return asleep; }, // W83: for tests, the still chart asleep (W77 rest, SPEC §141)

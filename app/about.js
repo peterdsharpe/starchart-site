@@ -3,7 +3,7 @@
 import { storedTiles } from "./offline.js";
 import { pick, onLingo } from "./lingo-mode.js"; // W60 c
 
-const WHAT = { graph: "Route network", search: "Search index", dem: "Hills", slope: "Steep ground" }; // W19 terrain (app/terrain.js stores them)
+const WHAT = { graph: "Route network", search: "Search index", dem: "Hills", slope: "Steep ground", climbs: "Climbs", climbdir: "Uphill direction" }; // W19 terrain (app/terrain.js stores them); W229 climbs: climbs, climbdir
 const el = (tag, className, text) => Object.assign(document.createElement(tag), { className, ...(text != null && { textContent: text }) });
 
 /** Fill (or refresh) a row per stored file after the chart's rows in `group`. */
@@ -16,7 +16,7 @@ export async function aboutStores({ data, group, MB }) {
     let row = group.querySelector(`[data-kind="${e.kind}"]`);
     if (!row) { row = el("div", "row"); row.dataset.kind = e.kind; group.append(row); }
     const txt = el("div", "txt"), small = el("small", "", ok ? pick(`Stored on this droid (${MB(e.bytes)}) and checked.`, `Stored on this device (${MB(e.bytes)}) and checked.`) // W55 layers2: "Works offline" beside it says the rest; W60 c // W200 small8 (SPEC §356): device
-      : e.kind === "dem" || e.kind === "slope" ? `Drawn once it is stored, after the chart (${MB(e.bytes)}).` // W76 privacy: the hills are never read from the network (app/terrain.js)
+      : ["dem", "slope", "climbs", "climbdir"].includes(e.kind) ? `Drawn once it is stored, after the chart (${MB(e.bytes)}).` // W76 privacy: the hills are never read from the network (app/terrain.js)
       : `Read from the network until it is stored, after the chart (${MB(e.bytes)}).`);
     txt.append(el("span", "", name), small);
     row.replaceChildren(el("i", `i ${ok ? "i-check" : "i-download"}`), txt, el("span", ok ? "val ok" : "val", ok ? "Works offline" : ""));
