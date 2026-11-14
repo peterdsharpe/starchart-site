@@ -1,0 +1,400 @@
+{
+  "version": "20261112-bb89010a",
+  "osm_date": "2026-11-12",
+  "built_at": "2026-11-14T12:33:18.182Z",
+  "commit": "0c76485f067ffaf181d86654da36c77008e14488",
+  "files": [
+    {
+      "path": "data/tiles/greater-boston-20261112-bb89010a.pmtiles",
+      "bytes": 29557652,
+      "sha256": "bb89010ad21e8cf6790de1df3a0f8af23b3b770150076706fc750e1d42a6cc07",
+      "kind": "tiles",
+      "region": "greater-boston",
+      "prefix_bytes": 4999359,
+      "prefix_sha256": "c6a6a6a9baba08e1c0b739f979bfe391922cdbbdb9152eb9f8f14b930a17cdb6"
+    },
+    {
+      "path": "data/tiles/greater-boston-131a985db820.graph.gz",
+      "bytes": 10552487,
+      "sha256": "131a985db820c8fc6d8d8f330f55847055bab8ae6e54d21acc3d7c6e156724c0",
+      "kind": "graph",
+      "region": "greater-boston"
+    },
+    {
+      "path": "data/tiles/greater-boston-search-a9048c283f09.json.gz",
+      "bytes": 2503693,
+      "sha256": "a9048c283f0907666f37b9dfebf3a6771cea72ecd8133aa0dfe36891427a9588",
+      "kind": "search",
+      "region": "greater-boston"
+    },
+    {
+      "path": "data/tiles/greater-boston-dem-7ee3af1afac3.pmtiles",
+      "bytes": 2227113,
+      "sha256": "7ee3af1afac370a973f7525ef0d427acd6637b9725c77f7b27114347770deec9",
+      "kind": "dem",
+      "region": "greater-boston"
+    },
+    {
+      "path": "data/tiles/greater-boston-slope-2631d6e8f883.pmtiles",
+      "bytes": 1036562,
+      "sha256": "2631d6e8f88304e0a7e7761399b3a4e22d8c34b7ca47c1e920241c1444c699a2",
+      "kind": "slope",
+      "region": "greater-boston"
+    },
+    {
+      "path": "data/tiles/greater-boston-31ed623e836a.ch",
+      "bytes": 1480126,
+      "sha256": "31ed623e836ab2579e3501949710cbc73c011c03bb64f225fc5b9c11a15106e9",
+      "kind": "ch",
+      "region": "greater-boston"
+    }
+  ],
+  "optional": [
+    {
+      "path": "data/tiles/greater-boston-comets-60ecf7f19dfe.bin.gz",
+      "bytes": 32116,
+      "sha256": "60ecf7f19dfe0865bd87d7009720b400f9159c607e0b3a97a08cd5a03c180bd2",
+      "kind": "transit",
+      "region": "greater-boston",
+      "feed": {
+        "start": "20261106",
+        "end": "20261212",
+        "version": "Fall 2026, 2026-11-13T21:35:28+00:00, version D"
+      }
+    },
+    {
+      "path": "data/tiles/greater-boston-transit-538654e2530a.bin.gz",
+      "bytes": 440255,
+      "sha256": "538654e2530a21445aa0ead7cc77437713e3c8f7a0407861bc255f47e54ddc63",
+      "kind": "walk",
+      "region": "greater-boston",
+      "feed": {
+        "start": "20261106",
+        "end": "20261212",
+        "version": "Fall 2026, 2026-11-13T21:35:28+00:00, version D"
+      }
+    },
+    {
+      "path": "data/tiles/greater-boston-names-critter-meatspace-51b2072c2880.bin",
+      "bytes": 31512508,
+      "sha256": "51b2072c2880dc089aa3d1c696a3281757f985ceeaabd4c9ccf13d84fcd10410",
+      "kind": "names",
+      "region": "greater-boston",
+      "voice": "critter",
+      "lingo": "meatspace"
+    },
+    {
+      "path": "data/tiles/greater-boston-names-critter-scul-9132db40ad1d.bin",
+      "bytes": 26706640,
+      "sha256": "9132db40ad1d89d620d100e9b2726532c7c582ba7db08a6637b4a6d43bb23e80",
+      "kind": "names",
+      "region": "greater-boston",
+      "voice": "critter",
+      "lingo": "scul"
+    },
+    {
+      "path": "data/tiles/greater-boston-names-lodestar-meatspace-bd4a5e18f4a7.bin",
+      "bytes": 32968400,
+      "sha256": "bd4a5e18f4a75e24b76ef849d25fe82ec282e5cb4f977b2c6eebb39c4d9c7a4f",
+      "kind": "names",
+      "region": "greater-boston",
+      "voice": "lodestar",
+      "lingo": "meatspace"
+    },
+    {
+      "path": "data/tiles/greater-boston-names-lodestar-scul-e953824a5808.bin",
+      "bytes": 28066252,
+      "sha256": "e953824a58081f8a80773e12389e23a55404a02672c8ec45be1b353b92c757e7",
+      "kind": "names",
+      "region": "greater-boston",
+      "voice": "lodestar",
+      "lingo": "scul"
+    },
+    {
+      "path": "data/tiles/greater-boston-names-vega-meatspace-1bf47efbecb9.bin",
+      "bytes": 31371453,
+      "sha256": "1bf47efbecb9d695c25fad41141adb617aa670c4328300c28404f98f2866836f",
+      "kind": "names",
+      "region": "greater-boston",
+      "voice": "vega",
+      "lingo": "meatspace"
+    },
+    {
+      "path": "data/tiles/greater-boston-names-vega-scul-714d0c78f482.bin",
+      "bytes": 26915129,
+      "sha256": "714d0c78f48266b75ebcbed172d3976a41b6cc7beb6212f476ccc85b8263b36f",
+      "kind": "names",
+      "region": "greater-boston",
+      "voice": "vega",
+      "lingo": "scul"
+    }
+  ],
+  "packs": [
+    {
+      "id": "central",
+      "name": "Central MA",
+      "places": "Worcester, MetroWest, Blackstone Valley, Milford",
+      "bounds": [
+        -72.1,
+        41.95,
+        -71.32,
+        42.52
+      ],
+      "bytes": 53722833,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-central-d4ade1c6b163.pmtiles",
+          "bytes": 39081979,
+          "sha256": "d4ade1c6b163ff4b5dd2fa1bec498390b7b4c79c4caab69f0668c3433c62efe5"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-central-11d10ec0d573.graph.gz",
+          "bytes": 10351790,
+          "sha256": "11d10ec0d5738c0052f67a8c176ca285f544033c8554c1cac24fd64d64540e95"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-central-search-020a0cd4fa33.json.gz",
+          "bytes": 1897520,
+          "sha256": "020a0cd4fa3384d4b73c53abc2cc591db1b90d5695919480424c44798174cf12"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-central-20de447f1158.ch",
+          "bytes": 2391544,
+          "sha256": "20de447f11587b456acef843b65fec1ace9f0b53a052339557744b6b9c6c69fd"
+        }
+      ]
+    },
+    {
+      "id": "north",
+      "name": "North of Boston",
+      "places": "Lowell, Lawrence, Fitchburg, North Shore, Cape Ann",
+      "bounds": [
+        -72.1,
+        42.52,
+        -70.55,
+        42.89
+      ],
+      "bytes": 53720503,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-north-1c78119c8368.pmtiles",
+          "bytes": 40760957,
+          "sha256": "1c78119c8368e9b20ca06817f993c1a8de64325d1462694145425b8f642016e2"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-north-319dd778ee7f.graph.gz",
+          "bytes": 8786961,
+          "sha256": "319dd778ee7ff37febc0d583d9be95294fb33a18a7b8f114342de950cf5e91fc"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-north-search-fd287b1bf8e3.json.gz",
+          "bytes": 1919695,
+          "sha256": "fd287b1bf8e3edffedeb3e73677c9f6005953def58af63b165b422cc8f8b0ad1"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-north-3011724eb985.ch",
+          "bytes": 2252890,
+          "sha256": "3011724eb985f4cdf70adc8eb2c022b1cb8223ff0fc0d5be7edacb0c160b4753"
+        }
+      ]
+    },
+    {
+      "id": "south-shore",
+      "name": "South Shore",
+      "places": "Braintree, Weymouth, Brockton, Plymouth",
+      "bounds": [
+        -71.32,
+        41.95,
+        -70.62,
+        42.22
+      ],
+      "bytes": 30020826,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-south-shore-15312b5c898d.pmtiles",
+          "bytes": 21346878,
+          "sha256": "15312b5c898ddcc6f49c26c002b1d19212fba2ee2c23edfb976bf63ba6a503af"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-south-shore-9329ebd36157.graph.gz",
+          "bytes": 5462779,
+          "sha256": "9329ebd36157376089637722e8c2fa95ab75c63aa137e8e600bf9dd3a81fd62e"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-south-shore-search-c9a5f8046306.json.gz",
+          "bytes": 1271430,
+          "sha256": "c9a5f80463065c8c3895b66e37f476759514f682cc88c5db1214b09f502199c7"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-south-shore-6e72c3092588.ch",
+          "bytes": 1939739,
+          "sha256": "6e72c309258852aa3c9cac552a64f2722b8c7b7f9e525cbd2f77a95ef8ea68ca"
+        }
+      ]
+    },
+    {
+      "id": "south-coast",
+      "name": "South Coast",
+      "places": "Taunton, Fall River, New Bedford, Attleboro",
+      "bounds": [
+        -71.4,
+        41.45,
+        -70.62,
+        41.95
+      ],
+      "bytes": 31812891,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-south-coast-518f1bc1e126.pmtiles",
+          "bytes": 24409676,
+          "sha256": "518f1bc1e1260784495e455929017ed5a2a0a5af834def8cf95e1eaef455034f"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-south-coast-c2956f4cfb33.graph.gz",
+          "bytes": 4463714,
+          "sha256": "c2956f4cfb33c5e1d4b6adc6951a242be293ba9f592619eb2fca350a7557d006"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-south-coast-search-0547d53627e6.json.gz",
+          "bytes": 1102070,
+          "sha256": "0547d53627e6ba2b1dc431d5d5e5d3de87d3c8758d08df632ddff34778aac9b4"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-south-coast-bb594ce01f86.ch",
+          "bytes": 1837431,
+          "sha256": "bb594ce01f8632acfe0e93a5f001f16b3d2bfd022d04f3128f4e8b5968eb7b2b"
+        }
+      ]
+    },
+    {
+      "id": "cape-islands",
+      "name": "Cape & Islands",
+      "places": "Cape Cod, Manomet, Martha's Vineyard, Nantucket",
+      "bounds": [
+        -70.62,
+        41.23,
+        -69.92,
+        42.1
+      ],
+      "bytes": 28781496,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-cape-islands-34cfb0b57507.pmtiles",
+          "bytes": 21015613,
+          "sha256": "34cfb0b5750774d41be204dd7ab8e262a3a6e8dfdd58c64e643639f16234ce9b"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-cape-islands-69aebf40f6c7.graph.gz",
+          "bytes": 4857844,
+          "sha256": "69aebf40f6c79bf2ea859c57b3d086c1f0e3147025bede03aa8d1a7b60c387a8"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-cape-islands-search-e49210dcca37.json.gz",
+          "bytes": 1081840,
+          "sha256": "e49210dcca3711aa732f0fb6f58d4970b0d42fcb1b2534ded72eb9d1983887d2"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-cape-islands-de5ae825acc0.ch",
+          "bytes": 1826199,
+          "sha256": "de5ae825acc0922af97407074f87e82cb3b24f69acebae7df79dd20e47751a19"
+        }
+      ]
+    },
+    {
+      "id": "west",
+      "name": "Western MA",
+      "places": "Springfield, Pioneer Valley, Berkshires",
+      "bounds": [
+        -73.51,
+        41.98,
+        -72.1,
+        42.89
+      ],
+      "bytes": 54615472,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-west-83f774cc623c.pmtiles",
+          "bytes": 41879131,
+          "sha256": "83f774cc623c4067025f429cd27ae385595a29efcf5e8283cd336f8b5787fb26"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-west-48cb539f97f1.graph.gz",
+          "bytes": 8709528,
+          "sha256": "48cb539f97f1952dc992bd4feaca304a39e3fd4956901a4659cab96bf7058f09"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-west-search-561163b0fc0b.json.gz",
+          "bytes": 1832082,
+          "sha256": "561163b0fc0bd13de4d75fb29cdfd3489568adfea614460107f913141e3cce38"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-west-4a1a83f67126.ch",
+          "bytes": 2194731,
+          "sha256": "4a1a83f67126d4c0da8f73de5d869fb767e8d64a6a15e4fd493b260bb47f9d1b"
+        }
+      ]
+    },
+    {
+      "id": "hull",
+      "name": "Hull & Nahant",
+      "places": "Hull, Nahant, the Harbor Islands",
+      "bounds": [
+        -70.93,
+        42.22,
+        -70.62,
+        42.52
+      ],
+      "bytes": 6829128,
+      "files": [
+        {
+          "kind": "tiles",
+          "path": "data/packs/pack-hull-8a49e86df886.pmtiles",
+          "bytes": 4173479,
+          "sha256": "8a49e86df8863c7490b0d128d140e2fc83965c42d04edc4a57d8b4bc3ca2fd16"
+        },
+        {
+          "kind": "graph",
+          "path": "data/packs/pack-hull-530b553b26d0.graph.gz",
+          "bytes": 911304,
+          "sha256": "530b553b26d021bd9a8be41068c070897e13efa7f882aa8f80c9d3175d04b9fc"
+        },
+        {
+          "kind": "search",
+          "path": "data/packs/pack-hull-search-25430a264b04.json.gz",
+          "bytes": 189910,
+          "sha256": "25430a264b04eb4e61decc334de50938c951cbfc3c81f58b08725519c394d1e8"
+        },
+        {
+          "kind": "ch",
+          "path": "data/packs/pack-hull-8b89e6dcd27a.ch",
+          "bytes": 1554435,
+          "sha256": "8b89e6dcd27a80c9e5d16e987ef4e6611a364ff3529bc0740b071cc26a2f3c10"
+        }
+      ]
+    }
+  ]
+}

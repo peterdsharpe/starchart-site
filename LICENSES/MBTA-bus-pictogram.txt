@@ -1,0 +1,16 @@
+Bus stop icon: the MBTA's bus pictogram.
+
+The bus stop icon Starchart shows with SCUL mode off (design/glyphs/bus_stop.svg,
+drawn by design/glyphs/build.py, its MBTA_BUS path) carries the bus pictogram of
+the MBTA's digital style guide (author: the MBTA, 2019), as published on
+Wikimedia Commons:
+
+  https://commons.wikimedia.org/wiki/File:Icon-mode-bus-default.svg
+
+Commons tags it public domain in the United States (PD-MAGov): "This work is in
+the public domain in the United States because it was a Commonwealth of
+Massachusetts public record disseminated by a Commonwealth agency or the
+Massachusetts Archives." It also carries a trademark note: the pictogram is a
+mark of the MBTA, used here to mean a bus stop. Starchart is not connected with
+or endorsed by the MBTA. The disc, its outline and their colours are
+Starchart's art (CC BY-SA 4.0).

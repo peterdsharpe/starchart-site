@@ -1,0 +1,55 @@
+/* W73 mission (app/mission.js, SPEC §122): Burn up, in flight, at the top corner opposite the Buttons (app/home.css), in
+   Layers' row (under the turn card while a course shows it), so the chart above the readout stays the chart's for a tap
+   (BRIEF §7.8); W210 pocket2 (SPEC §386): and Pocket's round button, at the top of the ride's column (app/home.css), and
+   Pocket's black screen (was a step of the long-haul screen, which went) */
+.btn.mission { left: var(--ml); top: calc(var(--top) + var(--card-h, 0px)); z-index: 2; }
+body:is([data-open~="search"], [data-open~="log"], [data-open~="flight-page"]) > .btn.mission { visibility: hidden; } /* as Layers */
+/* the in-flight GPS notice (app.css: #nofix, in this corner in flight) one row down, under Burn up, never hidden by it */
+body:has(#readout:not([hidden])):has(> #burnup:not([hidden])) #nofix { top: calc(var(--top) + var(--card-h, 0px) + 44px + 8px); }
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 640px) { /* in a short landscape on a course the notice keeps app.css's place under the card */
+  body:has(#readout:not([hidden])):has(> .cturn:not([hidden])):has(> #burnup[hidden]) #nofix { top: calc(var(--top) + var(--card-h, 0px)); }
+}
+#burnup { width: auto; /* W191 appleft (SPEC §334): its place is app/home.css's (--far-*), either hand (#8) */ padding: 0 16px 0 12px; display: flex; gap: 8px; border-radius: var(--r-pill);
+  font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.125rem); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#pocket .lbl { display: none; } /* W210 pocket2: its name is its aria-label; the button is the icon, as the column's others */
+.i-hangar { -webkit-mask-image: url("../design/glyphs/ui/hangar.svg"); mask-image: url("../design/glyphs/ui/hangar.svg"); }
+.i-pocket { -webkit-mask-image: url("../design/glyphs/ui/pocket.svg"); mask-image: url("../design/glyphs/ui/pocket.svg"); }
+body[data-open~="ride-preview"] .btn.mission { visibility: hidden; } /* a preview opened in flight covers them */
+
+/* W195 pocket (SPEC §343), W210 pocket2 (SPEC §386): Pocket's screen, black in every theme (--fixed-black, OLED pixels off) but a
+   faint ring at the thumb's height, the pocket glyph in it, a faint track above it, and "Slide the ring up to show the map" under it (on
+   its side beside it, W213 pocket3), in
+   Dark's own colours, dimmed (Daystar's would light the whole screen). A finger on the ring lights it whole (the fill, the screen's
+   phosphor or Plain's harbour at 40 %; W213 pocket3, SPEC §404: at the touch, with no rest first), and the ring follows the finger up
+   the track (--at, app/pocket.js, transform only: BRIEF §8.2); let go early, it glides home (none in Calm: Calm motion, Battery saver
+   or the phone's reduced motion). */
+#pocketed { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 16px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + max(16px, 15dvh - var(--slide, 234px) + var(--slide-min, 180px))) calc(env(safe-area-inset-left) + 16px); /* W217 ridechrome (SPEC §419, her row 14): the ring lower by what the slide grew (54 px), so the slide ends where 0.1.103's did, in her thumb's reach */
+  background: var(--fixed-black); color: color-mix(in srgb, var(--dark-stardust) 62%, var(--fixed-black)); /* as the long-haul screen's numbers were, 62 %: faint, 3.3:1, and still read in daylight */
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; animation: pk-in 600ms var(--ease-standard); }
+#pocketed[hidden] { display: none; }
+@keyframes pk-in { from { opacity: 0; } }
+/* the track: the ring's column, its own height and the slide's length above it (--slide, app/pocket.js SLIDE_PX), a chevron at the top */
+#pocketed .track { position: relative; flex: none; width: 72px; height: calc(72px + var(--slide, 234px)); /* W217 ridechrome: 234 */ box-sizing: border-box; border: 1.5px solid color-mix(in srgb, var(--dark-stardust) 22%, var(--fixed-black)); border-radius: var(--r-pill); }
+#pocketed .track::before { content: ""; position: absolute; left: 50%; top: 22px; width: 14px; height: 14px; translate: -50% 0; rotate: 45deg; box-sizing: border-box;
+  border: solid color-mix(in srgb, var(--dark-stardust) 40%, var(--fixed-black)); border-width: 2.5px 0 0 2.5px; border-radius: var(--r-xs) 0 0 0; } /* up */
+#pocketed .ring { position: absolute; left: -1.5px; bottom: -1.5px; width: 72px; height: 72px; box-sizing: border-box; display: grid; place-items: center;
+  border: 2.5px solid color-mix(in srgb, var(--dark-stardust) 40%, var(--fixed-black)); border-radius: 50%; background: var(--fixed-black);
+  translate: 0 calc(-1 * var(--at, 0px)); transition: translate var(--t-normal) var(--ease-standard); } /* the ring 1.9:1, a faint target; glides home */
+#pocketed .ring:is(.held, .lost) { transition: none; } /* taken, it follows the finger, and stays while contact is lost a moment */
+#pocketed .ring::before { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: color-mix(in srgb, var(--dark-phosphor) 40%, var(--fixed-black)); transform: scale(0); transition: transform var(--t-press) var(--ease-standard); } /* the touch's fill: transform only (BRIEF §8.2) */
+[data-lingo="meatspace"] #pocketed .ring::before { background: color-mix(in srgb, var(--dark-harbour) 40%, var(--fixed-black)); } /* W185 colours; W171 palette: Plain's, Dark's --harbour dimmed (§299) */
+#pocketed .ring:is(.held, .lost)::before { transform: scale(1); } /* lit: slide it (W213 pocket3: from the touch; was half, then whole after the rest) */
+#pocketed .ring .i { position: relative; width: 24px; height: 24px; } /* over the fill */
+#pocketed .hint { margin: 0; font: 600 max(11px, 1rem)/1.3 var(--font-body); text-align: center; text-wrap: balance; max-width: calc(100vw - 32px); }
+@media (orientation: landscape) { /* a phone on its side: the ring and its track nearer the foot, so they and the words fit its height */
+  #pocketed { padding-bottom: calc(env(safe-area-inset-bottom) + 16px); }
+  /* W217 ridechrome (SPEC §419): the longest track the height holds between the paddings, at most the slide's and never under 0.1.103's
+     180 px (app/pocket.js reads the track as drawn): 667 × 375, the matrix's smallest, holds the whole 234 px, 568 × 320 216 px */
+  #pocketed .track { height: calc(72px + clamp(var(--slide-min, 180px), 100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px - 72px, var(--slide, 234px))); }
+  /* W213 pocket3 (SPEC §404): the words beside the ring, level with it (growing up beside the track when they wrap), so the longer
+     track fits a short screen's height: 568 × 320 holds 16 + 72 + 180 + 16 px, and not the words under it too */
+  #pocketed .hint { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 16px); min-height: 72px; display: grid; align-content: center; text-align: start;
+    /* 24 px right of the ring, centred in the content box: off the middle of the padding box (50 %) by half the side insets' difference */
+    left: calc(50% + (env(safe-area-inset-left) - env(safe-area-inset-right)) / 2 + 36px + 24px); right: calc(env(safe-area-inset-right) + 16px); } }
+body.calm #pocketed, body.calm #pocketed .ring, body.calm #pocketed .ring::before { animation: none; transition: none; }

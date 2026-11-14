@@ -1,0 +1,145 @@
+// W62 cometcard (design/app-ui/SPEC.md §90): bike plus comet in the preview and in flight. W61 transit plans it and
+// earns it its card (chart/routing/transit.js earn(), app/transit.js); this is the pure part the page draws from, so Node
+// tests it: the card's words and minutes, the bike cards the planner weighs, the fold to three cards, the train leg's
+// line and its stations' rings, and the two legs a comet course flies as.
+//
+//   cometCard(plan, { paceK })   -> { name, why, min, arrive, fact, leave, warn: [..], share }  the card and its facts row (W189 transittimes: leave)
+//   bikeCards(routes)            -> the preview's routes by style, as the planner's `opts.bike`
+//   foldTo(folds, routes, n)     -> foldStyles()'s cards, at most n: the card nearest another folds into it
+//   trainLines(plan)             -> GeoJSON: each train leg through its stations, in its line's colour; both ends ringed
+//   dayEdged(mode, route, hint)  -> W213 palette3: a bus leg the day ground would lose (under 3:1), cased in her ink by day
+//   cometLegs(plan)              -> { ride0, ride1, trains, board, leave }: leg 1 lands at board, leg 2 sets out from leave
+//   boardText(plan, k)           -> leg 1's landing card: "Board the Red Line at Alewife toward Braintree. 15 stops." (k 1: the change alone)
+//
+// Every string is [SCUL, Plain] (app/lingo-mode.js pick()); a lone string is both modes'.
+import { pick } from "./lingo-mode.js";
+import { clockAt, carFree, rideSeconds } from "./course-logic.js"; // W200 parkwalk: rideSeconds
+import { metres } from "./geo.js";
+import { samples } from "../chart/routing/transit.js";
+import { lineColour } from "./comets-logic.js"; // W186 palette
+import { COLOURS } from "./colours.js"; // W213 palette3: dayEdged's day ground and the WCAG ratio
+import { depTimes, leaveBy, WORDS as WALKW, busName } from "./walk-card.js"; // W189 transittimes; R2 sandworm: busName
+import { rideLine } from "./ride-line.js"; // W222 ontrain (SPEC §433): trainLines draws a train on its tracks
+
+/** The Settings key: off by default (W59 multimodal: bike first, comets stay subtle). */
+export const KEY = "starchart.transit";
+/** Leg 2 sets out when the fix comes back this near the leaving station's entrance (or on a tap on the card). */
+export const LEAVE_M = 150;
+
+export const WORDS = {
+  card: ["By comet", "By train"],
+  bus: ["By sandworm", "By bus"], // W128 buslegs: a plan whose first ride is a bus (SCUL's bus is a sandworm)
+  rack: ["Sandworm rack: 2 bikes", "Bus rack: 2 bikes"], // W128 buslegs: the card's warning, the front rack's limit
+  why: { time: "Quicker", rain: "Drier", bare: "Calmer", climb: "Flatter" }, // the earn rule's reason, in a word
+  fact: (line, t, station) => `${line} ${t} at ${station}`, // the one fact to act on: "Red Line 12:13 at Alewife"
+  stairs: (station) => `Stairs at ${station}`,
+  line: (l) => (l.mode === "bus" ? busName(l).map((n) => `${n} to ${l.head}`) /* R2 sandworm: the station card's name, "Silver Line SL1" */ : l.route.startsWith("Boat-") ? [l.line, l.line] : [`${l.line} comet`, l.line]), // a ferry is no comet; W128 buslegs: a bus by its number and its way, "Bus 1 to Harvard"
+  stops: (n) => `${n} ${n === 1 ? "stop" : "stops"}`,
+  board: (line, station, head, n) => `Board the ${line} at ${station} toward ${head}. ${n}.`,
+  change: (line, station) => `Change to the ${line} at ${station}.`,
+  boardBus: (line, station, n) => `Board ${line} at ${station}. ${n}.`, // W128 buslegs: "Board Bus 1 to Harvard at Massachusetts Ave @ Beacon St. 8 stops."
+  changeBus: (line, station) => `Change to ${line} at ${station}.`, // W128 buslegs
+  station: (name, bus = false) => [bus ? `${name} Sandworm Nest` : `${name} Comet Station`, name], // W128 buslegs: bus
+  leave: (station) => [`Leave at ${station}`, `Get off at ${station}`],
+  tapOn: ["Tap to fly on", "Tap to ride on"],
+  noShare: ["Only a ship's course can be shared.", "Only a bike route can be shared."],
+};
+
+const busOf = (p) => p.legs.some((l) => l.mode === "bus"); // W128 buslegs
+const why = (e) => WORDS.why[e.reason === "comfort" ? e.kind : e.reason] || "";
+const trainsOf = (p) => p.legs.filter((l) => l.type === "train");
+const ridesOf = (p) => p.legs.filter((l) => l.type === "ride");
+
+/**
+ * The card for an earned plan (earn()'s, with its `earned`): its name, its reason in a word, its door-to-door minutes from
+ * now with the wait (the rides at the pilot's pace `paceK`, the stations and trains as timed: W59 pace's planned minutes
+ * keep the rides apart from the train), the arrival clock (W196 cards2: and `dep`, when to set off), the fact to act on and its warnings (stairs at a station).
+ * `share`: the trains' part of the trip, [from, to] in 0..1, for the card's bar.
+ */
+export function cometCard(p, { paceK = 1, now = Date.now() } = {}) { // W189 transittimes: now, for Leave by
+  const t0 = trainsOf(p)[0], r1 = ridesOf(p).at(-1), late = r1 ? rideSeconds(r1) * (1 / paceK - 1) : 0; // W200 parkwalk: its riding, not its walks
+  const total = p.total_s + late, trains = trainsOf(p), start = (t0.dep - (p.arrive - p.total_s * 1000)) / 1000;
+  const warn = p.legs.filter((l) => l.stairs).map((l) => WORDS.stairs(l.name)).concat(busOf(p) ? [pick(WORDS.rack)] : []); // W128 buslegs: the rack's limit
+  const lb = leaveBy(p, now, { paceK }); // W189 transittimes
+  return {
+    name: pick(t0.mode === "bus" ? WORDS.bus : WORDS.card), why: why(p.earned), min: Math.max(1, Math.round(total / 60)), arrive: clockAt(new Date(p.arrive + late * 1000)), // W128 buslegs: named for its first ride, as its fact is
+    dep: clockAt(new Date(lb ?? p.arrive - p.total_s * 1000)), // W196 cards2 (SPEC §349): when to set off, its Leave by when she'd wait, else the plan's start (now)
+    fact: WORDS.fact(t0.mode === "bus" ? pick(WORDS.line(t0)) : t0.line, depTimes(t0), t0.from_name), warn: [...new Set(warn)], // W128 buslegs: "Bus 1 to Harvard 12:13 at …"; W189 transittimes: and the next two, "… 12:13, 12:23, 12:33 at …"
+    leave: lb ? WALKW.leaveBy(clockAt(new Date(lb))) : "", // W189 transittimes: "Leave by 12:00", or ""
+    share: [Math.max(0, start / total), Math.min(1, (trains.at(-1).arr - (p.arrive - p.total_s * 1000)) / 1000 / total)],
+  };
+}
+
+/** The preview's routes by style (the router's), as W61's planner weighs them (transit.js bikeCards()'s shape). */
+export const bikeCards = (routes) => Object.entries(routes).filter(([, r]) => r).map(([style, r]) => ({ style, time_s: r.time_s, walk_s: r.walk_s || 0, distance_m: r.distance_m, /* W200 parkwalk: walk_s */
+  climb_m: r.climb_m || 0, bare_m: (r.bare || []).reduce((a, [x, y]) => a + y - x, 0), samples: samples(r) }));
+
+/** How far apart two routes are as choices: their minutes, climb and car-free share, each against its own scale. */
+const apartOf = (a, b) => Math.abs(a.time_s - b.time_s) / Math.max(60, Math.min(a.time_s, b.time_s))
+  + Math.abs((a.climb_m || 0) - (b.climb_m || 0)) / Math.max(30, a.climb_m || 0, b.climb_m || 0) + Math.abs(carFree(a) - carFree(b)) / 100;
+/**
+ * The bike cards, at most `n` (W59 multimodal §5: the comet card is the third, never a fourth). While there are more, the
+ * card nearest another folds into it, as W27's near-equal folds do: its styles join that card, which keeps its own route
+ * and name. The first card (Wormholes', bike first) is never the one folded away. `folds`: foldStyles()'s; `routes`: by style.
+ */
+export function foldTo(folds, routes, n) {
+  const out = folds.map((f) => ({ ...f, ids: f.ids.slice() }));
+  while (out.length > Math.max(1, n)) {
+    let best = null;
+    for (let i = 1; i < out.length; i++) for (let j = 0; j < out.length; j++) {
+      const d = i === j ? Infinity : apartOf(routes[out[i].keep], routes[out[j].keep]);
+      if (!best || d < best.d) best = { i, j, d };
+    }
+    const into = out[best.j];
+    into.ids.push(...out[best.i].ids);
+    into.folded = [...(into.folded || []), ...out[best.i].ids];
+    out.splice(best.i, 1);
+  }
+  return out;
+}
+
+/** The train legs on the chart: each a line through its stations in its line's colour (solid, W228 trip3; was dashed), and its two
+ *  stations as points to ring. W213 palette3 (SPEC §406): `edged` on a bus leg that the day ground would lose (dayEdged), so by day
+ *  its casing and its stops' ring fill are her ink (app/course.js course-comet-casing, course-comet-ring). */
+export function trainLines(p) {
+  const features = [];
+  for (const l of p ? trainsOf(p) : []) {
+    const color = lineColour(l.route, globalThis.document?.documentElement.dataset.theme === "light", l.color), path = l.path?.length > 1 ? rideLine(l).pts : l.path || []; // W186 palette: her line colour (was the data's); W192 icons7: a bus's by the data's, its hint; W222 ontrain (SPEC §433): on its tracks, the line her avatar rides (ride-line.js), its ends where they meet its stops
+    const props = dayEdged(l.mode, l.route, l.color) ? { color, edged: true } : { color }; // W213 palette3
+    if (path.length > 1) features.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: path } }); // W213 palette3: props
+    for (const ll of [path[0], path.at(-1)]) if (ll) features.push({ type: "Feature", properties: props, geometry: { type: "Point", coordinates: ll } }); // W213 palette3: props
+  }
+  return { type: "FeatureCollection", features };
+}
+/** W213 palette3 (SPEC §406): by rule, a bus leg whose day colour is under 3:1 on the day map's ground: her yellow (1.31:1), not the
+ *  Silver Line's grey (6.88:1) nor a shuttle's blue (3.92:1). Never a T leg: W62's ground casing keeps a leg from reading as the
+ *  thin track under it. */
+const lum = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0); // W213 palette3: WCAG's
+export const dayEdged = (mode, route, hint) => { // W213 palette3
+  if (mode !== "bus") return false;
+  const [a, b] = [lum(lineColour(route || "", true, hint)), lum(COLOURS["color-light"].void)].sort((x, y) => y - x);
+  return (a + 0.05) / (b + 0.05) < 3;
+};
+/** Every point of the plan, rides and trains, for the preview's framing. */
+export const planPoints = (p) => p.legs.flatMap((l) => l.geometry || l.path || []);
+
+/** A plan's two legs: the rides, the trains, and the entrances leg 1 lands at and leg 2 sets out from. */
+export function cometLegs(p) {
+  const [ride0, ride1] = ridesOf(p), wi = p.legs.find((l) => l.type === "walk_in"), wo = p.legs.find((l) => l.type === "walk_out");
+  return { ride0, ride1, trains: trainsOf(p), board: { lonlat: wi.lonlat || ride0.geometry.at(-1), name: wi.name, id: wi.station, bus: trainsOf(p)[0].mode === "bus" }, // W128 buslegs: bus
+    leave: { lonlat: wo.lonlat || ride1.geometry[0], name: wo.name, id: wo.station } };
+}
+/** Leg 1's landing pad: the boarding station's entrance, as a place. */
+export const stationPlace = (s) => ({ lingo_name: WORDS.station(s.name, s.bus)[0], name: s.name, place: "", kind: s.bus ? "sandworm_nest" : "comet_station", lonlat: s.lonlat.slice() }); // W128 buslegs: a bus stop's
+/** The fix is near enough the leaving station for leg 2. */
+export const nearLeave = (legs, lonlat) => !!lonlat && metres(lonlat, legs.leave.lonlat) <= LEAVE_M;
+
+/** Leg 1's landing card, in the mode's words: "Board the Red Line comet at Alewife toward Braintree. 15 stops." (Plain:
+ *  "Board the Red Line at …"), and with a change, the second train after it. W212 bikeride: `k` 1, the second train's card, its
+ *  change alone. */
+export function boardText(p, k = 0) {
+  const [a, b] = trainsOf(p);
+  if (k) return b.mode === "bus" ? WORDS.changeBus(pick(WORDS.line(b)), b.from_name) : WORDS.change(pick(WORDS.line(b)), b.from_name); // W212 bikeride
+  const first = a.mode === "bus" ? WORDS.boardBus(pick(WORDS.line(a)), a.from_name, WORDS.stops(a.stops)) : WORDS.board(pick(WORDS.line(a)), a.from_name, a.head, WORDS.stops(a.stops)); // W128 buslegs
+  return b ? `${first} ${b.mode === "bus" ? WORDS.changeBus(pick(WORDS.line(b)), b.from_name) : WORDS.change(pick(WORDS.line(b)), b.from_name)}` : first; // W128 buslegs
+}
