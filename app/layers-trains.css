@@ -1,0 +1,4 @@
+/* Made by chart/style/build_style.py (trains_tile_css) from the styles' own track paints at z14.81, a map px a unit of the tile's 64:
+   W211 mapicons4 (SPEC §393), the Layers tile's lines as the map draws them zoomed out (W218 layers3, app/layers.css). Rebuild the styles, don't edit. */
+#layerspick .tile { --t-r: var(--mbta-red); --t-o: var(--mbta-orange); --t-g: var(--mbta-green); --t-w: 3.0; }
+:root[data-theme="light"] #layerspick .tile { --t-r: var(--mbta-day-red); --t-o: var(--mbta-track-day-orange); --t-g: var(--mbta-day-green); --t-w: 3.0; }

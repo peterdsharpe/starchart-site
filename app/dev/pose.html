@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Starchart · pose check</title>
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="../../chart/vendor/maplibre-gl.css">
+<link rel="stylesheet" href="../../design/tokens.css">
+<script src="../../chart/vendor/pmtiles.js"></script>
+<!--
+  The pose check: app/pose.js's raw and fused values over the chart, in sim mode or on a real phone.
+    ?source=sim (default) | gps    ?speed=<n> (sim)    ?seed=<n> (sim)
+  On a phone: open it over https, tap Start, ride. Dots are raw fixes (pale: dropped), the cyan
+  ship and beam are the fused pose, the ring is the accuracy, and in sim mode the orange dot is the
+  rider's true position. The dial: compass + learned offset (white), GPS course (orange), the fused
+  heading (cyan line) and the drawn heading (cyan wedge); in sim, the true heading (dashed orange).
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: var(--void); color: var(--starlight); font: 13px/1.35 "Space Mono", monospace; }
+  #map { position: fixed; inset: 0; }
+  #read, #dial { position: fixed; background: color-mix(in srgb, var(--void) 82%, transparent); border: 1px solid color-mix(in srgb, var(--starlight) 18%, transparent); border-radius: 10px; }
+  #read { left: 8px; right: 8px; top: calc(8px + env(safe-area-inset-top)); margin: 0; padding: 6px 8px; white-space: pre; font-size: 11.5px; overflow: hidden; }
+  #dial { right: 8px; bottom: calc(84px + env(safe-area-inset-bottom)); width: 132px; height: 132px; }
+  #bar { position: fixed; left: 8px; right: 8px; bottom: calc(28px + env(safe-area-inset-bottom)); display: flex; gap: 8px; flex-wrap: wrap; }
+  #bar button, #bar a { font: inherit; color: var(--starlight); background: color-mix(in srgb, var(--void) 85%, transparent); border: 1px solid color-mix(in srgb, var(--starlight) 30%, transparent); border-radius: 22px; padding: 10px 14px; text-decoration: none; min-height: 44px; box-sizing: border-box; }
+  #bar button[aria-pressed="true"] { border-color: var(--wormhole); color: var(--wormhole); }
+  .warn { color: var(--pulsar); }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<pre id="read">pose check: tap Start</pre>
+<canvas id="dial" width="256" height="256" aria-label="Headings"></canvas>
+<div id="bar">
+  <button id="start">Start</button>
+  <button id="follow" aria-pressed="true">Follow</button>
+  <a id="other" href="#"></a>
+</div>
+<script type="module">
+import { createPose } from "../pose.js";
+import { metres, destination, angleDiff } from "../geo.js";
+import { COLOURS, rgba } from "../colours.js"; // W185 colours (SPEC §321): the named colours, from design/tokens.json
+
+const q = new URLSearchParams(location.search);
+const source = q.get("source") === "gps" ? "gps" : "sim";
+const ROOT = new URL("../../", import.meta.url);
+const at = (p) => new URL(p, ROOT).href;
+const $ = (id) => document.getElementById(id);
+const css = getComputedStyle(document.documentElement);
+const C = (name, dflt) => css.getPropertyValue(name).trim() || dflt;
+const K = COLOURS.color, BLACK = COLOURS["color-fixed"].black; // W185 colours
+const CYAN = C("--wormhole", K.wormhole), ORANGE = C("--course", K.course), CHALK = C("--chalk", K.chalk), PULSAR = C("--pulsar", K.pulsar);
+
+const other = new URLSearchParams(q);
+other.set("source", source === "sim" ? "gps" : "sim");
+$("other").href = "?" + other;
+$("other").textContent = source === "sim" ? "Use GPS" : "Use sim";
+
+const pose = createPose({ source, sim: { speed: +q.get("speed") || 1, seed: +q.get("seed") || 1 } });
+const stats = { frames: 0, sampleUs: 0, frameMs: 0, fixes: 0, statuses: [] };
+window.__poseDev = { pose, stats };
+pose.on("fix", () => { stats.fixes++; });
+pose.on("status", (s) => stats.statuses.push(s));
+
+let started = false;
+$("start").onclick = () => {
+  if (started) { pose.stop(); started = false; $("start").textContent = "Start"; return; }
+  started = true;
+  $("start").textContent = "Stop";
+  pose.start(); // straight from the tap: iOS asks for motion permission now
+};
+let follow = true;
+$("follow").onclick = () => { follow = !follow; $("follow").setAttribute("aria-pressed", follow); };
+
+// ---- the map (the page works without it: the readout and the dial are the point) ----
+let map = null, rawT = null;
+const empty = { type: "FeatureCollection", features: [] };
+async function chart() {
+  const { makeMap } = await import("../../chart/prototype/chart.js");
+  const style = await (await fetch(at("chart/style/saturnight.json"))).json();
+  let tiles = at("data/tiles/greater-boston-v16.pmtiles"); // the repository, with data/ linked in
+  try { // the built site: its manifest names the tile file
+    const m = await fetch(at("data/manifest.json"));
+    if (m.ok) tiles = at((await m.json()).files.find((f) => f.kind === "tiles").path);
+  } catch { /* the repository */ }
+  style.sprite = at(style.sprite.replace(/^\//, ""));
+  style.glyphs = ROOT.href + style.glyphs.replace(/^\//, "");
+  style.sources.chart.url = "pmtiles://" + tiles;
+  const m = await makeMap("map", { style, center: [-71.13946, 42.3596], zoom: 17 });
+  for (const id of ["accuracy", "beam", "raw", "truth", "ship"]) m.addSource(id, { type: "geojson", data: empty });
+  m.addLayer({ id: "accuracy", type: "fill", source: "accuracy", paint: { "fill-color": CYAN, "fill-opacity": 0.12 } });
+  m.addLayer({ id: "beam", type: "fill", source: "beam", paint: { "fill-color": CYAN, "fill-opacity": 0.28 } });
+  m.addLayer({ id: "raw", type: "circle", source: "raw", paint: {
+    "circle-radius": 4, "circle-color": ["case", ["get", "ok"], CHALK, PULSAR], "circle-opacity": ["case", ["get", "ok"], 0.9, 0.45],
+    "circle-stroke-width": 1, "circle-stroke-color": BLACK } });
+  m.addLayer({ id: "truth", type: "circle", source: "truth", paint: { "circle-radius": 5, "circle-color": ORANGE, "circle-stroke-width": 1.5, "circle-stroke-color": BLACK } });
+  m.addLayer({ id: "ship", type: "fill", source: "ship", paint: { "fill-color": CYAN } });
+  m.on("dragstart", () => { follow = false; $("follow").setAttribute("aria-pressed", false); });
+  map = m;
+}
+chart().catch((e) => console.warn("pose check: no chart:", e.message));
+
+const poly = (pts) => ({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [[...pts, pts[0]]] } });
+function shapes(p) {
+  const ring = [], beam = [p.lonlat], h = p.heading_deg ?? 0, hw = p.heading_halfwidth_deg;
+  for (let a = 0; a < 360; a += 12) ring.push(destination(p.lonlat, a, p.accuracy_m));
+  if (p.heading_deg !== null && hw < 90) for (let a = -hw; a <= hw + 1e-9; a += hw / 6) beam.push(destination(p.lonlat, h + a, 45));
+  const ship = [destination(p.lonlat, h, 9), destination(p.lonlat, h + 140, 6), destination(p.lonlat, h + 180, 2), destination(p.lonlat, h - 140, 6)];
+  return { ring: poly(ring), beam: beam.length > 2 ? poly(beam) : null, ship: poly(ship) };
+}
+
+// ---- the dial ----
+const dial = $("dial").getContext("2d");
+function drawDial(p, dbg) {
+  const g = dial, r = 110;
+  g.clearRect(0, 0, 256, 256);
+  g.save();
+  g.translate(128, 128);
+  g.strokeStyle = rgba(K.starlight, 0.35); g.lineWidth = 2;
+  g.beginPath(); g.arc(0, 0, r, 0, 2 * Math.PI); g.stroke();
+  g.fillStyle = CHALK; g.font = "bold 26px 'Space Mono', monospace"; g.textAlign = "center"; g.fillText("N", 0, -r + 30);
+  const ray = (deg, color, w, len = r, dash = []) => {
+    if (deg === null || deg === undefined) return;
+    const a = (deg * Math.PI) / 180;
+    g.setLineDash(dash); g.strokeStyle = color; g.lineWidth = w;
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.sin(a) * len, -Math.cos(a) * len); g.stroke();
+    g.setLineDash([]);
+  };
+  if (p && p.heading_deg !== null && p.heading_halfwidth_deg < 90) {
+    const a = ((p.heading_deg - 90) * Math.PI) / 180, w = (p.heading_halfwidth_deg * Math.PI) / 180;
+    g.fillStyle = rgba(K.wormhole, 0.25); g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, r, a - w, a + w); g.closePath(); g.fill();
+  }
+  const f = dbg.fusion;
+  ray(dbg.compass.true !== null ? dbg.compass.true + f.offset : null, CHALK, 4);
+  ray(f.courseRaw ?? null, ORANGE, 4, r * 0.85);
+  ray(f.heading, CYAN, 3, r * 0.7);
+  if (dbg.sim) ray(dbg.sim.truth.heading, ORANGE, 3, r, [10, 8]);
+  g.restore();
+}
+
+// ---- the readout ----
+const n = (v, d = 1) => (v === null || v === undefined || Number.isNaN(v) ? "—" : (+v).toFixed(d));
+let lastText = 0;
+function readout(p, dbg, now) {
+  if (now - lastText < 200) return; // five times a second is plenty to read
+  lastText = now;
+  const s = dbg.status, c = dbg.compass, f = dbg.fusion, raw = c.raw;
+  const lines = [
+    `${source.toUpperCase()}  gps ${s.gps}  compass ${s.compass}  ${s.precise ? "precise" : "NOT PRECISE"}`,
+    `fix  ±${n(p?.accuracy_m, 0)} m  age ${n(p && p.fix_age_ms / 1000)} s  ${n(p?.speed_mps)} m/s  fixes ${stats.fixes}`,
+    `compass mag ${n(c.reading?.magnetic)}  true ${n(c.true)}  ±${n(c.reading?.accuracy, 0)}  ${c.reading?.kind ?? "—"}`,
+    raw ? `  α ${n(raw.alpha)} β ${n(raw.beta)} γ ${n(raw.gamma)} webkit ${n(raw.webkit)} scr ${raw.angle}°` : null,
+    `course ${n(f.courseRaw)}  offset ${n(f.offset)} (${f.learned})  disagree ±${n(f.disagreement)}`,
+    `fused ${n(f.heading)} ${f.source}  drawn ${n(p?.heading_deg)} ±${n(p?.heading_halfwidth_deg, 0)}`,
+    dbg.sim ? `sim t ${n(dbg.sim.t, 0)} s ×${dbg.sim.speed}  true ${n(dbg.sim.truth.heading)}  Δh ${n(p && p.heading_deg !== null ? angleDiff(p.heading_deg, dbg.sim.truth.heading) : null)}  Δpos ${n(p && metres(p.lonlat, dbg.sim.truth.lonlat))} m` : null,
+    `sample() ${n(stats.sampleUs, 1)} µs  frame ${n(stats.frameMs, 1)} ms`,
+  ];
+  $("read").textContent = lines.filter(Boolean).join("\n");
+}
+
+let prev = null;
+function frame(t) {
+  requestAnimationFrame(frame);
+  const a = performance.now();
+  const p = pose.sample(t);
+  const us = (performance.now() - a) * 1000;
+  stats.frames++;
+  stats.sampleUs += (us - stats.sampleUs) * 0.05;
+  if (prev !== null) stats.frameMs += (t - prev - stats.frameMs) * 0.05;
+  prev = t;
+  const dbg = pose.debug();
+  window.__poseDev.last = p && { ...p, lonlat: [...p.lonlat] };
+  readout(p, dbg, t);
+  drawDial(p, dbg);
+  if (!map) return;
+  if (p) {
+    const sh = shapes(p);
+    map.getSource("accuracy").setData(sh.ring);
+    map.getSource("beam").setData(sh.beam || empty);
+    map.getSource("ship").setData(sh.ship);
+    if (follow) map.jumpTo({ center: p.lonlat });
+  }
+  if (dbg.sim) map.getSource("truth").setData({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: dbg.sim.truth.lonlat } });
+  if (dbg.fixes.length && dbg.fixes.at(-1).t !== rawT) { // a new raw fix, kept or dropped
+    rawT = dbg.fixes.at(-1).t;
+    map.getSource("raw").setData({ type: "FeatureCollection", features: dbg.fixes.map((x) => ({ type: "Feature", properties: { ok: x.ok }, geometry: { type: "Point", coordinates: x.lonlat } })) });
+  }
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

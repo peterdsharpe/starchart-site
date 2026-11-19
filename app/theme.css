@@ -1,0 +1,13 @@
+/* Starchart's themes on the app's chrome. app/theme.js sets <html data-theme="dark|light"> and
+   data-amoled before the first paint; the palettes themselves are in design/tokens.css (Daystar under
+   [data-theme="light"], AMOLED black under [data-amoled]). This file adds only what the chrome needs
+   beyond them. Imported by app/app.css. */
+
+/* Daystar: white glass on the pale chart, soft slate shadows, and a dark scrim under the sheet */
+:root[data-theme="light"] {
+  --shade: var(--fixed-shade-day); /* W185 colours: the token; W21 glass: the glass and its hairline are tokens now (design/tokens.css); W68 daylook: slate, was violet */
+}
+/* W68 daylook: a chosen segment is a white chip with a green wash, so its green word holds 4.5:1 (it was 3.2:1 on the wash over the card) */
+:root[data-theme="light"] .seg :is(a[aria-current="true"], button[aria-checked="true"]) { background: color-mix(in srgb, var(--phosphor) 20%, var(--space-2)); } /* W68 daylook */
+:root[data-theme="light"] #about-sheet::backdrop { background: color-mix(in srgb, var(--starlight) 30%, transparent); }
+

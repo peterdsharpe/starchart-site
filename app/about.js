@@ -1,0 +1,35 @@
+// About, wave 18: the route network and the search index on this droid, beside the chart's own rows (app/course.js
+// stores them once the chart is in), and the screen's size and safe areas, so a pilot can report them from the road.
+import { storedTiles } from "./offline.js";
+import { pick, onLingo } from "./lingo-mode.js"; // W60 c
+
+const WHAT = { graph: "Route network", search: "Search index", dem: "Hills", climbs: ["G-wells", "Climbs"], climbdir: ["Negi direction", "Uphill direction"] }; // W19 terrain (app/terrain.js stores them); W229 climbs: climbs, climbdir; W231 sculclimbs: no slope (Steep ground), Climbs and its direction by the mode's name [SCUL, Plain]
+const el = (tag, className, text) => Object.assign(document.createElement(tag), { className, ...(text != null && { textContent: text }) });
+
+/** Fill (or refresh) a row per stored file after the chart's rows in `group`. */
+let last = null; // W60 c: the rows again in the new words, when Words changes with Settings open
+export async function aboutStores({ data, group, MB }) {
+  if (!last) onLingo(() => aboutStores(last)); // W60 c
+  last = { data, group, MB }; // W60 c
+  for (const e of data.files.filter((f) => WHAT[f.kind])) {
+    const st = await storedTiles(e).catch(() => null), ok = !!st?.current, name = pick(WHAT[e.kind]); // W231 sculclimbs: pick
+    let row = group.querySelector(`[data-kind="${e.kind}"]`);
+    if (!row) { row = el("div", "row"); row.dataset.kind = e.kind; group.append(row); }
+    const txt = el("div", "txt"), small = el("small", "", ok ? pick(`Stored on this droid (${MB(e.bytes)}) and checked.`, `Stored on this device (${MB(e.bytes)}) and checked.`) // W55 layers2: "Works offline" beside it says the rest; W60 c // W200 small8 (SPEC §356): device
+      : ["dem", "climbs", "climbdir"].includes(e.kind) ? pick(`Drawn once it is stored, after the chart (${MB(e.bytes)}).`, `Drawn once it is stored, after the map (${MB(e.bytes)}).`) // rel-0.1.122: Plain says map // W76 privacy: the hills are never read from the network (app/terrain.js)
+      : pick(`Read from the network until it is stored, after the chart (${MB(e.bytes)}).`, `Read from the network until it is stored, after the map (${MB(e.bytes)}).`));
+    txt.append(el("span", "", name), small);
+    row.replaceChildren(el("i", `i ${ok ? "i-check" : "i-download"}`), txt, el("span", ok ? "val ok" : "val", ok ? "Works offline" : ""));
+  }
+}
+
+/** The screen as the app sees it: CSS pixels, the safe areas and how it runs (installed or in a browser tab). */
+export function screenLine() {
+  const probe = el("div", "inset-probe");
+  document.body.append(probe);
+  const cs = getComputedStyle(probe), px = (v) => Math.round(parseFloat(v) || 0);
+  const line = `${innerWidth} × ${innerHeight}, safe areas ${px(cs.paddingTop)} top and ${px(cs.paddingBottom)} bottom, `
+    + (matchMedia("(display-mode: standalone)").matches ? "installed" : "in a browser tab");
+  probe.remove();
+  return line;
+}
