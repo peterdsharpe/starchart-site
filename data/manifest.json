@@ -1,8 +1,8 @@
 {
   "version": "20261112-bb89010a",
   "osm_date": "2026-11-12",
-  "built_at": "2026-11-19T00:12:20.493Z",
-  "commit": "6e9f2e73108534cca10943f54a095ee05eae8a77",
+  "built_at": "2026-11-19T11:40:39.084Z",
+  "commit": "a4e08500003d6c34e50615fdc3891992c203cd0f",
   "files": [
     {
       "path": "data/tiles/greater-boston-20261112-bb89010a.pmtiles",
@@ -58,27 +58,27 @@
   ],
   "optional": [
     {
-      "path": "data/tiles/greater-boston-comets-e7e12207172a.bin.gz",
-      "bytes": 31839,
-      "sha256": "e7e12207172aa552745d778d070abd761b6613450831ed5d8be213652a1b2e9d",
+      "path": "data/tiles/greater-boston-comets-5db9e4c1aba8.bin.gz",
+      "bytes": 30878,
+      "sha256": "5db9e4c1aba88924c602f6480ae73a1200280c4c1536972ad54bf8d73118b9bd",
       "kind": "transit",
       "region": "greater-boston",
       "feed": {
-        "start": "20261106",
+        "start": "20261112",
         "end": "20261212",
-        "version": "Fall 2026, 2026-11-13T21:35:28+00:00, version D"
+        "version": "Fall 2026, 2026-11-19T01:01:13+00:00, version D"
       }
     },
     {
-      "path": "data/tiles/greater-boston-transit-fbddf189ba4c.bin.gz",
-      "bytes": 441388,
-      "sha256": "fbddf189ba4c7eb2c8d82ab25f31ebf55123deabb04581ebfd253c65838072f3",
+      "path": "data/tiles/greater-boston-transit-91036943bc11.bin.gz",
+      "bytes": 428307,
+      "sha256": "91036943bc117152fc5521f4d214a0994ea43319eadc0ac98de39ee85bc24bc5",
       "kind": "walk",
       "region": "greater-boston",
       "feed": {
-        "start": "20261106",
+        "start": "20261112",
         "end": "20261212",
-        "version": "Fall 2026, 2026-11-13T21:35:28+00:00, version D"
+        "version": "Fall 2026, 2026-11-19T01:01:13+00:00, version D"
       }
     },
     {

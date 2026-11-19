@@ -156,6 +156,39 @@ export const fillNext = (live, sched, dep, n = 2) => {
   const a = [...new Set(live.filter((t) => t > dep))].sort((x, y) => x - y).slice(0, n), last = a.at(-1) ?? dep;
   return [...a, ...(sched || []).filter((t) => t > last + 120000)].slice(0, n);
 };
+/** The plan with its first boarding at the live time `dep`: the leg says so; with one vehicle the arrival moves with it
+ *  (with more, the change's next vehicle may still be caught, so only a delay moves it). W251 arrival (fifth pass): or ride `i`,
+ *  its wait before it and the rides after it moved as the first's; the last ride's moves the arrival either way; sixth pass: a ride
+ *  after it live from a reply (its `deps`) keeps its departure while she can make it (SPEC §517 clause 3). W189 transittimes: `later`, the
+ *  reply's other departures (ms), its next ones (fillNext()). W251 arrival (SPEC §517): from app/walk-card.js, for the walker's
+ *  search too (walktransit.js walkPlan()'s `live`). */
+/** W251 arrival (seventh pass, SPEC §517 clause 3, the whole review's P2): a wait's time outside as walktransit.js describe() counts it,
+ *  for a wait withLive() lengthens or shortens: under a roof as it was (`roof`); at a kerb all of it, the first one at most
+ *  FIRST_KERB.before_s once longer than its early_s (she sets off later, by its Leave by). */
+export const FIRST_KERB = { early_s: 180, before_s: 120 }; // walktransit.js WALK's (app/tests/walk.test.mjs checks)
+const outOf = (w, time_s, first) => (w.out_s == null || w.roof ? w.out_s : first && time_s > FIRST_KERB.early_s ? FIRST_KERB.before_s : time_s);
+export function withLive(p, dep, later = [], i = p.legs.findIndex((l) => l.type === "train")) { // W189 transittimes: later; W251 arrival (fifth pass): i, any ride of it (walktransit.js lived()), the first by default
+  if (i < 0 || dep == null) return p;
+  const l = p.legs[i], d = dep - l.dep, one = !p.legs.some((x, k) => k > i && x.type === "train"), move = one || d > 0 ? d : 0; // W251 arrival: its trains counted here (was walk-card.js trainsOf()); fifth pass: one, its last ride (with the first, the only one)
+  const first = p.legs.findIndex((x) => x.type === "train"); let out = 0; // W251 arrival (seventh pass): her time outside, as the waits change
+  const wait = (w, time_s, isFirst) => { const o = outOf(w, time_s, isFirst); if (o != null && w.out_s != null) out += o - w.out_s; return { ...w, time_s, ...(o != null ? { out_s: o } : {}) }; };
+  const legs = p.legs.map((x, k) => (k === i ? { ...x, dep, arr: x.arr + move, live: true, deps: later, ...(x.next ? { next: fillNext(later, x.next, dep) } : {}) } // W189 transittimes: next; W251 arrival (sixth pass): deps, the reply's, for a ride after an earlier one moves
+    : k === i - 1 && x.type === "wait" ? wait(x, Math.max(0, x.time_s + Math.round(d / 1000)), i === first) : x)); // W251 arrival (seventh pass): wait(), its time outside too
+  let shift = move; // how much later she is from here on
+  for (let k = i + 1; k < legs.length && shift; k++) {
+    const x = legs[k]; if (x.type !== "train") continue;
+    if (!x.live) { legs[k] = { ...x, dep: x.dep + shift, arr: x.arr + shift }; continue; }
+    // W251 arrival (sixth pass, SPEC §517 clause 3, the integrator's ruling): a ride live from a reply keeps its departure while she
+    // can make it; else the reply's next she can; else, none, the timetable's moved by the delay as any ride after
+    const w = legs[k - 1]?.type === "wait" ? k - 1 : -1, ready = x.dep - (w >= 0 ? legs[w].time_s * 1000 : 0) + shift;
+    const to = ready <= x.dep ? x.dep : (x.deps || []).find((t) => t >= ready) ?? null, nd = to ?? x.dep + shift;
+    if (w >= 0) legs[w] = wait(legs[w], Math.max(0, Math.round((nd - ready) / 1000)), false); // W251 arrival (seventh pass): wait()
+    legs[k] = { ...x, dep: nd, arr: x.arr + (nd - x.dep), ...(to == null ? { live: false } : {}) };
+    shift = nd - x.dep;
+  }
+  const by = one ? move : shift; // the arrival: the last ride's
+  return { ...p, legs, arrive: p.arrive + by, total_s: p.total_s + Math.round(by / 1000), ...(p.out_s != null ? { out_s: p.out_s + out } : {}) }; // W251 arrival (seventh pass): out_s, as reasonable() and her order weigh it
+}
 
 /** The trips of service day `k` (days since the feed's start), per pattern: the indices of its trips that run that day, in the
  *  file's order (by departure at the first stop). */

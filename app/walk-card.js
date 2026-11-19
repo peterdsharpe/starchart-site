@@ -7,6 +7,8 @@
 //   predictionsUrl(leg)         -> the one request a card's first boarding asks (its two stops and line, never a position; R1 plans)
 //   firstLive(json, ready, leg) -> the first predicted departure at or after `ready` (ms) of a trip that reaches leg.to, or null (R1 plans)
 //   withLive(plan, dep)         -> the plan with its first boarding's live time (and, for one vehicle, its arrival moved)
+//   liveMoved(plan, live)       -> W251 arrival: its arrival moved by a minute or more (app/course.js picks the rows again)
+//   liveStep(step, state)       -> W251 arrival (sixth pass): what app/course.js does with live times (SPEC §517's clauses)
 //   nextLeg(plan, i), stopPlace(plan, k)   W79 walkgo: in flight, the leg after leg i, and where walk leg k ends
 //
 // Every string is [SCUL, Plain] (app/lingo-mode.js pick()); a lone string is both modes'. R2 sandworm (SPEC §453, arclight's
@@ -14,7 +16,7 @@
 import { pick } from "./lingo-mode.js";
 import { clockAt, ampmClock, rideSeconds } from "./course-logic.js"; // W200 parkwalk: rideSeconds; W247 nextday: ampmClock
 import { lineColour, sectionName } from "./comets-logic.js"; // W186 palette; R2 sandworm: sectionName
-import { fillNext } from "../chart/routing/transit.js"; // W189 transittimes
+import { withLive } from "../chart/routing/transit.js"; // W189 transittimes; W251 arrival: withLive (was here, with fillNext)
 
 /** The From/To row's switch: "on" plans on foot and by T. Off by default: the ship comes first. */
 export const KEY = "starchart.walk";
@@ -211,15 +213,35 @@ export function liveDeps(json, l) { // R1 plans: l
 export function firstLive(json, ready, l) { // R1 plans: l, the leg
   return liveDeps(json, l).find((x) => x >= ready) ?? null; // W189 transittimes: liveDeps
 }
-/** The plan with its first boarding at the live time `dep`: the leg says so; with one vehicle the arrival moves with it
- *  (with more, the change's next vehicle may still be caught, so only a delay moves it). W189 transittimes: `later`, the
- *  reply's other departures (ms), its next ones (transit.js fillNext()). */
-export function withLive(p, dep, later = []) { // W189 transittimes: later
-  const i = p.legs.findIndex((l) => l.type === "train");
-  if (i < 0 || dep == null) return p;
-  const l = p.legs[i], d = dep - l.dep, one = trainsOf(p).length === 1, move = one || d > 0 ? d : 0;
-  const legs = p.legs.map((x, k) => (k === i ? { ...x, dep, arr: x.arr + move, live: true, ...(x.next ? { next: fillNext(later, x.next, dep) } : {}) } // W189 transittimes: next
-    : k === i - 1 && x.type === "wait" ? { ...x, time_s: Math.max(0, x.time_s + Math.round(d / 1000)) }
-    : k > i && x.type === "train" ? { ...x, dep: x.dep + move, arr: x.arr + move } : x));
-  return { ...p, legs, arrive: p.arrive + move, total_s: p.total_s + Math.round(move / 1000) };
+/** The plan with its first boarding at the live time `dep` (chart/routing/transit.js withLive(), there since W251 arrival: the walker's
+ *  search puts her rows' live times into its pick, SPEC §517). */
+export { withLive }; // W251 arrival
+/** W251 arrival (second fix pass, SPEC §517): whether live time q moved plan p's row enough to pick the rows again: its arrival by a
+ *  minute or more. The predictions carry seconds and the timetable whole minutes, and the rows show minutes. */
+export const liveMoved = (p, q) => Math.abs(q.arrive - p.arrive) >= 60e3; // W251 arrival
+/** W251 arrival (sixth pass, SPEC §517's clauses 1–8; seventh pass, 9–11): a walker's live times, decided in one place (app/course.js liveWalk() and
+ *  relive() call it; the replies' own rule, clauses 2, 3 and 5, is chart/routing/transit.js withLive() and walktransit.js lived()).
+ *  `step`, what just happened, and what to do:
+ *    "shown"    { plans, shown: [k], asked: Set, now } -> { ask: [k], asked: [id] }  clause 1: the rows shown to ask, each once
+ *    "planned"  { now, mine }                          -> { asked, seen, answered, relived, unheld }  clauses 9 and 7: a new plan of the rows starts again
+ *    "answer"   { p, q, current }                      -> { store, moved }            clauses 4 and 9: a reply moved its row a minute
+ *    "answers"  { moved: [bool], touched, relived, seen } -> { repick: "run" | "held" | null }  clauses 5, 6 and 7
+ *    "repicked" { plans, touched, asked, answered, seen } -> { held, asked: [id], unasked: [id], docks }  clauses 7, 8 and 11 */
+export const LIVE = { repicks: 2 }; // clause 6: re-picks an ask may run
+export const askedAs = (p) => { const l = p.legs.find((x) => x.type === "train"); return l ? `${l.route} ${l.dir} ${l.from} ${l.to}` : null; }; // clause 1: a row is asked once by its first boarding (the code review's P1: was its key, the lines alone, so a re-picked twin from another stop was never asked); none with no ride
+export function liveStep(step, s) {
+  if (step === "shown") { // clause 1: on a sheet for now, each row shown with a ride, once
+    const ask = [], ids = [];
+    for (const k of s.now ? s.shown : []) { const p = s.plans[k], id = p && askedAs(p); if (!id || s.asked.has(id) || ids.includes(id)) continue; ask.push(k); ids.push(id); }
+    return { ask, asked: ids };
+  }
+  if (step === "planned") return { asked: s.now ? new Set() : null, seen: new Map(), answered: new Set(), relived: 0, unheld: !!s.mine }; // clause 9: every new plan of the rows, a quiet re-plan too, starts again; clause 8: answered, the boardings whose reply is in; clause 7 (seventh pass, the integrator's ruling): one she asked for herself starts unheld
+  if (step === "answer") return { store: !!s.current && !!s.q.seen, moved: !!s.current && s.q !== s.p && liveMoved(s.p, s.q) }; // clause 4; clause 9: only the current ask's reply is kept
+  if (step === "answers") return { repick: !s.moved.some(Boolean) ? null : s.touched ? "held" : s.relived >= LIVE.repicks || !s.seen ? null : "run" }; // clauses 5, 6 and 7
+  if (step === "repicked") { // clauses 7 and 8
+    if (s.touched) return { held: true, asked: [], unasked: [] };
+    const live = (s.plans || []).filter((p) => p.legs.find((l) => l.type === "train")?.live && s.seen?.has(askedAs(p))).map(askedAs); // eighth pass (the whole review's P1, its open half): live from the reply asked for its own first boarding; one live from another stop off's reply is asked its own
+    return { held: false, asked: live, unasked: [...(s.asked || [])].filter((id) => !s.answered?.has(id) && !live.includes(id)), docks: (s.plans || []).some((p) => p.bike) }; // clause 8 (seventh pass): asked but its reply not in when the re-pick was asked, nor its plan live: asked again; clause 11: docks, a Bluebike row's counts to refresh
+  }
+  throw new Error(`liveStep: ${step}`);
 }

@@ -50,7 +50,7 @@ import { tip, untip, say, lastSaid, onNewAction } from "./tip.js"; // W196 ui4: 
 import { hush } from "./layers.js"; // W173 mapstyle2
 import { pace, get as setting, walkPace } from "./settings.js"; // W59 pace: the pilot's pace scales every minute shown, never the route chosen; W62 cometcard: setting; W248 stationdoor: walkPace
 import { KEY as COMET_KEY, WORDS as COMET, cometCard, bikeCards, foldTo, trainLines, cometLegs, stationPlace, nearLeave, boardText } from "./comet-card.js"; // W62 cometcard; W222 ontrain: not planPoints (trip.js legPoints, on the tracks)
-import { KEY as WALK_KEY, WORDS as WALKW, walkCard, walkLegs, nextLeg, stopPlace, dockName, shortDock, withCounts, lineName, missed } from "./walk-card.js"; import { drawClock, drawRow, drawSteps, liveLine, tidyRows, rowTimes } from "./ride-rows.js"; // W215 ridesheet: lineName, the rows, their times (no barAt: no cards' bars) // W73 walk; W79 walkgo: nextLeg, stopPlace; W173 previewsheet: barAt; W204 bikeshare: dockName, shortDock, withCounts
+import { KEY as WALK_KEY, WORDS as WALKW, walkCard, walkLegs, nextLeg, stopPlace, dockName, shortDock, withCounts, lineName, missed, liveStep, askedAs } from "./walk-card.js"; import { drawClock, drawRow, drawSteps, liveLine, tidyRows, rowTimes } from "./ride-rows.js"; // W215 ridesheet: lineName, the rows, their times (no barAt: no cards' bars) // W73 walk; W79 walkgo: nextLeg, stopPlace; W173 previewsheet: barAt; W204 bikeshare: dockName, shortDock, withCounts; W251 arrival: liveStep (was liveMoved)
 import { drawnList } from "./feed-docks.js"; // W238 feeddocks: the map's Bluebikes stations, for search
 import { recheckDue, recheck } from "../chart/routing/bikeshare.js"; // W204 bikeshare
 import { rideKey, rideWatch, rideFix, rideBeat, rideAt, aboard, aboardWatch, WORDS as RIDEW } from "./walk-ride.js"; import { soundMode } from "./calls.js"; // W211 walkride (SPEC §396): a walk's ride followed without being told; W222 ontrain: aboard, aboardWatch
@@ -1622,6 +1622,8 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     grid.append(...cards);
     let comet = null, cometLeft = []; // W62 cometcard: the plan that earned its card, with its card's words (cometCard); W211 stationcard2: cometLeft, the lines an alert left out when none earned it
     let walkPlans = [], walkWhen = null /* 0.1.103: the When walkPlans were asked with (options()) */, walkK = 0, walkP = null, walkSeq = 0, walkNone = false, walkLeft = [], walkLive = null; // W211 stationcard2: walkLeft, the lines an alert left her cards without // W73 walk: the walker's plans, the chosen one; W203 walkcards2: walkSeq, her asks; walkNone, no way by T now; W211 walkmore: walkLive, the cards whose live times are asked (null: a plan for later)
+    let walkSeen = new Map(), walkAnswered = new Set(), relived = 0, touched = false, docksFor = 0; // W251 arrival (seventh pass): docksFor, the plan of the rows whose dock counts refresh (docksTimer()); // W251 arrival (seventh pass): walkAnswered, clause 8's // W251 arrival (SPEC §517): the live departures had, by line, way and stops (relive()); its re-picks; her first touch on the sheet
+    for (const t of ["pointerdown", "keydown"]) s.addEventListener(t, () => { touched = true; }, true); // W251 arrival: her first touch on the sheet (here, before a walker's sheet returns to walkPlot())
     const goRow = el("div", "pv-go"), go = el("button", "launch-c");
     go.append(icon("launch"), document.createTextNode(flight.flying ? pickWords("Fly it", "Go") : pickWords("Launch", "Start"))); // W60 b
     // W25 course: Launch always shows, solid, and starts the planned route (fromto-logic.js launchPlan)
@@ -1811,7 +1813,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     // ---- W215 ridesheet (SPEC §411, UX rule 55): the rows on one clock, the lit row's part, the fit by height -------------------
     let rowN = null, heldH = 0, gridTo = 0; // the rows the fit shows (null: all); the sheet's height at its tallest pick; W228 trip3: the rows' at theirs (was padTo, the part's room at its tallest)
     const when0 = () => ({ kind: arrive != null ? "arrive" : leaveT != null ? "leave" : "now", at: arrive ?? leaveT ?? null });
-    /** The ways as rows, in the planner's order (her best first, lit): [{ b, k, o }], `b` the row, `k` the key that lights it, `o`
+    /** The ways as rows, in the planner's order (a bike's her best first; W251 arrival: a walker's by arrival, the first lit): [{ b, k, o }], `b` the row, `k` the key that lights it, `o`
      *  app/ride-rows.js's option (null for a bike row still coming, or with no route). */
     function options() {
       const now = Date.now(), when = { ...((walking && walkWhen) || when0()), now }; // 0.1.103's words read: a walker's rows with the When their plans were asked with. After a tap in the When row the old rows stay till the new plans come; drawn meanwhile with the new When, Now's plans said "leave at 8:36" (past) and Arrive by's "leave now"
@@ -1829,7 +1831,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     }
     const litOf = () => (walking ? walkK : pick), isLit = (x, k) => (walking || x.k === "comet" || k === "comet" ? x.k === k : (x.b.dataset.folds || x.k).split(" ").includes(k));
     /** The rows a fit of `n` shows: the first n, the lit one always among them (a bike's style picked last may be the third). */
-    const shownOf = (all, n, k) => { if (n == null || n >= all.length) return all; const top = all.slice(0, n), lit = all.find((x) => isLit(x, k)); return !lit || top.includes(lit) ? top : [...top.slice(0, n - 1), lit]; };
+    const shownOf = (all, n, k) => { if (n == null || n >= all.length) return all; const by = walking ? all.slice().sort((a, b) => (a.o?.plan?.place ?? 0) - (b.o?.plan?.place ?? 0)) : all, top = by.slice(0, n), lit = all.find((x) => isLit(x, k)), pick = !lit || top.includes(lit) ? top : [...top.slice(0, n - 1), lit]; return all.filter((x) => pick.includes(x)); }; // W251 arrival (SPEC §517): a walker's first n by place (walktransit.js places(): the earliest, the walk, the earliest without a Bluebike, then her rank), shown in the rows' order, by arrival
     const arrPx = (t = "12:00") => { const a = el("span", "arr probe", t); s.append(a); const w = a.offsetWidth; a.remove(); return w + 2; }; // an arrival's label's room, measured in the sheet (the clock hides for one row); second pass: one row's, its own ("9:08" is narrower)
     /** The clock, every row shown and the lit row's part: lit `k`, the pick, or another as a fit measures each. */
     function drawRows(k = litOf()) {
@@ -2457,28 +2459,66 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
         else if (walkNone) { s.classList.add("walk-more"); fillMore(null); } // W203 walkcards2: More and its When row with no plan
         status.textContent = pickWords(walkNone ? WALKW.noneNow : WALKW[r.reason] || WALKW.none); return ready(status.textContent); // W73 walk; W79 walkgo: ready, Start says why; W203 walkcards2: no way now says to pick a later time
       }
-      status.textContent = ""; walkPlans = r.plans; walkWhen = asked; walkLeft = r.left || []; walkLive = now ? new Set() : null; // W73 walk; W211 stationcard2: walkLeft; W211 walkmore (fix pass): the live times of the cards shown only, asked by fitWalk(); W203 walkcards2: a plan for later keeps its timetable
+      status.textContent = ""; walkPlans = r.plans; walkWhen = asked; walkLeft = r.left || []; // W73 walk; W211 stationcard2: walkLeft; W211 walkmore (fix pass): the live times of the cards shown only, asked by fitWalk(); W203 walkcards2: a plan for later keeps its timetable
+      const fresh0 = liveStep("planned", { now, mine: !keep }); ({ asked: walkLive, seen: walkSeen, answered: walkAnswered, relived } = fresh0); // W251 arrival: walkSeen, relived; seventh pass: clause 9, a quiet re-plan's too
+      if (fresh0.unheld) touched = false; // W251 arrival (seventh pass): clause 7, a plan she asked for (a When, a step of its time, a pack stored) starts unheld; a quiet re-plan keeps her hold
       ready(); // W79 walkgo: Start, on the chosen card
       const k0 = keep ? Math.max(0, r.plans.findIndex((p) => p.key && p.key === walkP?.key)) : 0; walkK = k0; // W215 ridesheet: a re-plan for a missed departure keeps her lit way where it is still there
       fillWalk(); chooseWalk(k0); placePin(walkP); /* W248 stationdoor */ if (!again) frame(false); // W73 walk; W203 walkcards2: a tap on the When row never moves the camera
-      if (r.plans.some((p) => p.bike)) { // W204 bikeshare (SPEC §372): a Bluebike card's live counts, asked again once a minute while this preview is open and in sight
-        const t = setInterval(async () => {
-          if (ui.sheet !== s || seq !== walkSeq) return clearInterval(t); // 0.1.94's merge: and a new plan for another time (W203 walkcards2)
-          if (document.hidden || navigator.connection?.saveData === true || !bikes()?.on) return; // out of sight, Data Saver, or Consider Bluebikes since off: the plan's counts stand (each ask is 270 KB)
-          const docks = await bikes()?.docks().catch(() => null);
-          if (!docks || ui.sheet !== s) return;
-          walkPlans = walkPlans.map((p) => withCounts(p, docks)); fillWalk(); chooseWalk(walkK);
-        }, 60000);
-      } // W204 bikeshare
+      if (r.plans.some((p) => p.bike)) docksTimer(); // W204 bikeshare (SPEC §372); W251 arrival (seventh pass): docksTimer(), a re-pick's too
     } // W73 walk
+    /** W204 bikeshare (SPEC §372): a Bluebike card's live counts, asked again once a minute while this preview is open and in sight, for
+     *  this plan of the rows. W251 arrival (seventh pass, SPEC §517 clause 11): started too when a re-pick brings in a Bluebike row. */
+    function docksTimer() {
+      const seq = walkSeq; if (docksFor === seq) return; docksFor = seq; // W251 arrival (seventh pass): once a plan of the rows
+      const t = setInterval(async () => {
+        if (ui.sheet !== s || seq !== walkSeq) return clearInterval(t); // 0.1.94's merge: and a new plan for another time (W203 walkcards2)
+        if (document.hidden || navigator.connection?.saveData === true || !bikes()?.on) return; // out of sight, Data Saver, or Consider Bluebikes since off: the plan's counts stand (each ask is 270 KB)
+        const docks = await bikes()?.docks().catch(() => null);
+        if (!docks || ui.sheet !== s) return;
+        walkPlans = walkPlans.map((p) => withCounts(p, docks)); fillWalk(); chooseWalk(walkK);
+      }, 60000);
+    } // W204 bikeshare
     /** W211 walkmore (fix pass): the live times of the first n cards, those fitWalk() shows, each asked once (was every plan's, five now). */
     function liveWalk(ks) { // W211 walkmore; W215 ridesheet: ks, the rows shown
-      const seq = walkSeq;
-      for (const k of walkLive ? ks : []) { // W211 walkmore; W215 ridesheet
-        const p = walkPlans[k]; if (!p || walkLive.has(k)) continue; walkLive.add(k); // W211 walkmore
-        walk().live(p).then((q) => { if (ui.sheet !== s || seq !== walkSeq || q === p || walkPlans[k] !== p) return; walkPlans[k] = q; fillWalk(); if (walkK === k) chooseWalk(k); }, () => {}); // W73 walk: the card keeps its place
+      const seq = walkSeq, asks = [], next = liveStep("shown", { plans: walkPlans, shown: ks, asked: walkLive || new Set(), now: !!walkLive }); // W251 arrival (sixth pass): SPEC §517's clause 1, walk-card.js liveStep()
+      for (const id of next.asked) walkLive.add(id);
+      for (const k of next.ask) { // W211 walkmore; W215 ridesheet
+        const p = walkPlans[k];
+        asks.push(walk().live(p).then((q) => { // W73 walk: its times in place
+          const current = ui.sheet === s && seq === walkSeq, a = liveStep("answer", { p, q, current }); // W251 arrival (seventh pass): clause 9, a reply for this ask alone
+          if (current) walkAnswered.add(askedAs(p)); // W251 arrival (seventh pass): clause 8, its reply in
+          if (a.store) walkSeen.set(`${q.seen.route} ${q.seen.dir} ${q.seen.from} ${q.seen.ids?.at(-1)}`, q.seen); // W251 arrival
+          const i = walkPlans.indexOf(p); if (!current || q === p || i < 0) return false; walkPlans[i] = q; fillWalk(); if (walkK === i) chooseWalk(i); // W251 arrival: wherever it is now
+          return a.moved; // W251 arrival: it moved, by a minute or more (second fix pass: was any shift, a few seconds every sheet); sixth pass: clause 4
+        }, () => { if (ui.sheet === s && seq === walkSeq) walkAnswered.add(askedAs(p)); return false; })); // W251 arrival (seventh pass): a failed ask is answered too
       } // W211 walkmore
+      if (asks.length) Promise.all(asks).then((moved) => { // W251 arrival: once the rows' answers are in, one re-pick
+        nav.walkMoved = (nav.walkMoved ?? 0) + moved.filter(Boolean).length; // for tests: the live answers that moved a row a minute
+        const { repick } = liveStep("answers", { moved, touched, relived, seen: walkSeen.size }); // W251 arrival (sixth pass): clauses 5, 6 and 7
+        if (repick === "held") nav.walkReliveHeld = true; else if (repick === "run") relive(seq); // for tests: a re-pick her touch held
+      });
     } // W211 walkmore
+    /** W251 arrival (SPEC §517, her row of 11-18, UX rules 109, 78 and 10): a live time that moved a row is weighed again: the planner
+     *  picks once more with the live departures (walk.js plan()'s `live`), so a late bus is checked against her lean's bar and the others,
+     *  and the rows glide to their places by arrival, the first lit; at most twice an ask, and never after her first touch on the sheet
+     *  (a row, its part, the clock, More): from then her pick and the order hold, the times changing in place. */
+    async function relive(seq) { // W251 arrival: liveStep("answers") said run
+      if (!walkLive || ui.sheet !== s || seq !== walkSeq) return;
+      relived++;
+      const answered = new Set(walkAnswered), seen = new Set(walkSeen.keys()); // W251 arrival (seventh pass): clause 8, the replies in as the planner is asked; eighth pass: seen, the boardings whose own reply it plans with (askedAs()'s form)
+      const door = toDoor().then(() => (place.doors ? place : null)), r = await walk().plan(from, place.lonlat, Date.now(), { cards: WALK_CARDS, end: door, live: [...walkSeen.values()] }).catch(() => null);
+      const after = liveStep("repicked", { plans: r?.plans, touched, asked: walkLive, answered, seen }); // W251 arrival (sixth pass): clauses 7 and 8
+      if (after.held) nav.walkReliveHeld = true; // for tests: a re-pick her touch held
+      if (after.held || ui.sheet !== s || seq !== walkSeq || !r?.plans?.length) return;
+      const was = new Map([...grid.querySelectorAll(".walkc:not(.unfit)")].map((b) => [walkPlans[+b.dataset.id.slice(5)]?.key, b.getBoundingClientRect().top])), pt = part.getBoundingClientRect().top; // where each row shown was, by its plan
+      walkPlans = r.plans; walkLeft = r.left || []; nav.walkRelived = relived; // for tests
+      if (after.docks) docksTimer(); // W251 arrival (seventh pass): clause 11, a Bluebike row it brought in refreshes its counts
+      for (const id of after.asked) walkLive.add(id); for (const id of after.unasked) walkLive.delete(id); // W251 arrival (seventh pass): clause 8, a reply that came during the re-pick: asked again by the fit below // its live time is in: not asked again; W251 arrival (fifth pass): its first boarding's (a later ride may now be live from another row's reply); sixth pass: clause 8
+      fillWalk();
+      const tops = new Map([...grid.children].map((n) => [n, n === part ? pt : was.get(walkPlans[+n.dataset.id?.slice(5)]?.key)]));
+      const end = walkP && endOf(walkP).lonlat; chooseWalk(0, tops); if (end && String(endOf(walkP).lonlat) !== String(end)) movePin(walkP); // the first lit; the To pin at its end, as when the rows first came
+    } // W251 arrival
     function fillWalk() { // W73 walk
       for (const b of grid.querySelectorAll(".walkc")) if (+b.dataset.id.slice(5) >= walkPlans.length) b.remove(); // W73 walk
       walkPlans.forEach((p, k) => { // W73 walk: each row updated in place, so a focused one keeps its focus
@@ -2489,8 +2529,8 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
       grid.dataset.n = walkPlans.length; // W73 walk
       fitRows(); // W211 walkmore; W215 ridesheet: by height (the lit row always among those shown, fix pass: no pick without a tap)
     } // W73 walk
-    function chooseWalk(k) { // W73 walk: the camera stays
-      const tops = rowTops(); // W228 trip3: where the rows were, for the glide as another one opens (W219 preview3's)
+    function chooseWalk(k, was = null) { // W73 walk: the camera stays; W251 arrival: was, where each row's plan was before a re-pick
+      const tops = was || rowTops(); // W228 trip3: where the rows were, for the glide as another one opens (W219 preview3's)
       walkK = k; walkP = walkPlans[k]; // W73 walk
       s.classList.add("walk-more"); fillMore(null); // W201 walkstops: her plan's Along the way, More and the grabber with it
       for (const b of grid.querySelectorAll(".walkc")) b.setAttribute("aria-checked", String(b.dataset.id === `walk-${k}`)); // W73 walk

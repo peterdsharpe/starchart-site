@@ -42,6 +42,8 @@ import { BIKE } from "../chart/routing/bikeshare.js"; // W204 bikeshare
 export const docksNear = (docks, from, to) => (docks || []).filter((d) => [from, to].some((p) => { const kx = 111320 * Math.cos((p[1] * Math.PI) / 180); return Math.hypot((d.ll[0] - p[0]) * kx, (d.ll[1] - p[1]) * 111320) <= BIKE.reach_m; })); // W204 bikeshare
 /** The longest her cards wait for the alerts reply (W78 walkalerts): later, the plans stand on the file alone, as offline. */
 export const ALERT_WAIT_MS = 1500;
+/** W251 arrival (seventh pass, SPEC §517 clause 10): how long plan() uses the last alerts reply when one is late or she is offline. */
+export const ALERTS_KEPT_MS = 60000;
 /**
  * W198 walkcards (SPEC §351): the sky on her way from `from` to `to` leaving at `when` (ms), from app/weather.js's `weather` as it
  * stands (no request of its own): "wet" with rain on the nowcast along the straight line as she walks it (1.2 times as long, at
@@ -62,6 +64,7 @@ export async function skyOf(weather, from, to, when, now = Date.now()) { // W198
 
 export function mountWalk({ data, at, router, fetchFn = (...a) => fetch(...a), weather = null, bikes = null }) { // W198 walkcards: weather, app/weather.js's; W204 bikeshare: bikes, app/bikeshare.js's
   const entry = (data?.optional || []).find((f) => f.kind === "walk") || null;
+  let alertsKept = null; // W251 arrival (seventh pass): { at, got }, the last alerts reply (plan())
   let loaded = null, own = null, tabled = false, aheadDone = false, last = Promise.resolve(); // W226 cardfirst: the cards' own worker with the timetable (app/stops-worker.js); the timetable in memory; the read-ahead answered; the last read of the file
 
   /** The timetable's bytes (app/timetable.js): stored, else the network's, else an older stored copy. W226 cardfirst: a card's and a plan's
@@ -92,7 +95,7 @@ export function mountWalk({ data, at, router, fetchFn = (...a) => fetch(...a), w
     get available() { return !!entry; }, get feed() { return entry?.feed || null; },
     /** On foot and by T from `from` to `to` ([lon, lat]) leaving at `when` (ms). W203 walkcards2: `by`, arriving by `when` instead
      *  (walktransit.js walkPlan's: each plan her latest run that makes it); its sky from when she'd set off on foot. */
-    async plan(from, to, when = Date.now(), { by = false, cards, end = null } = {}) { // W203 walkcards2: by; W211 walkmore: cards, as many as the sheet fits (app/course.js); W248 stationdoor: end, a promise of where it ends instead ({ lonlat, doors }: a station's door, and its doors, where a train that gets off there ends), the alerts, sky and docks asked meanwhile
+    async plan(from, to, when = Date.now(), { by = false, cards, end = null, live = null } = {}) { // W251 arrival: live, the rows' live departures (live()'s `seen`), weighed in the pick // W203 walkcards2: by; W211 walkmore: cards, as many as the sheet fits (app/course.js); W248 stationdoor: end, a promise of where it ends instead ({ lonlat, doors }: a station's door, and its doors, where a train that gets off there ends), the alerts, sky and docks asked meanwhile
       if (!entry) return { plans: [], reason: "none" };
       if (entry.feed?.end && boston(when).date.replaceAll("-", "") > entry.feed.end) return { plans: [], reason: "ended" };
       const alerts = globalThis.navigator?.onLine === false ? null // W78 walkalerts: asked beside the timetable
@@ -102,10 +105,12 @@ export function mountWalk({ data, at, router, fetchFn = (...a) => fetch(...a), w
       let wait; const late = new Promise((done) => { wait = setTimeout(() => done(null), ALERT_WAIT_MS); }); // W78 walkalerts: a weak signal never holds her cards
       const off = by ? when - (1.2 * Math.hypot((to[0] - from[0]) * 111320 * Math.cos((from[1] * Math.PI) / 180), (to[1] - from[1]) * 111320) / 1.4) * 1000 : when; // W203 walkcards2: arriving by, she sets off about a walk's time before (skyOf()'s walk)
       const docked = bikes?.on && !by ? bikes.docks().catch(() => null) : null; // W204 bikeshare: Bluebikes' docks and counts, as late as the alerts; 0.1.94's merge: none for Arrive by (walktransit.js)
-      const [got, sky, all] = await Promise.all([alerts, api.sky(from, to, off).catch(() => null), docked].map((x) => Promise.race([x, late]))); clearTimeout(wait); // W78 walkalerts; W198 walkcards: the sky, as late; W203 walkcards2: off; W204 bikeshare: all, the docks
+      const [fresh, sky, all] = await Promise.all([alerts, api.sky(from, to, off).catch(() => null), docked].map((x) => Promise.race([x, late]))); clearTimeout(wait); // W78 walkalerts; W198 walkcards: the sky, as late; W203 walkcards2: off; W204 bikeshare: all, the docks
+      if (fresh) alertsKept = { at: Date.now(), got: fresh }; // W251 arrival (seventh pass, SPEC §517 clause 10): the last alerts reply, for a minute
+      const got = fresh ?? (alertsKept && Date.now() - alertsKept.at < ALERTS_KEPT_MS ? alertsKept.got : null); // late or offline: the one of a minute ago, so a re-pick seconds after the first pick never brings back a suspended line
       const dest = end && (await end.catch(() => null)), here = dest?.doors?.length ? { here: dest.doors } : {}; if (dest?.lonlat) to = dest.lonlat; // W248 stationdoor: and the station's doors, for walktransit.js walkPlan()
       const docks = bikes?.on && !by ? docksNear(all ?? bikes.kept(), from, to) : []; // W204 bikeshare: the feed too slow, the kept docks (their counts unknown once 15 min old)
-      const { result } = await ask(w, { type: "walk", from, to, at: when, opts: { alerts: got, sky, leans: leans(), by, pace: walkPace(), ...(cards ? { cards } : {}), ...(docks.length ? { docks } : {}), ...here } }); // W78 walkalerts: alerts; W198 walkcards: sky; W199 prefs: leans (walktransit.js leaned()); W203 walkcards2: by; W204 bikeshare: docks; W211 walkmore: pace, her walking pace; cards
+      const { result } = await ask(w, { type: "walk", from, to, at: when, opts: { alerts: got, sky, leans: leans(), by, pace: walkPace(), ...(cards ? { cards } : {}), ...(docks.length ? { docks } : {}), ...here, ...(live?.length ? { live } : {}) } }); // W78 walkalerts: alerts; W198 walkcards: sky; W199 prefs: leans (walktransit.js leaned()); W203 walkcards2: by; W204 bikeshare: docks; W211 walkmore: pace, her walking pace; cards
       return { plans: result.plans, reason: result.reason || (result.plans.length ? null : "none"), stats: result.stats, left: result.left || [] }; // W211 stationcard2: left, the lines an alert left her cards without
     },
     /** W128 buslegs (SPEC §239): the timetable in the routing worker for the bike planner's buses (app/transit.js): true once in.
@@ -158,7 +163,8 @@ export function mountWalk({ data, at, router, fetchFn = (...a) => fetch(...a), w
       try {
         const r = await fetchFn(predictionsUrl(l), { cache: "no-cache", credentials: "omit", referrerPolicy: "no-referrer" });
         const json = r.ok ? await r.json() : null; // W189 transittimes
-        return json ? withLive(plan, firstLive(json, ready, l), liveDeps(json, l)) : plan; // W189 transittimes: and its next ones; R1 plans (SPEC §441): of the trips that reach her stop
+        const deps = json ? liveDeps(json, l) : null, q = json ? withLive(plan, firstLive(json, ready, l), deps) : plan; // W251 arrival
+        return q === plan ? plan : { ...q, seen: { route: l.route, dir: l.dir, from: l.from, ids: l.ids, deps } }; // W189 transittimes: and its next ones; R1 plans (SPEC §441): of the trips that reach her stop; W251 arrival (SPEC §517): `seen`, the reply's departures, for a re-pick with them (plan()'s `live`)
       } catch { return plan; }
     },
   };

@@ -4,7 +4,7 @@
 // Node's tests.
 //
 //   const tt = readTimetable(buffer);                 // transit.js's reader, the walker's file
-//   walkPlan(router, tt, from, to, at)  -> { plans, at, stats } or { plans: [], reason }   plans: her best two or three
+//   walkPlan(router, tt, from, to, at)  -> { plans, at, stats } or { plans: [], reason }   plans: her cards (W251 arrival: by arrival, pickCards())
 //   walkRoute(router, from, to)       -> a walk as router.route()'s course, its turns and the walker's time (W79 walkgo)
 //   walkPlan(..., { alerts })           W78 walkalerts: less any plan a storm day's alert stops (transit.js alerted(), V3's
 //                                       ALERTS reply), before the cards are picked; W211 stationcard2: `left`, the lines of those that
@@ -13,6 +13,7 @@
 //                                       "hot"; app/walk.js skyOf()); `all`, every plan found as well (sweep-walkcards.mjs)
 //   walkPlan(..., { docks })            W204 bikeshare: and walk, ride a Bluebike, walk on (bikePlans()), from the feed's docks
 //                                       (bikeshare.js withStatus()), weighed as the others with the ride's comfort and the rain
+//   walkPlan(..., { live })             W251 arrival: with the first boardings at the live departures the page has had (lived())
 //   walkPlan(..., { pace, cards })      W211 walkmore: at her walking pace (1 at WALK.speed; app/settings.js walkPace()), every walk,
 //                                       a station's walk inside and a change on foot; `cards`, as many as the page fits; and her
 //                                       lean's FAR: the walk the whole way always a card within its alone_m (pickCards())
@@ -35,7 +36,7 @@
 //   none another beats or ties on every measure (its minutes to the door and outside, changes, fare, a missed change's risk),
 //   and each near the best under some weighting of RANGES, her rule in their middle. The third card is the least outside.
 import { boston } from "../../app/comet-bikes.js";
-import { alerted, dayNo, entrances, minHeap, tripsOn, nextDepartures, MASSPORT } from "./transit.js"; // W78 walkalerts; W189 transittimes: nextDepartures; W192 sltimes: MASSPORT
+import { alerted, dayNo, entrances, minHeap, tripsOn, nextDepartures, MASSPORT, withLive } from "./transit.js"; // W78 walkalerts; W189 transittimes: nextDepartures; W192 sltimes: MASSPORT; W251 arrival: withLive
 import { lean, CHANGE_S, step, walkLean, SOONER } from "./tradeoffs.js"; // W199 prefs; W203 tradeoffs2: CHANGE_S; W211 walkmore: step, walkLean; W212 walkfirst: SOONER
 import { BIKE, fareOf as bikeFare, stressM } from "./bikeshare.js"; // W204 bikeshare; 0.1.94's merge: as bikeFare, beside W203 walkcards2's fareOf (the T's)
 
@@ -263,11 +264,12 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
   }
   const best = new Array(S), dest = [];
   if (alone) dest.push({ t: t0 + alone.s, m: alone.m, n: 0, label: null, e: null, alone });
-  const pruned = (t, m) => m > most_m || dest.some((d) => d.t <= t && bucket(d.m) <= bucket(m)); // W211 walkmore: most_m
-  const add = (s, x) => !pruned(x.t, x.m) && insert((best[s] ||= []), x);
+  const may = (d, x) => d.n < x.n || (d.label?.rk || 0) <= (x.rk || 0); // W251 arrival (SPEC §517): an end's label prunes one of its own round only with no more of a missed change's risk (`rk`, reasonable()'s change_s), so a plan dropped later for its risk never takes out a trip she'd reach sooner (Bus 1 > 83 took out Orange > Red)
+  const pruned = (t, m, x) => m > most_m || dest.some((d) => d.t <= t && bucket(d.m) <= bucket(m) && may(d, x)); // W211 walkmore: most_m; W251 arrival: may()
+  const add = (s, x) => !pruned(x.t, x.m, x) && insert((best[s] ||= []), x);
   let marked = new Map(); // stop -> labels new in the last round
   for (const [s, a] of access) {
-    const x = { t: t0 + a.s, m: a.m, n: 0, s, how: { k: "access", a } };
+    const x = { t: t0 + a.s, m: a.m, n: 0, s, how: { k: "access", a }, rk: 0 }; // W251 arrival: rk
     if (add(s, x)) (marked.get(s) || marked.set(s, []).get(s)).push(x);
   }
   let scanned = 0;
@@ -284,7 +286,7 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
         const s = p.st[i];
         if (rb.length && !p.noOff[i]) for (const b of rb) {
           const tr = list[b.ti], t = (T[tr * n + i] + shift) * 60;
-          const x = { t, m: b.label.m, n: r, s, prev: b.label, how: { k: "ride", p: pi, trip: tr, ti: b.ti, i: b.i, j: i, shift } };
+          const x = { t, m: b.label.m, n: r, s, prev: b.label, how: { k: "ride", p: pi, trip: tr, ti: b.ti, i: b.i, j: i, shift }, rk: b.rk }; // W251 arrival: rk
           if (add(s, x)) mark(s, x);
         }
         const here = marked.get(s);
@@ -297,13 +299,13 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
           const bm = bucket(lab.m);
           if (rb.some((b) => b.ti <= lo && bucket(b.label.m) <= bm)) continue;
           for (let q = rb.length - 1; q >= 0; q--) if (lo <= rb[q].ti && bm <= bucket(rb[q].label.m)) rb.splice(q, 1);
-          rb.push({ ti: lo, label: lab, i });
+          rb.push({ ti: lo, label: lab, i, rk: lab.rk + (r > 1 ? Math.min(HER.cap_s, HER.half * headway(tt, list, pi, lo, i, shift)) : 0) }); // W251 arrival: a change's risk as describe() counts it
         }
       }
     }
     // changes on foot, from the stops a vehicle reached this round
     for (const [s, labs] of [...fresh]) for (const lab of labs) for (const [v, fs, fm, sib] of foot[s]) {
-      const x = { t: lab.t + (sib ? Math.max(fs / pace, WALK.change_s - WALK.board_s) : fs / pace), m: lab.m + fm, n: r, s: v, prev: lab, how: { k: "foot", from: s } }; // W211 walkmore: at her pace; W222 integration: between two places of one station never under a change at one place, however fast she walks
+      const x = { t: lab.t + (sib ? Math.max(fs / pace, WALK.change_s - WALK.board_s) : fs / pace), m: lab.m + fm, n: r, s: v, prev: lab, how: { k: "foot", from: s }, rk: lab.rk }; // W211 walkmore: at her pace; W222 integration: between two places of one station never under a change at one place, however fast she walks
       if (add(v, x)) mark(v, x);
     }
     for (const [s, labs] of fresh) {
@@ -312,8 +314,8 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
       for (const lab of labs) {
         if (lab.how.k === "foot" && lab.prev && egress.has(lab.prev.s)) continue; // walk on from the vehicle's own stop instead
         const t = lab.t + e.s, m = lab.m + e.m;
-        if (m > most_m || dest.some((d) => d.t <= t && bucket(d.m) <= bucket(m))) continue; // W211 walkmore: most_m
-        for (let q = dest.length - 1; q >= 0; q--) if (dest[q].n === r && t <= dest[q].t && bucket(m) <= bucket(dest[q].m)) dest.splice(q, 1);
+        if (m > most_m || dest.some((d) => d.t <= t && bucket(d.m) <= bucket(m) && may(d, lab))) continue; // W211 walkmore: most_m; W251 arrival: may()
+        for (let q = dest.length - 1; q >= 0; q--) if (dest[q].n === r && t <= dest[q].t && bucket(m) <= bucket(dest[q].m) && lab.rk <= dest[q].label.rk) dest.splice(q, 1); // W251 arrival: and no more risk
         dest.push({ t, m, n: r, label: lab, e });
       }
     }
@@ -391,6 +393,7 @@ export function walkPlan(router, tt, from, to, at, opts = {}) {
   const all = got ? got.map(({ x, start }) => ({ ...describe(router, tt, { x, F, R, from, to, at: at + (start - t0) * 1000, t0: start, days, k, pace }), spare_s: Math.round(t0 - x.t) })) // W203 walkcards2: spare_s, at the door before `at`; W211 walkmore: pace
     : dest.map((x) => describe(router, tt, { x, F, R, from, to, at, t0, days, k, pace })); // W189 transittimes: k; W211 walkmore: pace
   if (opts.docks?.length && !opts.by) { const t2 = performance.now(), bikes = bikePlans(router, F, R, opts.docks, { at }); all.push(...bikes); stats.bikes = bikes.length; stats.bike_ms = Math.round(performance.now() - t2); } // W204 bikeshare; 0.1.94's merge: not for Arrive by (W203 walkcards2), whose plans are her latest runs: a Bluebike's leaves at `at`
+  if (opts.live?.length) for (let i = 0; i < all.length; i++) all[i] = lived(all[i], opts.live); // W251 arrival (SPEC §517): the rows' live times in the pick, so a late bus is weighed late
   const hits = opts.alerts ? all.map((p) => alerted(opts.alerts, p, { bike: false })) : null; // W211 stationcard2: each plan's lines an alert stops
   const plans = hits ? all.filter((_, i) => !hits[i].length) : all; // W78 walkalerts: a storm day's, and the next one weighed
   stats.alerted = all.length - plans.length; // W78 walkalerts
@@ -400,6 +403,21 @@ export function walkPlan(router, tt, from, to, at, opts = {}) {
   const cards = pickCards(plans, n, pick), left = [...why.values()].filter((l) => !cards.some((p) => p.legs.some((x) => x.route === l.route))); // W211 stationcard2: none her cards still take (a later train, past the alert)
   stats.ms = Math.round(performance.now() - t);
   return { plans: cards, at, stats, ...(left.length ? { left } : {}), ...(opts.all ? { all: plans } : {}) }; // W198 walkcards: the sky; `all`, every plan found, for sweep-walkcards.mjs; W199 prefs: leaned, Settings' Trade-offs; W211 stationcard2: left
+}
+
+/** W251 arrival (SPEC §517, UX rules 109 and 78): plan p with each boarding (fifth pass: every ride, was its first) at the live departures the page has had (`live`:
+ *  [{ route, dir, from, ids, deps }], app/walk.js live()'s `seen`, `ids` the asked ride's stops): the first at or after she is at the stop, as walk.js live() takes it;
+ *  else as it was. */
+export function lived(p, live) { // W251 arrival (seventh pass): exported for its units
+  for (let i = 0; i < p.legs.length; i++) { // W251 arrival (fifth pass, the live check's k1): every ride, in order, as the rides before it moved it (was the first alone: 91 + Red kept the Red Line's timetable 12:13 at Central where the reply had none till 12:27)
+    const l = p.legs[i]; if (l.type !== "train") continue;
+    const at = (x) => x.route === l.route && x.dir === l.dir && x.from === l.from; // one stop off on the other's ride: the departures are of the trips that reach the asked stop off (walk-card.js liveDeps()), never another branch's
+    const e = live.find((x) => at(x) && x.ids?.at(-1) === l.to) ?? live.find((x) => at(x) && x.ids?.includes(l.to)) ?? live.find((x) => at(x) && l.ids?.includes(x.ids?.at(-1))); // W251 arrival (seventh pass, SPEC §517 clause 5): first the reply asked to her own stop off (all its trips are hers), then one whose ride passes it (a farther stop's: a subset of hers, which may lack her first: the Red Line to Ashmont for a ride to JFK/UMass), only then one asked short of it (second fix pass)
+    if (!e) continue;
+    const w = p.legs[i - 1], ready = l.dep - (w?.type === "wait" ? w.time_s * 1000 : 0);
+    p = withLive(p, e.deps.find((t) => t >= ready) ?? null, e.deps, i); // the first it can make
+  }
+  return p;
 }
 
 /** W203 walkcards2 (SPEC §366): how long before an arrive-by the search sets off: twice the walk the whole way (a plan by T can take
@@ -492,7 +510,8 @@ export function leaned(ranges, leans) { // W199 prefs
  *  far()) unless another plan beats it on everything; a Bluebike that earns its card; then the quickest and the least outside; her
  *  best of them all first (the walk or the Bluebike when it leads her rule). `n`: as many as the page fits (app/course.js). W212 walkfirst
  *  (SPEC §399): `walk`, the beam's step; on its Walking side, beside the walk's card in a dry sky, a plan by T only when tradeoffs.js
- *  SOONER's `card` sooner than the walk, and first only when its `first` sooner. */
+ *  SOONER's `card` sooner than the walk. W251 arrival (SPEC §517): that order is her rank (`rank`); the n asked for are the first by
+ *  place (places()), and they come back by arrival (byArrival()), the earliest first. */
 export function pickCards(plans, n = HER.cards, { ranges = RANGES, sky = null, alone_m = FAR.alone_m[2], walk: k = 0 } = {}) { // W198 walkcards: ranges, sky; W211 walkmore: alone_m; W212 walkfirst: walk, the beam's step
   for (const p of plans) p.score = Math.round(herScore(p));
   const all = plans.some((p) => p.bike) ? reasonable(plans, { ranges, sky }) : [], bike = all.find((p) => p.bike); // W204 bikeshare (SPEC §372): one Bluebike card (another dock a block away is the same choice), her best of those W198's rule keeps among them all
@@ -500,21 +519,44 @@ export function pickCards(plans, n = HER.cards, { ranges = RANGES, sky = null, a
   const S = walk && !BAD.includes(sky) && SOONER.card[step(k) + 2], sooner = (p, t) => !t || !p.vehicles || door(walk) - door(p) >= t; // W212 walkfirst (SPEC §399): on the Walking side in a dry sky, beside the walk's card
   const kept = reasonable(plans.filter((p) => !p.bike), { ranges, sky }), near = kept.filter((p) => sooner(p, S)); // W198 walkcards; W204 bikeshare: her cards as with Consider Bluebikes off; W212 walkfirst: of her plans by T, only those that save real time
   const fast = S ? Math.min(...kept.map((p) => p.total_s)) : Infinity; // W212 walkfirst (its review's P2): a plan by T left out may still be quicker than the walk
-  const out = [], room = bike ? Math.max(1, n - 1) : n, top = near.find((p) => p.vehicles) || null; // W204 bikeshare: her best without a Bluebike always stays; W211 walkmore: her best plan by T
+  const out = [], top = near.find((p) => p.vehicles) || null; // W211 walkmore: her best plan by T; W251 arrival: no room kept for a Bluebike (places() gives it its place)
   const quick = near.length ? near.reduce((a, b) => (b.total_s < a.total_s ? b : a)) : null;
   const least = near.length ? near.reduce((a, b) => (b.out_s < a.out_s - WALK.bucket_m / WALK.speed ? b : a)) : null; // W198 walkcards: outside, walking or waiting (was the walking)
-  const lead = S && near[0]?.vehicles && !sooner(near[0], SOONER.first[step(k) + 2]) ? walk : null; // W212 walkfirst: the walk first, unless her best by T saves more
-  for (const p of [lead, top, walk, quick, least, ...near]) { // W211 walkmore: the places' order (was her best, the quickest, the least outside); W212 walkfirst: lead
-    if (out.length >= room) break; // W204 bikeshare: room
+  for (const p of [top, walk, quick, least, ...near]) { // W211 walkmore: the places' order (was her best, the quickest, the least outside); W251 arrival: her rank, every one (no walk first by SOONER's `first`, gone)
     if (!p || out.includes(p) || out.some((q) => q.key === p.key)) continue;
     out.push(p);
   }
-  const i = out.indexOf(lead || near[0]); // W211 walkmore: her best first (the walk, when it leads her rule); W212 walkfirst: or the walk as lead
+  const i = out.indexOf(near[0]); // W211 walkmore: her best first (the walk, when it leads her rule)
   if (i > 0) out.unshift(...out.splice(i, 1));
   if (bike) out.splice(bike === all[0] ? 0 : Math.max(0, out.indexOf(top), out.indexOf(walk)) + 1, 0, bike); // W204 bikeshare: first when it is her best of them all, else after hers; W211 walkmore: in its place, after her best by T and the walk (fix pass: after her best by T with no walk's card, was the third place always)
-  for (const p of out) p.whys = out.map(() => null); // W211 walkmore: whys[k - 1], each card's reason where the page fits only the first k (null past them)
-  for (let k = 1; k <= out.length; k++) for (const p of reasons(out.slice(0, k), fast)) p.whys[k - 1] = p.why; // W212 walkfirst: fast
-  return reasons(out, fast);
+  out.forEach((p, r) => { p.rank = r; }); // W251 arrival: her rank, which orders the places after the first ones and rows within `near` of each other
+  const cards = places(out, walk).slice(0, n); // W251 arrival (SPEC §517): the n the page asked for by place: the earliest, the walk, the earliest without a Bluebike, then her rank
+  for (const p of cards) p.whys = cards.map(() => null); // W211 walkmore: whys[k - 1], each card's reason where the page fits only the first k (null past them); W251 arrival: the first k by place
+  for (let k = 1; k <= cards.length; k++) for (const p of reasons(cards.slice(0, k), fast)) p.whys[k - 1] = p.why; // W212 walkfirst: fast
+  reasons(cards, fast);
+  return byArrival(cards); // W251 arrival: the rows by arrival, the first lit
+}
+/** W251 arrival (SPEC §517, her row of 11-18, UX rule 109: "show the earliest arrival first"): plans by arrival, from now or the Leave
+ *  at time (door(): to the door, the wait to leave in it); with Arrive by, from setting off to the time asked, so the latest to leave
+ *  first. A plan within `near` (RANGES': 10 % or 60 s) of the first of its run keeps her rank's order (`rank`, pickCards()'s). */
+export function byArrival(plans, near = RANGES.near) {
+  const by = plans.slice().sort((a, b) => door(a) - door(b) || (a.rank ?? 0) - (b.rank ?? 0)), out = [];
+  while (by.length) {
+    const t = door(by[0]) + Math.max(near.s, near.frac * door(by[0]));
+    let j = 1; while (j < by.length && door(by[j]) <= t) j++;
+    out.push(...by.splice(0, j).sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)));
+  }
+  return out;
+}
+/** W251 arrival (SPEC §517): what shows when only some rows fit (app/course.js fitRows(), the first by `place`): the earliest arrival
+ *  (byArrival()'s first, so the row lit at first); the walk the whole way, where it is sure of its card (`walk`, pickCards()'s, UX rule
+ *  44); when a Bluebike is earliest, the earliest without one; then the rest by her rank. Sets each plan's `place` and returns them in
+ *  that order. */
+export function places(plans, walk = null) {
+  const rows = byArrival(plans), ride = rows[0]?.bike ? rows.find((p) => !p.bike) : null, out = [];
+  for (const p of [rows[0], walk, ride, ...plans.slice().sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))]) if (p && !out.includes(p)) out.push(p);
+  out.forEach((p, i) => { p.place = i; });
+  return out;
 }
 /** W211 walkmore: each card's reason, once, in a word (pickCards()'s, again for the cards the page fits): the quickest; then the
  *  fewest vehicles (her best of them), when the quickest has more; then the least outside (W198 walkcards: was the least walking). A
@@ -625,7 +667,7 @@ function describe(router, tt, { x, F, R, from, to, at, t0, days, k, pace = 1 }) 
     const dep = (p.times[h.trip * n + h.i] + h.shift) * 60, arr = (p.times[h.trip * n + h.j] + h.shift) * 60;
     if (!first) change_s += Math.min(HER.cap_s, HER.half * headway(tt, days(h.shift)[h.p], h.p, h.ti, h.i, h.shift));
     const wait = Math.round(dep - ready), kerb = first && wait > WALK.early_s ? WALK.before_s : wait; // W198 walkcards: the first one mostly indoors, by its Leave by
-    legs.push({ type: "wait", station: from_s.id, time_s: wait, out_s: roofed(from_s, route) ? held ?? 0 : kerb }); // W198 walkcards: out_s; W222 stationwalk: held, a change inside its walk's
+    legs.push({ type: "wait", station: from_s.id, time_s: wait, out_s: roofed(from_s, route) ? held ?? 0 : kerb, ...(roofed(from_s, route) ? { roof: true } : {}) }); // W198 walkcards: out_s; W222 stationwalk: held, a change inside its walk's; W251 arrival (seventh pass): roof, for transit.js withLive()'s count
     held = null; // W222 stationwalk
     legs.push({ type: "train", mode: route.type === 3 ? "bus" : "rail", route: p.route, line: route.name, short: route.short || "", rtype: route.type, color: route.color || "8a8f98",
       dir: p.dir, head: p.head, from: from_s.id, from_name: from_s.name, to: to_s.id, to_name: to_s.name, dep: ms(dep), arr: ms(arr), stops: h.j - h.i, time_s: arr - dep,

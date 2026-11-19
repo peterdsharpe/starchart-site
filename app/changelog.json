@@ -2,6 +2,21 @@
   "next": [],
   "versions": [
     {
+      "version": "0.1.138",
+      "release": "Procyon",
+      "date": "2026-11-19",
+      "notes": [
+        {
+          "scul": "On foot, courses now run by when you arrive, counting any wait to leave; with Arrive by, latest to leave first. Two a few minutes apart can swap, to put your Trade-offs pick or the space walk first.",
+          "plain": "On foot, routes now run by when you arrive, counting any wait to leave; with Arrive by, latest to leave first. Two a few minutes apart can swap, to put your Trade-offs pick or the walk first."
+        },
+        {
+          "scul": "Some courses on foot with a change that used to be dropped, like Orange to Red, can now show. Live times can reorder or replace the courses unless you've touched the course preview since they came.",
+          "plain": "Some routes on foot with a change that used to be dropped, like Orange to Red, can now show. Live times can reorder or replace the routes unless you've touched the route preview since they came."
+        }
+      ]
+    },
+    {
       "version": "0.1.137",
       "release": "Polaris",
       "date": "2026-11-18",

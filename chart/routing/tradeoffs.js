@@ -29,9 +29,10 @@ export const WALK_LEAN = [0.5, 0.7, 1, 1.6, 2.6]; // W211 walkmore: the sweep's 
 export const walkLean = (k) => WALK_LEAN[step(k) + 2]; // W211 walkmore
 /** W212 walkfirst (SPEC §399, her row 7.4: "You'd never take the bus or train if walking is faster"; no new setting, UX rules 7 and 42):
  *  the walker's beam's Walking side. Beside the walk the whole way's card, in a dry sky or one not known, a plan by T is a card only when
- *  it has her at the door `card` s sooner than walking, and comes first only when `first` s sooner (walktransit.js pickCards()); level
- *  and the T's side null, her weights alone. The sweep's numbers (SPEC §399): 3 and 5 min a step to walking, 5 and 10 min at its end. */
-export const SOONER = { card: [null, null, null, 180, 300], first: [null, null, null, 300, 600] }; // W212 walkfirst
+ *  it has her at the door `card` s sooner than walking (walktransit.js pickCards()); level and the T's side null, her weights alone.
+ *  The sweep's numbers (SPEC §399): 3 min a step to walking, 5 min at its end. W251 arrival (SPEC §517): no `first` (was 5 and 10 min
+ *  to come first): the rows run by arrival, so her lean decides what shows, never the order. */
+export const SOONER = { card: [null, null, null, 180, 300] }; // W212 walkfirst; W251 arrival: no `first`
 /** Every beam level: no plan or card changes. */
 export const level = (leans) => !leans || BEAMS.every((b) => lean(leans[b]) === 1);
 /** What the line under each beam says, as a rider reads it. W203 tradeoffs2 (SPEC §365, her row 7: "10 minutes outside count as
@@ -40,19 +41,26 @@ export const level = (leans) => !leans || BEAMS.every((b) => lean(leans[b]) === 
  *  30 % × the lean, past its 3 min × the lean there); hills: the miles Fewest hills rides to skip a 10-ft climb (its uphill price,
  *  300 × the lean, × 10 ft); bikeWeather: the minutes a drier plan by train may add to a 20-min route (the rain rule's cap, 30 % ÷
  *  the lean, under its 10 min ÷ the lean); walk: the minutes riding she'd give for 10 min less walking (10 ÷ the lean, as W199's;
- *  W212 walkfirst: the minutes of walking a 10 min ride must save to come first, 10 × the lean, and on the Walking side SOONER's two in min;
+ *  W212 walkfirst: the minutes of walking a 10 min ride must save to come first, 10 × the lean, and on the Walking side SOONER's two in min
+ *  (W251 arrival: its one, to show; and "can show" for "can come first" on the T's side and at level);
  *  0.1.99's words review: on the T's side and at level said door to door as SOONER's are, the minutes walking all the way may be quicker
  *  with a 10 min ride still first, 10 − those, so the line reads one way along the beam: 5, 3, about as quick, then 3 and 5, 5 and 10);
  *  changes: the minutes longer she'd go to skip a change (CHANGE_S × the lean); footWeather: walk's in the rain, 10 × (her minute
- *  outside ÷ the walker's lean + the rain's WET ÷ this lean), walktransit.js leaned()'s, so it moves with walk's too. */
+ *  outside ÷ the walker's lean + the rain's WET ÷ this lean), walktransit.js leaned()'s, so it moves with walk's too. W251 arrival
+ *  (fourth pass): both now the most minutes longer such a plan can be and still show (OUT_HIGH, NEAR_S below). */
 export const PRICE = {
   protect: (k) => Math.round(6 * lean(k)), // W203 tradeoffs2: min more on a 20-min route (was % farther)
   hills: (k) => Math.round((3000 * lean(k)) / 5280 * 10) / 10, // W203 tradeoffs2: mi farther to skip a 10-ft climb (was ft for 1 ft)
-  walk: (k) => (step(k) > 0 ? [SOONER.card[step(k) + 2] / 60, SOONER.first[step(k) + 2] / 60] : 10 - Math.round(10 * walkLean(k))), // W211 walkmore: walkLean; W212 walkfirst (SPEC §399, her row 7.4): in her terms (was the riding she'd give for walking), and SOONER's on the Walking side; 0.1.99's words review: door to door there too, the minutes walking may be quicker (was the walking a ride must save, 5 7 10, whose 10 at level read as more than +1's 5)
+  walk: (k) => (step(k) > 0 ? [SOONER.card[step(k) + 2] / 60] : 10 - Math.round(10 * walkLean(k))), // W251 arrival: SOONER's "to show" alone // W211 walkmore: walkLean; W212 walkfirst (SPEC §399, her row 7.4): in her terms (was the riding she'd give for walking), and SOONER's on the Walking side; 0.1.99's words review: door to door there too, the minutes walking may be quicker (was the walking a ride must save, 5 7 10, whose 10 at level read as more than +1's 5)
   bikeWeather: (k) => Math.round(6 / lean(k)), // W203 tradeoffs2: min more on a 20-min route to stay dry
-  changes: (k) => Math.round((CHANGE_S * lean(k)) / 60), // W203 tradeoffs2
-  footWeather: (k, walk = 0) => Math.round(10 * (1 / walkLean(walk) + WET / lean(k))), // W203 tradeoffs2; W211 walkmore: walkLean
+  changes: (k) => Math.floor((2 * CHANGE_S * lean(k) + NEAR_S) / 60 + 1e-9), // W203 tradeoffs2; W251 arrival (fourth pass): the most a plan with one change fewer may be longer and still show (was her own price, 5 at level, "to come first")
+  footWeather: (k, walk = 0) => Math.max(0, Math.floor(10 * (OUT_HIGH / walkLean(walk) + WET / lean(k) - 1) + NEAR_S / 60 + 1e-9)), // W203 tradeoffs2; W211 walkmore: walkLean; W251 arrival (fourth pass): the most a plan that walks 10 min less may be longer and still show (was 10 × her minute outside in the rain, 15 at level, "to come first")
 };
+/** W251 arrival (fourth pass, SPEC §517): the rows run by arrival, so On foot's Fewer changes and Rain gear lines say what can show:
+ *  a plan kept by walktransit.js reasonable() under its most willing weighting (RANGES' high `change`, 2 × CHANGE_S × the lean; high
+ *  `out`, OUT_HIGH ÷ the walker's lean, + the rain's WET ÷ this lean), within `near`'s least (NEAR_S: a best of 10 min or less; 10 %
+ *  more on longer trips). All else the same; counted by scratch/arrival/count4.mjs; app/tests/settings.test.mjs checks the three. */
+export const OUT_HIGH = 1.5, NEAR_S = 60; // W251 arrival (fourth pass)
 /** W203 tradeoffs2 (SPEC §365, her row 11d): what a change costs a walker on its own, beside its walk, its wait and a missed
  *  change's risk (the transport literature's transfer penalty): walktransit.js HER.penalty_s and RANGES.change's middle, × the
  *  Fewer changes lean. WET: walktransit.js RANGES.sky.wet, the rain's shift of a minute outside (app/tests/settings.test.mjs checks). */
