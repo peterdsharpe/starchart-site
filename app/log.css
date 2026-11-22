@@ -1,0 +1,334 @@
+/* The bottom bar and the Log (wave 17, design/app-ui/SPEC.md §14 and §15; app/log.js).
+   Colours and type from design/tokens.css. Only transform and opacity animate. */
+:root { --bar-h: 0px; }
+/* W18 controls: the bar uses the bottom safe area (Chrome on Android reports the gesture bar there, with
+   viewport-fit=cover). Its tabs sit up to half the inset into it, the icons stay above it, and the lower
+   half is a fading glass over the chart, not dead black. 64 px with no inset; 80 px at 48 px (was 112). */
+:root { --bar-in: env(safe-area-inset-bottom, 0px); --bar-box: 49px; } /* W20 chrome: one row, the label beside the icon (was 64 and 80 px); W23 bar: 49 px with no inset (48 px targets under its edge), 73 at 48 (was 45 and 69), for the corner's 48 px targets */
+:root[data-flight="parked"] { --bar-h: calc(var(--bar-box) + var(--bar-in) / 2); }
+
+.i-black-box { -webkit-mask-image: url("../design/glyphs/ui/black_box.svg"); mask-image: url("../design/glyphs/ui/black_box.svg"); }
+.i-back { -webkit-mask-image: url("../design/glyphs/ui/back.svg"); mask-image: url("../design/glyphs/ui/back.svg"); }
+.i-pen { -webkit-mask-image: url("../design/glyphs/ui/pen.svg"); mask-image: url("../design/glyphs/ui/pen.svg"); } /* W210 favs2 (SPEC §389), her row 8: naming's one picture, Rename's and a nickname's (was the chalk tag, chalk_tag.svg) */
+.i-gpx { -webkit-mask-image: url("../design/glyphs/ui/export_gpx.svg"); mask-image: url("../design/glyphs/ui/export_gpx.svg"); }
+/* drawn here until the UI set has them: a folded chart, pause and play */
+.i-fold-chart { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z'/%3E%3Cpath d='M9 4v13.5M15 6.5V20'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z'/%3E%3Cpath d='M9 4v13.5M15 6.5V20'/%3E%3C/svg%3E"); }
+.i-pause { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='5' width='4' height='14' rx='1.5'/%3E%3Crect x='14' y='5' width='4' height='14' rx='1.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='5' width='4' height='14' rx='1.5'/%3E%3Crect x='14' y='5' width='4' height='14' rx='1.5'/%3E%3C/svg%3E"); }
+.i-play { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z'/%3E%3C/svg%3E"); }
+
+/* ---- the bar, parked only: Material 3's navigation bar ----------------------------------------- */
+#bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; box-sizing: border-box; height: calc(var(--bar-box) + var(--bar-in) / 2); /* W18 controls */
+  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left); /* W177 tabsfeedback: no side gutter (was 6 px), so the chosen tab's shade reaches the screen's edge */
+  display: flex; --bar-line: var(--hairline) solid var(--glass-edge); border-top: var(--bar-line); /* W222 chrome6 (SPEC §437, her row 5): one line, its top edge and its dividers */
+  background: var(--space-1); /* W147 small6 (SPEC §264, her note: "with no transparency"): opaque everywhere (W21 glass: --glass-btn, see-through over the chart) */
+  box-shadow: 0 -4px 16px color-mix(in srgb, var(--shade) 45%, transparent); contain: layout paint;
+  transition: transform var(--t-normal) var(--ease-enter), opacity var(--t-normal) var(--ease-enter); } /* W18 controls: settled within 300 ms; W73 polish: back at Land in Land's beat, with the glow and Launch */
+.inset-probe { position: fixed; visibility: hidden; pointer-events: none; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); } /* W18 controls: About's Screen row */
+#bar.away { transform: translateY(100%); opacity: 0; pointer-events: none; transition-duration: var(--t-small); transition-timing-function: var(--ease-exit); } /* W73 polish: and away at Launch quickly */
+body[data-open~="log"] #bar { background: var(--space-1); } /* W73 polish: opaque over a page (ART §3), so the Log's rows don't show through */
+body[data-open~="preview"] #bar { visibility: hidden; } /* W21 glass: the see-through course sheets cover it, so it must not show through them */
+/* W20 chrome: the label beside the icon, in one 32 px row; the whole height is still the tab, down to the screen's edge (W18) */
+#bar .tab { position: relative; flex: 1; /* W177 tabsfeedback: a third of the bar at any width (was 200 px at most, centred), so its shade is its whole section */ display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 7px;
+  padding: calc(var(--bar-box) / 2 - 12px) 0 0; border: 0; background: none; color: var(--starlight); /* W160 smallui (SPEC §287, her note 16): the theme's ink, white in Dark and black in Light, not the muted tone; the chosen tab keeps its green and its shade */ font-family: var(--font-display); font-weight: 600; font-size: max(11px, min(1.25rem, calc((33.333vw - 43px) / 3.7))); line-height: min(1.5rem, 24px); letter-spacing: 0.07em; text-transform: uppercase; } /* W142 remscale: in the bar's 24 px row; W177 tabsfeedback (SPEC §313, her note 2): 20 px (was 15), growing with the text size as far as "Settings" (3.7 em), its icon and 6 px each side fit a third of the bar */
+#bar .tab .i { width: 24px; height: 24px; }
+#bar .tab.on { color: var(--phosphor); }
+/* W177 tabsfeedback (SPEC §313, her note 2): the chosen tab's shade is its whole third of the bar, edge to edge and top to bottom, not a pill round its word */
+#bar .tab.on::after { content: ""; position: absolute; inset: 0; background: var(--accent-fill, color-mix(in srgb, var(--phosphor) 16%, transparent)); } /* W69 artdir */ /* W171 palette */
+#bar .tab { isolation: isolate; } #bar .tab.on::after, #bar #about.on::before { z-index: -1; } /* W171 palette: the shade under its icon and label, as her fill is opaque */
+/* W217 chrome5 (SPEC §418, her row 13 and her mock-up): a thin line between the tabs, the bar's full height, beside the chosen tab's
+   shade too. W222 chrome6 (SPEC §437, her row 5: "the same color and thickness and style as the line … on the top edge"): the bar's
+   top edge itself (--bar-line, above), was 1.5 px of the brighter hairline (states.css --edge-hover) */
+#bar .tab:nth-child(2)::before { content: ""; position: absolute; inset: 0; z-index: 1; border-inline: var(--bar-line); pointer-events: none; } /* W217 chrome5: the middle tab's two edges, drawn over any shade, so the thirds stay equal (a border on the tabs made them unequal); W222 chrome6: --bar-line */
+/* W23 bar: Settings and Sound, icons in the right corner, 48 px wide with 8 px between, each as tall as the bar; Sound in the
+   column of the location button above it. Chart and Log split the rest. */
+#bar #stack { flex: none; display: flex; gap: 8px; margin: 0 6px 0 8px; }
+#bar #stack button { position: relative; width: 48px; height: 100%; padding: calc(var(--bar-box) / 2 - 12px) 0 0; display: flex; justify-content: center;
+  border: 0; background: none; color: var(--stardust); }
+#bar #about::after { inset: auto; left: 50%; top: calc(var(--bar-box) / 2); width: 40px; height: 40px; translate: -50% -50%; } /* the download's ring, round the gear */
+
+/* the parked anchors sit 14 px above the bar, and the folded © 2 px above it, left of the location button */
+#launch { bottom: max(var(--rail), calc(var(--bar-h) + 14px)); } /* W171 flightbar: the location button's own rule (app.css, home.css) */
+#nofix { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 58px); }
+[data-flight="parked"] .maplibregl-ctrl-bottom-right { bottom: calc(var(--bar-h) + 2px); }
+[data-flight="parked"] .maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin-right: calc(var(--m) + 56px); }
+
+/* ---- the Log: a page over the chart ------------------------------------------------------------- */
+#log-page { position: fixed; inset: 0; z-index: 4; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; box-sizing: border-box;
+  --pl: max(calc(16px + env(safe-area-inset-left)), calc((100vw - 560px) / 2)); --pr: max(calc(16px + env(safe-area-inset-right)), calc((100vw - 560px) / 2)); /* W217 chrome5: the shell's sides (app/app.css .page), its 560 px column */
+  padding: 0 var(--pr) calc(var(--bar-h) + 32px) var(--pl); /* W235 logrides: 32 px, the list's fade over the tab bar */ /* W217 chrome5: the top inset is its header's (was the page's, with 11 px) */
+  background: var(--space-2); /* W192 uitabs (SPEC §339): Settings' ground (.sheet's; was --void) */ color: var(--starlight); animation: log-in var(--t-small) var(--ease-enter); }
+@keyframes log-in { from { opacity: 0; } }
+:is(#log-page, #log-flight).staging { visibility: hidden; } :is(#log-page, #log-flight).staging, :is(#log-page, #log-flight).staging * { animation-play-state: paused; } /* W211 noflash (SPEC §392, her row 31): laid out unseen while its parts come, the old screen over it; its fade-ins wait at their start */
+#log-page > * { max-width: 560px; margin-left: auto; margin-right: auto; }
+/* W217 chrome5 (SPEC §418, her rows 16 and 28): the Log's head is the pages' shell's (app/app.css .page > .top): it stays at the top as
+   the rides scroll, as tall as the tab bar; LOG in Settings' title type (was 30 px, and scrolled away), Saturnight beside it, and the
+   demo's line under it (was its third part, which wrapped it to two lines at 320 px) */
+#log-page > .top { max-width: none; margin: 0 calc(-1 * var(--pr)) 0 calc(-1 * var(--pl)); gap: 10px; } /* W217 chrome5: edge to edge, over #log-page > *'s column */
+#log-page { scroll-padding-top: calc(var(--bar-box) + env(safe-area-inset-top)); } /* W217 chrome5: a ride scrolled into view (a focused row) stops under the head, which now stays */
+#log-page > .top .sat { font-family: var(--font-display); font-weight: 600; font-size: max(11px, min(0.875rem, 15px)); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; color: var(--pulsar); } /* W76 loghead (SPEC §135): Saturnight, beside LOG */ /* W142 remscale */ /* W217 chrome5: up to 15 px, so it fits beside LOG at 320 px and 150 % text */
+:root[data-theme="light"] #log-page > .top .sat { color: color-mix(in srgb, var(--pulsar) 80%, var(--starlight)); } /* W76 loghead: 5.5:1 on Daystar's head (the pulsar alone, 4.2); W225 barmatch: the head's ground is the status bar's --void (app/app.css) */
+#log-page > .demo { margin: 12px 4px -6px; font-size: max(11px, 0.875rem); line-height: 1.35; color: var(--stardust); } /* W60 c: "Demo flights aren't kept"; W217 chrome5: under the head, over Overview, in a note's type */
+#log-flight h2.name { margin: 0; } /* W73 ghosts: the season chart's title */
+/* W192 uitabs: the Log's headings are Settings'; W234 shell (SPEC §490): the one section heading, .sect-h (app/app.css; app/log.js), centred in its column as the page's parts are (#log-page > *) */
+#log-page .note { font-size: max(11px, 0.875rem); line-height: 1.35; color: var(--stardust); } /* W142 remscale */
+/* W235 logover (SPEC §497, her points 07 and 08 of 11-14, her pictures): the Overview card, Week · Month · All. The header row: at the
+   left the count in the title's style over the period (and SCUL's hi-fives) in the description's (app/app.css .row-title, .row-desc),
+   each breaking only at its dots; at the right the miles in the accent and the climb in the ink, in the odometer's type (W144's Life), top-aligned
+   with the count; they go under it where both don't fit (320 px at 150 % text). No averages, no minutes, no star beside the miles. */
+.miles .whead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 2px 12px; padding-top: 4px; }
+.weeks .wheads { display: grid; } .weeks .wheads > *, .weeks .wsizes > * { grid-area: 1 / 1; } .weeks .wsizes { display: grid; visibility: hidden; } /* each period's header unseen under the one shown, so the header is as tall as its tallest and a tap never moves the chart */
+.miles .wleft { flex: 1 1 8em; min-width: 0; display: flex; flex-direction: column; }
+.miles .wleft > .row-title { line-height: 1.3; } .miles :is(.wsub, .lsub, .wsz) span:not(.count), .miles .wwhen > span { white-space: nowrap; } /* "9 rides", "3 space walks", "Oct 19 – 25" and "2 hi-fives" whole, each line breaking only at its dots */
+.miles .wtot { flex: none; display: flex; align-items: baseline; gap: 14px; margin: -4px 0 0 auto; font-family: var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.miles .wtot b { font-weight: 700; font-size: calc(28px + (1rem - 16px) * 1.5); line-height: 1.1; } /* W144 logmiles' odometer */
+.miles .wtot span > span { margin-left: 3px; font-weight: 600; font-size: max(11px, 0.75rem); letter-spacing: 0.08em; text-transform: uppercase; } /* MI, FT (SCUL's LY) */
+.miles .wleft:empty { display: none; } .miles .wleft:empty + .wtot { margin-left: 0; } /* an empty Log: its odometer alone, at the left, as before */
+.miles .odo { color: var(--phosphor); } .miles .climb { font-weight: 700; font-size: 1.25rem; color: var(--starlight); } /* ▲ a step under the figure's size */
+/* All (was Life): the milestones inline, each its star in its colour (below) and its name in today's type, with when it was reached
+   or how far to go on the name's line at the description's size; the next one's bar under them; the card's last row maps every ride */
+.life .ladder { list-style: none; padding: 0; margin: 10px 0 0; }
+.life .ladder li { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--space-3); }
+.life .ladder li svg { width: 24px; height: 24px; display: block; }
+.life .ladder li > div { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; min-width: 0; } /* the name and its day (or how far) on one line, wrapping only at a large text size */
+.life .ladder li b { font-family: var(--font-display); font-size: max(11px, 1.0625rem); line-height: 1.2; letter-spacing: var(--track-display); text-transform: uppercase; color: var(--starlight); }
+.life .ladder li.next small { color: var(--phosphor); }
+.life .ladder li > span { font-family: var(--font-display); font-weight: 700; font-size: max(11px, 0.9375rem); color: var(--stardust); white-space: nowrap; }
+.life .bar6 { flex: 1 0 100%; height: 3px; margin: 5px 0 1px; border-radius: var(--r-pill); background: var(--space-3); overflow: hidden; } /* W69 artdir's funk bar, the next class's */
+.life .bar6 i { display: block; height: 100%; background: var(--funk); transform-origin: left; transform: scaleX(0); } /* the whole range inside the filled part, as it grows */
+.life .cls-flare { color: var(--course); } .life .cls-nova { color: var(--pulsar); } /* SCUL's own inks */
+.life .cls-supernova { color: var(--wormhole); } .life .cls-quasar { color: var(--black-hole); }
+/* W235 logover (her point 08): Plain's four stars in her purple, green, red and blue by theme, her palette's (app/tests/palette.test.mjs:
+   3:1 and more on the card), and the next one's bar her gradient, red to the accent (the nearest of her palette to each of her hexes) */
+:root[data-lingo="meatspace"] .life .cls-flare { color: var(--pal-accent); } :root[data-lingo="meatspace"] .life .cls-nova { color: var(--pal-green); }
+:root[data-lingo="meatspace"] .life .cls-supernova { color: var(--pal-red-words); } :root[data-lingo="meatspace"] .life .cls-quasar { color: var(--pal-blue-words); }
+:root[data-lingo="meatspace"] .life .bar6 i { background: linear-gradient(90deg, var(--pal-red), var(--pal-orange), var(--pal-yellow), var(--mbta-green), var(--pal-cyan), var(--pal-accent)); } /* her palette's green by night in both themes (--mbta-green, its fixed twin): by day --pal-green's #107d52 dipped dark between her yellow and cyan */
+.life .mapall { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; margin: 0; padding: 12px 0; line-height: 1.3; border: 0; border-top: 1px solid var(--space-3); background: none; color: var(--phosphor); text-align: left; cursor: pointer; } /* "Map of all rides": the title's size in the accent, equal padding above and below */
+.life .mapall .i { flex: none; width: 20px; height: 20px; margin: 0 2px; } .life .mapall > span { flex: 1; min-width: 0; color: inherit; }
+.life .mapall .chev { font-style: normal; font-size: 26px; line-height: 1; } /* W142 remscale: px, the › glyph is an icon */
+#log-page > .group > .miles:has(.mapall) { padding-bottom: 0; } /* the row's own padding is the card's foot */
+#log-class { color: var(--starlight); }
+.miles { box-sizing: border-box; width: 100%; padding: 8px 12px 6px; margin-bottom: 12px; background: var(--space-1); border: 1px solid var(--space-3); border-radius: var(--r-card); } /* W144 logmiles: the card, Week · Month · All */
+.miles > .seg { margin: 0 0 8px; } .miles > .seg button { flex: 1; padding: 0 6px; } /* W144 logmiles: the three across the card */
+@media (max-width: 16.25em) { .miles > .seg { letter-spacing: 0; } } /* W144 logmiles: narrow for its text (SPEC §256), each word whole */
+.miles .seg { font-size: max(11px, 0.9375rem); letter-spacing: 0.06em; text-transform: uppercase; } /* W142 remscale */
+/* W235 logover (her point 07): the chart, Week and Month: one empty column for its key, then twelve, each a button the chart's full
+   height (a press lights it, app/states.css); miles up and climb down, each on its own scale, the tallest of each filling its part
+   (--wu, --wdn: fixed), 3 px from the 3 px middle line, which runs under the key too, MI over it and FT under it there. The chosen
+   column on a band one column wide (the accent's shading), its bars the solid ones, its label in the accent. Under each, its day or
+   month, and the month or year under the first of a run (log-weeks.js axis); where they would run together (a narrow phone, large
+   text: the container's width in the labels' em) the days go and the months keep one letter, the first column's year goes. */
+.weeks { --wu: 72px; --wdn: 40px; }
+.weeks .wbars { position: relative; isolation: isolate; /* the bands under every column's labels, which may reach over a neighbour */ display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); margin: 12px 0 4px; container-type: inline-size;
+  font: 600 max(11px, 0.6875rem)/1.364 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--console-grey); } /* W142 remscale */
+.weeks .wcol { position: relative; display: flex; flex-direction: column; min-width: 0; margin: 0; padding: 4px 0 2px; border: 0; border-radius: var(--r-xs); background: none;
+  color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+.weeks .wcol::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: var(--r-xs); } /* the band: the column, its bars and its label */
+.weeks .wcol.on::before { background: var(--accent-fill, color-mix(in srgb, var(--phosphor) 16%, var(--space-1))); } /* Plain: her shading (design/tokens.css); SCUL: its green's */
+:root[data-lingo="meatspace"]:not([data-theme="light"]) .weeks .wcol.on::before { background: color-mix(in srgb, var(--pal-shading) 70%, var(--space-1)); } /* by night her band is her shading toward the card, darker than the bars round it (her picture: #262044) */
+.weeks .wcol > span { display: flex; justify-content: center; }
+.weeks .wd { height: var(--wu); box-sizing: border-box; padding-bottom: 3px; align-items: flex-end; }
+.weeks .wc { height: var(--wdn); box-sizing: border-box; margin-top: 3px; padding-top: 3px; align-items: flex-start; }
+.weeks .wcol i { display: block; width: 56%; max-width: 22px; }
+.weeks .wd i { height: max(calc(var(--h) * 100%), calc(min(var(--h) * 1000, 1) * 2px)); border-radius: var(--r-xs) var(--r-xs) 0 0; background: color-mix(in srgb, var(--phosphor) 55%, var(--space-1)); } /* 3.6:1 on the card; 2 px at least for any ride */
+.weeks .wc i { height: max(calc(var(--h) * 100%), calc(min(var(--h) * 1000, 1) * 2px)); border-radius: 0 0 var(--r-xs) var(--r-xs); background: color-mix(in srgb, var(--stardust) 65%, var(--space-1)); } /* 3.5:1 */
+:root[data-theme="light"] .weeks .wd i { background: color-mix(in srgb, var(--phosphor) 72%, var(--space-1)); } :root[data-theme="light"] .weeks .wc i { background: color-mix(in srgb, var(--stardust) 72%, var(--space-1)); } /* 3.2:1 and 3.4:1 on Daystar's card */
+:root .weeks .wcol.on .wd i { background: var(--phosphor); box-shadow: var(--glow-s) color-mix(in srgb, var(--phosphor) 40%, transparent); }
+:root .weeks .wcol.on .wc i { background: var(--stardust); }
+.weeks :is(.wt, .wm) { height: 1.364em; white-space: nowrap; } .weeks .wm { grid-row: 2; display: flex; justify-content: center; min-width: 0; } /* the second row: the month or the year under a column (its column, log.js) */
+.weeks .wcol.on .wt { color: var(--phosphor); }
+.weeks .wmid { position: absolute; left: 0; right: 0; top: calc(4px + var(--wu)); height: 3px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--stardust) 50%, var(--space-1)); pointer-events: none; } /* the middle line, under the key too */
+.weeks .wkey { position: relative; } .weeks .wkey i { position: absolute; left: 0; font-style: normal; line-height: 1; }
+.weeks .wkey i:first-child { top: calc(4px + var(--wu) - 1em - 2px); } .weeks .wkey i + i { top: calc(4px + var(--wu) + 3px + 3px); } /* MI just over the line, FT just under it */
+@container (max-width: 17.5em) { .wbars.week .wt { display: none; } } /* a day's two figures need 1.35 em of a column's 13th */
+@container (max-width: 25em) { .wbars.month .wt .rest { display: none; } } /* a month's three letters, 1.9 em: its first alone */
+@container (max-width: 30em) { .wbars.pair .wm.w0 { visibility: hidden; } } /* two years side by side, 2.3 em: the second's alone (R2 bigtext's rule) */
+@container (max-width: 15em) { .wbars.near .wm.w0 { visibility: hidden; } } /* two years two columns apart (the twelve from November), 2.3 em across two: the second's alone too */
+/* W186 palette (SPEC §328): Plain's chart in her colours: the chosen column's distance bar her solid accent, the others her shading a
+   step toward it (W235 logover: so they stand apart from the band, as her picture), the chosen climb her solid silver, the others her
+   silver at 38 % */
+:root[data-lingo="meatspace"] .weeks .wd i { background: color-mix(in srgb, var(--pal-shading) 80%, var(--pal-accent)); } /* W186 palette; W235 logover */
+:root[data-lingo="meatspace"] .weeks .wc i { background: color-mix(in srgb, var(--pal-silver) 38%, transparent); } /* W186 palette */
+:root[data-lingo="meatspace"] .weeks .wcol.on .wd i { background: var(--pal-accent); box-shadow: none; } /* W186 palette */
+:root[data-lingo="meatspace"] .weeks .wcol.on .wc i { background: var(--pal-silver); } /* W186 palette */
+#log-flight .stats b i { font-style: normal; font-size: 0.6em; letter-spacing: 0.02em; text-transform: none; } /* W68 fixes: "1h 20m", its units small, as the cards' " min" */
+/* ---- W235 logrides (SPEC §498, her points 10 and 11 of 11-14, her pictures, whose sizes are her image pixels over her phone's 1.4):
+   RIDES (shell's heading, words only), her switch on the page, a card a ride 8 px apart (shell's card), each its map, its words, a › and
+   at its right a star over her bin, undone on the row (log.js count); the list fades out over the tab bar ------------------------- */
+#log-page > .lseg { margin: 0 12px 8px; } /* on the page, its sides where a card puts the Overview's switch (her 16 image px) */
+#log-page > .lseg button { flex: 1; }
+#log-page .flights { list-style: none; margin: 0; padding: 0; }
+#log-page .flights > li + li { margin-top: 8px; } /* her 8 px between cards, the list's gap (log.js GAP), not a new card */
+.flights > .group { position: relative; display: flex; overflow: hidden; container-type: inline-size; } /* shell's card; its corners clip a press's shading */
+.flights .flight { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; margin: 0 0 0 -12px; padding: 8px 12px; border: 0; background: none; color: var(--starlight); text-align: left; cursor: pointer; -webkit-touch-callout: none; } /* the card's left part from its edge, the button that opens the ride; a press shades it whole (app/states.css) */
+.thumb { flex: none; width: 72px; height: 72px; border-radius: var(--r-inner); background: var(--space-2); } /* W69 artdir; W235 logrides: her 104 image px, no outline; by day the page's white */
+:root:not([data-theme="light"]) .thumb { background: var(--space-3); } /* by night a step lighter than the card: her #2e3135's nearest, her hairline */
+.thumb .route { fill: none; stroke: var(--chalk); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; } /* the route's line alone (no start dot) */
+.thumb .dot { fill: var(--chalk); } /* a ride with no track: where it was */
+.flights .ft { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.flights .ft b { line-height: 1.3; overflow-wrap: break-word; text-wrap: pretty; } /* the title's style (.row-title): wraps as her picture, never cut */
+@container (max-width: 19.5em) { .flights .flight { gap: 8px; padding-right: 8px; } .flights .thumb { width: 48px; height: 48px; } .flights .ft b { hyphens: auto; } } /* a card narrow for its text (320 px, or large text): a smaller map and gaps, so a name's words keep their line (at 320 px and 150 % its column is 148 px, not 112); a word still too long breaks at a syllable with its hyphen (as comets.css's narrowed names), where the phone has the dictionary */
+.flights .when { line-height: 1.3; } .flights .when :is(.d, .t) { white-space: nowrap; } /* the description's style (.row-desc): the day, then the time and the bike or the walker */
+.flights .when .d { display: block; } .flights .when .dot { display: none; }
+.flights .two .when .d { display: inline; } .flights .two .when .dot { display: inline; } /* a name on two lines: the day and the time share one, breaking only at the dot (log.js lines) */
+.flights .when .t { display: inline-flex; align-items: center; gap: 6px; vertical-align: top; }
+.i-bike { -webkit-mask-image: url("../design/glyphs/ui/bike.svg"); mask-image: url("../design/glyphs/ui/bike.svg"); } /* her bike (her Bluebikes sign's, design/glyphs/build.py her_bike) */
+.flights .i-bike { width: 22px; height: 15px; } /* her picture's 29 × 21 image px */
+.flights .chev { flex: none; font-style: normal; line-height: 1; color: var(--stardust); font-size: 26px; } /* W142 remscale: px, the › glyph is an icon */
+.flights .racts { flex: none; display: flex; flex-direction: column; margin-right: -12px; border-left: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); } /* joined to the card by a hairline, to its edge */
+.flights .racts button { position: relative; flex: 1; width: 44px; min-height: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--stardust); cursor: pointer; } /* each a 44 px target (her 43 × 44) */
+.flights .racts button + button::before { content: ""; position: absolute; left: 0; right: 0; top: 0; border-top: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); } /* the hairline between, over the cells, so each keeps its 44 px */
+.flights .racts .i { width: 24px; height: 24px; } .flights .fstar.on { color: var(--phosphor); } /* starred: filled in the accent; else a grey outline */
+.flights :is(.flight, .racts button):focus-visible { outline-offset: -3px; } /* the keyboard's ring inside its button, which the card's corners would clip (app.css's is 2 px outside) */
+/* While its count runs, the button is Undo: her arrow on a circle (white by day, by night the map's lighter ground), the ring in the
+   accent running down over the app's one undo clock, from 12 o'clock. Two half rings, each turned in its half (transform only), so the
+   ring costs no paint a frame; --left is the time already gone (a row built again mid-count). Calm keeps it: it says the time left. */
+.flights .undoc { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--space-2); color: var(--phosphor); } /* her 49 image px, its ring her 4 (3 px) */
+:root:not([data-theme="light"]) .flights .undoc { background: var(--space-3); }
+.flights .undoc .i { width: 20px; height: 20px; }
+.flights .undoc > span { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; } .flights .undoc > .ra { left: 0; } .flights .undoc > .rb { right: 0; }
+.flights .undoc > span > i { position: absolute; top: 0; width: 34px; height: 34px; box-sizing: border-box; border: 3px solid transparent; border-radius: 50%; rotate: 45deg; animation: var(--undo) linear var(--left, 0ms) forwards; }
+.flights .undoc > .ra > i { left: 0; border-left-color: var(--phosphor); border-bottom-color: var(--phosphor); animation-name: undo-ring-a; } /* the left half, gone first */
+.flights .undoc > .rb > i { right: 0; border-top-color: var(--phosphor); border-right-color: var(--phosphor); animation-name: undo-ring-b; } /* then the right */
+@keyframes undo-ring-a { 50%, 100% { transform: rotate(-180deg); } } @keyframes undo-ring-b { 0%, 50% { transform: none; } 100% { transform: rotate(-180deg); } }
+#log-page > .nofavs { margin: 2px 4px 0; } /* Favorites with none: one line, the description's style, how to star one */
+/* a tiny ride: really grey in its card (arclight's call of 10-20) */
+.flights .tiny { --tiny: color-mix(in srgb, var(--console-grey) 75%, var(--void)); } /* W68 logbulk: really grey, and still 5.2:1 */
+:root[data-theme="light"] .flights .tiny { --tiny: color-mix(in srgb, var(--console-grey) 95%, var(--void)); } /* W68 logbulk: 4.7:1 on its card */
+.flights .tiny :is(.ft b, .when, .chev) { color: var(--tiny); } /* W68 logbulk */
+.flights .tiny .thumb { opacity: 0.35; } /* W68 logbulk */
+/* W127 walklog (SPEC §236): a walk's mark, the map's person on foot (app/fromto.js), after its time; W235 logrides: a little larger, so it matches the bike */
+.flights .fwalk { display: block; width: 22px; height: 22px; } .flights .fwalk svg { width: 22px; height: 22px; display: block; } /* W127 walklog; W228 icons6: her walker (app/walker.js), her stroke */
+/* her list fades out above the tab bar, the bar itself clean; the page's foot clears it */
+#log-page::after { content: ""; position: fixed; z-index: 1; left: 0; right: 0; bottom: var(--bar-h); height: 32px; background: linear-gradient(transparent, var(--space-2)); pointer-events: none; }
+#log-page .foot { margin-top: 18px; text-align: center; }
+/* W147 backup (SPEC §263): Back up and Restore are Settings'; with no list, the Log's link to Restore, where Restore was.
+   W192 uitabs (SPEC §339, her row 7): the Log in Settings' sections, on Settings' ground: a heading over a card of rows (app/settings.css's
+   #about-sheet h3 and .group). Overview's card holds the miles card, then Settings' own Back up row (W235 logrides: then the rides,
+   a card each, above). "Back up all rides" beside LOG (W160 logsettings) went: the row is Back up. */
+#log-page > .group > .miles { margin: 0; padding: 10px 0 8px; background: none; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--space-3) 70%, transparent); border-radius: 0; } /* W192 uitabs: the first of its rows, a row's divider under it */
+#log-page > .group > :last-child { border-bottom: 0; } /* W192 uitabs: as Settings' last row */
+#log-page > .group.ov + .group { margin-top: 8px; } /* W235 logover (SPEC §497, her point 09): Back up in a card of its own, 8 px under Overview's (the gap between her ride cards) */
+#log-page .safe { display: flex; justify-content: center; margin: 8px 0 18px; } /* W147 backup: room for the link's 44 px target, of which the layout takes 28 (.tosafe's margins), as the heading row's height was */
+#log-page .tosafe { min-height: 44px; margin: -8px 0; padding: 0 2px; border: 0; background: none; font: 400 max(11px, 0.875rem) var(--font-body); color: var(--stardust); text-align: right; }
+#log-page .tosafe:hover { color: var(--starlight); }
+#log-page .reset { display: block; margin: 4px auto 0; height: 44px; padding: 0 8px; border: 0; background: none; font: 400 max(11px, 0.875rem) var(--font-body); text-decoration: underline; text-underline-offset: 3px; /* W142 remscale */
+  color: var(--stardust); } /* W21 logfix: apart from the rows, and quieter than an action; W27 friction: a small plain link, below the note, a 44 px target */
+#log-page .reset:is(:disabled, [aria-disabled="true"]) { /* W24 quiet: aria-disabled, so a tap says why */ color: var(--space-3); cursor: default; }
+
+/* ---- W39 confirm (SPEC §51): "Delete all 12 flights?", a small card in the welcome's glass, low over the bar --------- */
+:is(#log-confirm, #fav-nick) { box-sizing: border-box; width: min(360px, calc(100vw - var(--ml) - var(--mr))); max-height: calc(100dvh - 16px); margin: auto auto max(var(--rail), calc(var(--bar-h) + 10px));
+  padding: 14px 16px 14px; overflow-y: auto; background: var(--space-2); /* W185 smallui2 (SPEC §323, her row 3): solid, a sheet's ground in both themes (was the snack's glass) */ border: var(--hairline) solid var(--glass-edge); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  color: var(--starlight); font: max(11px, 1rem)/1.35 var(--font-body); } /* W142 remscale; W206 favnames: and the nickname's question (app/starred.css) */
+:is(#log-confirm, #fav-nick)[open] { animation: enter var(--t-small) var(--ease-enter); } /* W206 favnames */
+:is(#log-confirm, #fav-nick)::backdrop { background: color-mix(in srgb, var(--void) 45%, transparent); } /* W206 favnames */
+:root[data-theme="light"] :is(#log-confirm, #fav-nick)::backdrop { background: color-mix(in srgb, var(--starlight) 22%, transparent); } /* W206 favnames */
+:is(#log-confirm, #fav-nick) form { margin: 0; } /* W206 favnames */
+#log-confirm p { margin: -6px 0 14px; color: var(--stardust); font-size: max(11px, 1rem); } /* W147 backup: what the file holds */
+:is(#log-confirm, #fav-nick) h2 { margin: 2px 40px 14px 0; font: 700 1.375rem/1.15 var(--font-display); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale; W206 favnames */
+:is(#log-confirm, #fav-nick) .acts { display: flex; flex-wrap: wrap; gap: 10px; } /* W206 favnames */
+:is(#log-confirm, #fav-nick) .acts button { flex: 1 1 auto; height: 48px; padding: 0 16px; border-radius: var(--r-pill); font: 600 max(11px, 1rem) var(--font-body); white-space: nowrap; } /* W142 remscale; W206 favnames */
+:is(#log-confirm, #fav-nick) .no { border: var(--hairline) solid var(--glass-edge); background: none; color: var(--starlight); } /* W206 favnames */
+:is(#log-confirm, #fav-nick) .go { border: 0; background: var(--phosphor); color: var(--void); } /* W185 smallui2 (SPEC §323, her row 3): the app's accent, as Send and Launch (was the ink); W206 favnames */
+:is(#log-confirm, #fav-nick) > form > .nx { position: absolute; top: 6px; right: 4px; margin: 0; } /* W206 favnames */
+@media (orientation: landscape) and (max-height: 500px) { #log-confirm { margin-bottom: 8px; } }
+
+/* ---- a flight's page: the route on the chart, a top bar and a sheet ----------------------------------- */
+[data-open~="flight-page"] #stack, [data-open~="flight-page"] #compass, [data-open~="flight-page"] #launch, [data-open~="flight-page"] #locate, [data-open~="flight-page"] #nofix, [data-open~="flight-page"] #banner,
+[data-open~="flight-page"] .maplibregl-ctrl-bottom-right, [data-open~="flight-page"] .sticker, [data-open~="log"] #nofix, [data-open~="log"] #perf, [data-open~="flight-page"] #perf, [data-open~="flight-page"] .csearch /* W22 fit */, [data-open~="log"] .csearch /* W29 polish: under the Log, as on a flight's page */ { visibility: hidden; } /* the live ship: main.js hold(); W21 logfix: #perf */
+#log-flight { position: fixed; inset: 0; z-index: 4; pointer-events: none; color: var(--starlight); }
+:root[data-flight="parked"] #log-flight { bottom: var(--bar-h); } /* W147 small6 (SPEC §264): the bar shows under a flight's page, so the page and its sheet end at it */
+:root[data-flight="parked"] #log-flight .fsheet { padding-bottom: 12px; } :root[data-flight="parked"] #log-flight .replaybar { bottom: 58px; } /* W147 small6: the bar carries the safe area */
+#log-flight > * { pointer-events: auto; }
+/* W217 chrome5 (SPEC §418): a ride's page (and All rides') has the pages' shell's header over its map (app/app.css; was a fade from
+   the void, 89 px): its arrow, then the ride's name in her own words' type, its day and time under it, both in the bar's height */
+#log-flight .topbar { position: absolute; left: 0; right: 0; top: 0; --pl: calc(16px + env(safe-area-inset-left)); --pr: calc(16px + env(safe-area-inset-right)); } /* W217 chrome5 */
+#log-flight .ttl { position: relative; flex: 1; min-width: 0; align-self: stretch; } /* W217 chrome5: the header's height, the name's 44 px target and more */
+#log-flight .name { display: block; width: 100%; height: 100%; box-sizing: border-box; margin: 0; padding: 3px 0 20px; /* W22 fit: a 44 px target; W217 chrome5: the header's 49 px, the day and time under the name inside it */ border: 0; outline: none; background: none;
+  color: var(--starlight); font: 700 min(1.3125rem, 22px)/1.2 var(--font-body); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; } /* W142 remscale; W217 chrome5: up to 22 px, so both lines fit the bar's height at 150 % text */
+#log-flight.renaming .name { background: linear-gradient(var(--phosphor), var(--phosphor)) left bottom 16px / 100% 2px no-repeat; } /* W217 chrome5: the line under the name being typed (was its border, under the day's line now) */
+#log-flight .ttl small { position: absolute; left: 0; bottom: 5px; display: block; margin: 0; white-space: nowrap; pointer-events: none; /* W217 chrome5: over the name's box, its taps the name's; whole, never cut (13 px mono, 21 characters: 164 px of the 248 at 320 px) */
+  font-family: var(--font-mono); font-size: max(11px, min(0.75rem, 13px)); line-height: 1.25; color: var(--stardust); } /* W69 artdir */ /* W142 remscale */ /* W217 chrome5: up to 13 px */
+#log-flight.renaming .ttl small { visibility: hidden; } /* W217 chrome5: renaming, the name alone */
+#log-flight .fsheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; box-sizing: border-box;
+  padding: 6px calc(14px + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 12px) calc(14px + env(safe-area-inset-left));
+  background: var(--space-2); border-top: var(--hairline) solid var(--glass-edge); border-radius: var(--r-sheet); box-shadow: var(--lift-up); /* W69 artdir */
+  transition: transform var(--t-small) var(--ease-enter); /* W142 remscale */
+  max-height: calc(100% - env(safe-area-inset-top) - 60px); overflow-y: auto; overscroll-behavior: contain; } /* W142 remscale: at a large text size the sheet stops under the back arrow and scrolls */
+#log-flight .handle { margin: -2px auto 2px; }
+#log-flight.replaying .fsheet { transform: translateY(105%); }
+#log-flight .acts { display: flex; flex-wrap: wrap; /* W22 fit: a narrow column */ gap: 8px; margin-bottom: 12px; }
+#log-flight .acts button { height: 44px; padding: 0 11px 0 8px; /* W196 logsettings2: Go, Rename and Delete in one row at 320 px (279 of 292 px) */ display: flex; align-items: center; gap: 6px; border-radius: var(--r-pill); border: 1px solid var(--space-3);
+  background: var(--space-1); color: var(--starlight); font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.0625rem); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#log-flight .acts .i { width: 20px; height: 20px; }
+#log-flight .acts .go { background: var(--phosphor); color: var(--void); border-color: var(--phosphor); } /* W196 logsettings2 (SPEC §348): Go, the lead pill, as Replay was */
+#log-flight .acts button:is(:disabled, [aria-disabled="true"]) { /* W24 quiet */ opacity: 0.4; cursor: default; }
+#log-flight .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--space-3); border: 1px solid var(--space-3); border-radius: var(--r-inner); overflow: hidden; } /* W69 artdir */
+#log-flight .stats div { display: flex; flex-direction: column; padding: 7px 10px 6px; background: var(--space-2); font-family: var(--font-display); }
+#log-flight .stats div:last-child:nth-child(3n+1) { grid-column: span 3; } /* W60 c: Plain's 7th tile, the row's own */
+#log-flight .stats div:last-child:nth-child(3n+2) { grid-column: span 2; } /* W150 logtidy: Plain's 5th tile, the row's rest */
+@media (max-width: 16.25em) { #log-flight .stats { grid-template-columns: repeat(2, 1fr); } #log-flight .stats div:last-child:nth-child(3n+1) { grid-column: auto; } #log-flight .stats div:last-child:nth-child(odd) { grid-column: span 2; } } /* W142 remscale (SPEC §256): narrow for its text, two columns, the odd last tile the row's own */
+#log-flight .stats b { font-size: calc(26px + (1rem - 16px) * 1.5); line-height: 1.05; color: var(--phosphor); font-variant-numeric: tabular-nums; white-space: nowrap; text-transform: uppercase; } /* W69 artdir */ /* W142 remscale */
+#log-flight .stats span { font-size: max(11px, 0.75rem); letter-spacing: 0.12em; text-transform: uppercase; color: var(--console-grey); } /* W142 remscale */
+#log-flight .note { margin: 10px 0 0; font-size: max(11px, 0.875rem); line-height: 1.35; color: var(--stardust); } /* W142 remscale */
+#log-flight .note:empty { display: none; }
+#log-flight .note b { color: var(--caution-words, var(--caution)); }
+#log-flight .foot { display: flex; justify-content: flex-start; align-items: center; margin-top: 6px; flex-wrap: wrap; column-gap: 18px; } /* W74 flightlog: flex-start, wrap, gap */
+#log-flight .foot .osm { margin-left: auto; } /* W74 flightlog: Delete and Send feedback at the left, the credit at the right, or below at 320 px; W196 logsettings2: Replay and GPX */
+#log-flight .foot button /* W150 logtidy: no .fb; W196 logsettings2: Replay and GPX, where Delete was */ { height: 44px; min-width: 44px; padding: 0; /* rel-0.1.90 (P0 2): GPX's word is 28 px wide; the target 44 */ border: 0; background: none; color: var(--stardust); font: max(11px, 0.9375rem) var(--font-body); text-decoration: underline; text-underline-offset: 3px; } /* W142 remscale */
+#log-flight .foot button:is(:disabled, [aria-disabled="true"]) { opacity: 0.4; cursor: default; } /* W196 logsettings2: dim, as a pill (W24 quiet) */
+#log-flight .foot span { font-size: max(11px, 0.6875rem); /* W22 fit: 11 px at least */ color: color-mix(in srgb, var(--stardust) 85%, transparent); } /* W142 remscale */
+
+/* replay: a bar 58 px above the bottom */
+#log-flight .replaybar { position: absolute; left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); bottom: calc(env(safe-area-inset-bottom) + 58px);
+  max-width: 536px; margin: 0 auto; height: 56px; padding: 0 4px; display: flex; align-items: center; gap: 8px; box-sizing: border-box;
+  background: var(--space-2); border: 1px solid var(--space-3); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  animation: enter var(--t-small) var(--ease-enter); }
+#log-flight .replaybar > button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border: 0; background: none; color: var(--starlight); }
+#log-flight .replaybar .seg button { min-height: 34px; height: 34px; min-width: 0; padding: 0 10px; font-size: max(11px, 1rem); } /* W142 remscale */
+#log-flight .scrub { flex: 1; height: 4px; border-radius: var(--r-pill); background: var(--space-3); overflow: hidden; } /* W69 artdir */
+#log-flight .scrub i { display: block; height: 100%; background: var(--funk); transform-origin: left; transform: scaleX(0); }
+#log-flight .clock { min-width: 3.1em; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.125rem); color: var(--phosphor); font-variant-numeric: tabular-nums; } /* W142 remscale */
+
+/* ---- Undo, and the note for a flight saved at the start: above the bar ------------------------------------ */
+#log-snack { position: fixed; z-index: 6; left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); bottom: calc(var(--bar-h) + 12px);
+  max-width: 420px; min-height: 56px; display: flex; align-items: center; gap: 4px; padding: 6px 4px 6px 14px; box-sizing: border-box; overflow: hidden; /* W166 walkui: min-height */
+  background: var(--space-2); border: 1px solid var(--space-3); border-radius: var(--r-card); box-shadow: var(--lift); /* W69 artdir */
+  animation: enter var(--t-small) var(--ease-enter); } /* W18 controls: the Log's sheet, replay bar and snackbar settle within 300 ms */
+#log-snack .t { flex: 1; min-width: 0; overflow-wrap: break-word; /* W166 walkui (her note 8): a message wraps, never cut */ font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.1875rem); /* W142 remscale */
+  letter-spacing: var(--track-display); text-transform: uppercase; }
+#log-snack em { font-style: normal; font-weight: 600; font-size: max(11px, 1rem); color: var(--stardust); } /* W142 remscale */
+#log-snack em.own { display: block; white-space: normal; overflow-wrap: anywhere; } /* W160 logsettings (SPEC §286, her note 6: "st…"): a file's name or a restore's line, whole, on its own line */
+#log-snack em.line { margin-top: 2px; font-family: var(--font-body); font-weight: 400; line-height: 1.25; letter-spacing: normal; text-transform: none; } /* W166 walkui: a sentence under the title, in the body type and its own case */
+#log-snack button { flex: none; height: 44px; padding: 0 8px 0 4px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: var(--r-pill); background: none;
+  color: var(--phosphor); font-family: var(--font-display); font-weight: 700; font-size: max(11px, 1.1875rem); letter-spacing: var(--track-display); text-transform: uppercase; } /* W142 remscale */
+#log-snack .timer { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--phosphor); transform-origin: left; }
+#log-snack.run .timer { animation: undo-timer var(--undo) var(--ease-orbit) forwards; } /* W19 course: 5 s */ /* W234 shell: --undo */
+body:not([data-open~="log"]) #log-snack { bottom: calc(max(var(--rail), calc(var(--bar-h) + 14px)) + 56px); } /* on the chart: above Launch; W20 chrome: Launch is 44 px */
+[data-open~="flight-page"] #log-snack { bottom: calc(max(env(safe-area-inset-bottom), var(--bar-h)) + 12px); } /* W147 small6: above the bar */
+:root:has(#about-sheet[open]) #log-snack { z-index: 12; } /* W147 backup: over Settings (z 11), where Back up and Restore answer */
+
+/* landscape, on a handlebar: a flight's sheet is a column at the right, so the route stays in sight; W77 desktop: and on a wide screen */
+@media (orientation: landscape) and (max-height: 500px), (min-width: 900px) and (min-height: 561px) { /* W77 desktop */
+  #log-flight .fsheet { left: auto; right: 0; top: 0; width: min(400px, 50vw); margin: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding-top: calc(env(safe-area-inset-top) + 8px); border-top: 0; border-left: var(--hairline) solid var(--glass-edge); border-radius: var(--r-l) 0 0 0; /* W69 artdir */
+    padding-left: 14px; max-height: none; } /* W22 fit: at the right, so only the right inset; the GPX button stays in; W142 remscale: max-height none, the column's whole height */
+  #log-flight .fsheet .handle { display: none; }
+  #log-flight .topbar { right: min(400px, 50vw); }
+  #log-flight.replaying .fsheet { transform: translateX(105%); }
+  #log-flight.replaying .topbar { right: 0; }
+}
+@media (min-width: 900px) and (min-height: 561px) { /* W77 desktop: the column only as tall as it needs, with its own scroll */
+  #log-flight .fsheet { bottom: auto; max-height: 100%; border-bottom: var(--hairline) solid var(--glass-edge); border-radius: 0 0 0 var(--r-l); } } /* W77 desktop */
+body.calm #bar, body.calm #log-flight .fsheet { transition-duration: var(--t-press); }
+
+/* W59 pace (SPEC §81): planned against flown, one line under a flight's stats (W150 logtidy: the Log's offer is Settings' now) */
+#log-flight .plan { margin: 10px 0 0; font-family: var(--font-display); font-weight: 600; font-size: max(11px, 0.9375rem); letter-spacing: 0.05em; text-transform: uppercase; /* W142 remscale */
+  color: var(--phosphor); font-variant-numeric: tabular-nums; }
+
+/* ---- W68 logbulk (design/app-ui/SPEC.md §99): the bin and the star (W235 logrides: Select, the swipe and Archive went, SPEC §498) -- */
+.i-trash { -webkit-mask-image: url("../design/glyphs/ui/trash.svg"); mask-image: url("../design/glyphs/ui/trash.svg"); } /* W68 logbulk; W234 shell (SPEC §490, her row 1): her rounded bin, the one bin (design/glyphs/build.py HER_BIN): a ride's card and its page */
+.i-star { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); } /* W68 logbulk */
+.i-star-on { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z'/%3E%3C/svg%3E"); } /* W68 logbulk */
