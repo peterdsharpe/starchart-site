@@ -150,6 +150,30 @@ export function nextDepartures(tt, k, { route, dir, from, to, after, n = 2, ok =
   }
   return [...out].sort((a, b) => a - b).slice(0, n);
 }
+/** W252 transit3 (SPEC §518, her row of 11-21, UX rule 111): a ride's direction as the platform names it: where every trip of its line
+ *  and direction boarding at station `from` within TOWARD_S of `dep` (s, day k's clock) reaches `to`, the set of those trips' headsigns,
+ *  sorted, joined by "/" ("Ashmont/Braintree"), or by " or " when one has a "/" of its own ("Forge Park/495 or Foxboro"); else the trip's
+ *  own, `head` (to Quincy, only a Braintree train). `ok`, as nextDepartures()'s: the trips she may take. Both planners' legs. */
+export const TOWARD_S = 1800; // W252 transit3
+export function towards(tt, k, { route, dir, from, to, dep, head, ok = () => true }) { // W252 transit3
+  const heads = new Set();
+  for (const [d, shift] of [[k - 1, -1440], [k, 0], [k + 1, 1440]]) {
+    const day = tripsOn(tt, d);
+    for (let pi = 0; pi < tt.patterns.length; pi++) {
+      const p = tt.patterns[pi], i = p.route === route && p.dir === dir ? p.st.indexOf(from) : -1;
+      if (i < 0 || p.noOn[i]) continue;
+      const m = p.st.length, j = p.st.indexOf(to, i + 1), there = j >= 0 && !p.noOff[j];
+      for (const tr of day[pi]) {
+        const t = (p.times[tr * m + i] + shift) * 60;
+        if (Math.abs(t - dep) > TOWARD_S || !ok(p, t, there ? (p.times[tr * m + j] + shift) * 60 : t)) continue;
+        if (!there) return head; // one of them doesn't take her there: only her own will do
+        if (p.head) heads.add(p.head);
+      }
+    }
+  }
+  const all = [...heads].sort();
+  return all.length > 1 ? all.join(all.some((h) => h.includes("/")) ? " or " : "/") : head;
+}
 /** W189 transittimes: the next departures after a live `dep` (ms): the reply's `live` ones after it, then the timetable's `sched`
  *  (ms) from 2 min past the last of those (so a late bus's own scheduled time isn't counted again), `n` in all. */
 export const fillNext = (live, sched, dep, n = 2) => {
@@ -167,12 +191,13 @@ export const fillNext = (live, sched, dep, n = 2) => {
  *  FIRST_KERB.before_s once longer than its early_s (she sets off later, by its Leave by). */
 export const FIRST_KERB = { early_s: 180, before_s: 120 }; // walktransit.js WALK's (app/tests/walk.test.mjs checks)
 const outOf = (w, time_s, first) => (w.out_s == null || w.roof ? w.out_s : first && time_s > FIRST_KERB.early_s ? FIRST_KERB.before_s : time_s);
-export function withLive(p, dep, later = [], i = p.legs.findIndex((l) => l.type === "train")) { // W189 transittimes: later; W251 arrival (fifth pass): i, any ride of it (walktransit.js lived()), the first by default
+export function withLive(p, dep, later = [], i = p.legs.findIndex((l) => l.type === "train"), heads = null) { // W189 transittimes: later; W251 arrival (fifth pass): i, any ride of it (walktransit.js lived()), the first by default; W252 transit3: heads, the reply's headsigns in later's order (app/walk-card.js liveHeads())
   if (i < 0 || dep == null) return p;
-  const l = p.legs[i], d = dep - l.dep, one = !p.legs.some((x, k) => k > i && x.type === "train"), move = one || d > 0 ? d : 0; // W251 arrival: its trains counted here (was walk-card.js trainsOf()); fifth pass: one, its last ride (with the first, the only one)
+  const l = p.legs[i], d = dep - l.dep, one = !p.legs.some((x, k) => k > i && x.type === "train"), move = one || d > 0 ? d : l.lent ? Math.max(d, -l.lent) : 0; // W252 transit3 (W251's note 1): an earlier train moves back what another stop's reply lent (walktransit.js lived()), no more // W251 arrival: its trains counted here (was walk-card.js trainsOf()); fifth pass: one, its last ride (with the first, the only one)
   const first = p.legs.findIndex((x) => x.type === "train"); let out = 0; // W251 arrival (seventh pass): her time outside, as the waits change
   const wait = (w, time_s, isFirst) => { const o = outOf(w, time_s, isFirst); if (o != null && w.out_s != null) out += o - w.out_s; return { ...w, time_s, ...(o != null ? { out_s: o } : {}) }; };
-  const legs = p.legs.map((x, k) => (k === i ? { ...x, dep, arr: x.arr + move, live: true, deps: later, ...(x.next ? { next: fillNext(later, x.next, dep) } : {}) } // W189 transittimes: next; W251 arrival (sixth pass): deps, the reply's, for a ride after an earlier one moves
+  const own = (deps, hs, t, head) => hs?.[deps.indexOf(t)] || head; // W252 transit3 (SPEC §518, UX rule 111): a live time names its own train, as the platform's screen does
+  const legs = p.legs.map((x, k) => (k === i ? { ...x, dep, arr: x.arr + move, live: true, deps: later, ...(x.lent ? { lent: 0 } : {}), /* W252 transit3: taken back */ ...(heads ? { heads, head: own(later, heads, dep, x.head) } : {}), ...(x.next ? { next: fillNext(later, x.next, dep) } : {}) } // W189 transittimes: next; W251 arrival (sixth pass): deps, the reply's, for a ride after an earlier one moves; W252 transit3: heads, head
     : k === i - 1 && x.type === "wait" ? wait(x, Math.max(0, x.time_s + Math.round(d / 1000)), i === first) : x)); // W251 arrival (seventh pass): wait(), its time outside too
   let shift = move; // how much later she is from here on
   for (let k = i + 1; k < legs.length && shift; k++) {
@@ -183,7 +208,7 @@ export function withLive(p, dep, later = [], i = p.legs.findIndex((l) => l.type 
     const w = legs[k - 1]?.type === "wait" ? k - 1 : -1, ready = x.dep - (w >= 0 ? legs[w].time_s * 1000 : 0) + shift;
     const to = ready <= x.dep ? x.dep : (x.deps || []).find((t) => t >= ready) ?? null, nd = to ?? x.dep + shift;
     if (w >= 0) legs[w] = wait(legs[w], Math.max(0, Math.round((nd - ready) / 1000)), false); // W251 arrival (seventh pass): wait()
-    legs[k] = { ...x, dep: nd, arr: x.arr + (nd - x.dep), ...(to == null ? { live: false } : {}) };
+    legs[k] = { ...x, dep: nd, arr: x.arr + (nd - x.dep), ...(to == null ? { live: false } : x.heads ? { head: own(x.deps || [], x.heads, to, x.head) } : {}) }; // W252 transit3: the reply's next she can, its own name
     shift = nd - x.dep;
   }
   const by = one ? move : shift; // the arrival: the last ride's
@@ -569,7 +594,8 @@ function describe(tt, { at, t0, r0, r1, legs, S0, S1, onPlat, off, end, in_ll, o
     const was = n ? tt.patterns[legs[n - 1].p] : null, up = was && stairsAt(tt.stations[was.st[legs[n - 1].j]], was.route) !== stairsAt(a, p.route); // W224 ownstairs (SPEC §470): one of the two trains' ways there has stairs, the other's not, so no step-free way joins their platforms
     if (n) out.push({ type: "change", station: a.id, name: a.name, time_s: c, ...(up ? { stairs: true } : {}) }); // W223 bikestations: c; W224 ownstairs: up
     out.push({ type: "wait", station: a.id, time_s: Math.round(l.dep - ready - c) }); // W223 bikestations: c
-    out.push({ type: "train", route: p.route, line: r.name, color: r.color, dir: p.dir, head: p.head, from: a.id, from_name: a.name, to: b.id, to_name: b.name,
+    out.push({ type: "train", route: p.route, line: r.name, color: r.color, dir: p.dir, head: towards(tt, k, { route: p.route, dir: p.dir, from: p.st[l.i], to: p.st[l.j], dep: l.dep, head: p.head, ok: (q, d, a) => rideOk(q.route, q.dir, weekday, d / 60, a / 60) }), own: p.head, from: a.id, // W252 transit3: the direction as the platform names it (was p.head); own, its trip's, for departure()
+      from_name: a.name, to: b.id, to_name: b.name,
       dep: ms(l.dep), arr: ms(l.arr), stops: l.j - l.i, time_s: l.arr - l.dep, path: p.st.slice(l.i, l.j + 1).map((x) => tt.stations[x].ll), // W62 cometcard: path, its stations, for the dashed line
       ids: p.st.slice(l.i, l.j + 1).map((x) => tt.stations[x].id), rtype: r.type, ...(p.bus ? { mode: "bus", short: r.short || "", rtype: 3 } : {}), // W76 comets: and their ids, for the storm-day check (alerted()); W128 buslegs: a bus as the walker's (walktransit.js); W212 bikeride: rtype, the subway's words underground (app/walk-ride.js)
       at: p.st.slice(l.i, l.j + 1).map((_, q) => ms((p.times[l.trip * p.st.length + l.i + q] + l.shift) * 60)), names: p.st.slice(l.i, l.j + 1).map((x) => tt.stations[x].name), // W212 bikeride (SPEC §402): each stop's time and name, for the ride followed by its timetable, as a walk's (walktransit.js)
@@ -751,7 +777,7 @@ export function departure(json, plan) {
   legs[i - 1] = { ...wait, time_s: wait.time_s + d };
   const rule = RULES.find((r) => r.match.test(t.route)), may = (x) => { const b = boston(x), m = b.min + (x % 60000) / 60000; return !(rule.trip && b.weekday) && rideOk(t.route, t.dir, b.weekday, m, m + t.time_s / 60); }; // W189 transittimes: as a bike may board; a weekday's Commuter Rail train says for itself (not in the reply), so the timetable's
   const later = (json?.data || []).filter((p) => p !== mine && !/^(CANCELLED|SKIPPED)$/.test(p.attributes?.schedule_relationship || "")).map((p) => Date.parse(p.attributes?.departure_time)).filter((x) => Number.isFinite(x) && may(x)); // W189 transittimes
-  legs[i] = { ...t, dep, arr: t.arr + dep - t.dep, live: true, ...(t.next ? { next: fillNext(later, t.next, dep) } : {}) }; // W189 transittimes: the next ones live too
+  legs[i] = { ...t, dep, arr: t.arr + dep - t.dep, live: true, ...(t.own ? { head: t.own } : {}), ...(t.next ? { next: fillNext(later, t.next, dep) } : {}) }; // W189 transittimes: the next ones live too; W252 transit3 (its review's P2, SPEC §518): a live time names its own train, as the walker's
   const n = legs.findIndex((l, x) => x > i && l.type === "train");
   if (n < 0) return { ...plan, legs, total_s: plan.total_s + d, arrive: plan.arrive + dep - t.dep, live: true };
   if (legs[n - 1].time_s - d < 0) return null; // the change missed

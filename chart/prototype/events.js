@@ -60,6 +60,9 @@ export class Course {
     }
     this.stops = this.props.stops || []; // W86 stops: the stop signs met on the course, [lon, lat] (the router's, instructions.js toCourse)
     this.lanes = this.props.lanes || []; // W93 busstop: the stretches ridden on a painted or shared bike lane on a street, [from_m, to_m] (toCourse)
+    // W252 lights (SPEC §519): the lights the route meets (the router's, instructions.js toCourse), each where this course has it,
+    // {p: [lon, lat], at: metres along}; null on a course without them (a live one, or a route kept from before): the tiles' lights
+    this.signals = this.props.signals ? this.props.signals.map(([m, lon, lat]) => ({ p: [lon, lat], at: this.distanceTo([lon, lat], Math.max(0, m - 60), Math.min(this.length, m + 60)).s })) : null;
     this.crossings = this.props.crossings || []; // W128 crashes: the high-crash crossings on the course, [lon, lat] (app/crossings.js); set later when its file comes in
   }
   index(s) {
@@ -178,6 +181,7 @@ const AHEAD_M = 160; // a rotary or a light this far along the course ahead is c
 const AGAIN = 1000; // a rotary or light passed again after this much flight is announced again (events-3)
 const HOLD = 40; // on a live course, a new system or quadrant counts once it has held this far on good fixes (wave 21)
 const QUAD_MARGIN = 50; // and a new quadrant's label must be this much nearer than the last one's
+const LIGHT_NEAR_M = 10, LIGHT_M = 8, LIGHT_STEP = 2; // W252 lights: a light is called from its lead down to 10 m before it (was from 30 m), looked for every 2 m (was 20), and the tiles' (a free ride's) within 8 m of the line (was 14)
 const RUN_M = 200; // W21 flight: a light this near the last one announced is part of its run: the effect and pill, no voice
 const PAD_QUIET = 200; // W21 flight: on a live course, the launchpad's own system and quadrant are said after this much flight
 
@@ -190,13 +194,15 @@ export class EventEngine {
    * @param {object} [opts]  {courseSet}: the pilot set a course, so the launch hands the conn to the Navigator. W60 d: {mode}:
    *                         the lingo mode, "scul" or "meatspace" (Plain), or a function that returns it, read at every line.
    *                         W196 voice4: {lead(kind)}: how far ahead a light ("pulsar") is called, in metres (app/course.js, by the
-   *                         speed), or null for AHEAD_M
+   *                         speed), or null for AHEAD_M. W252 lights: {quiet()}: true while nothing may be said (on a train or bus,
+   *                         or waiting at its stop: app/main.js aboard()); the engine still follows her, so nothing is said late
    */
-  constructor(course, lingo, world, emit, { courseSet = false, mode = "scul", lead = () => null } = {}) { // W196 voice4: lead
+  constructor(course, lingo, world, emit, { courseSet = false, mode = "scul", lead = () => null, quiet = () => false } = {}) { // W196 voice4: lead; W252 lights: quiet
     this.course = course;
     this.courseSet = courseSet;
     this.mode = mode;
     this.lead = lead; // W196 voice4
+    this.quiet = quiet; // W252 lights
     this.lingo = lingo;
     this.world = world;
     this.emit = emit || ((e) => window.dispatchEvent(new CustomEvent("starchart:event", { detail: e })));
@@ -222,6 +228,7 @@ export class EventEngine {
     this.turns = new Map(); // voice slot -> lines said, for the variants' rotation
     this.pending = {}; // slot -> {key, s}: a live course's system or quadrant, not yet held for HOLD
     this.lastPulsar = null; // W21 flight: the last light announced, for the run rule
+    this.lightAt = -Infinity; // W252 lights: where the last look for a light was
     this.lastStop = null; // W86 stops: the last stop sign announced, for the same rule
     this.atPad = {}; // W21 flight: slot -> the launchpad's system or quadrant, said at PAD_QUIET unless a change came first
   }
@@ -263,7 +270,7 @@ export class EventEngine {
     if (this.priming && ["system_enter", "quadrant_enter"].includes(kind)) return;
     const e = { kind, text, voice, data: { ...data, along_m: Math.round(this.s) } };
     this.history.push(e);
-    if (!this.silent) this.emit(e);
+    if (!this.silent && !this.quiet()) this.emit(e); // W252 lights: quiet
   }
 
   fill(t, f) {
@@ -336,6 +343,10 @@ export class EventEngine {
     // The chart near the ship, every 20 m of the course, once the world has the tiles there. A scan
     // more than 400 m behind the ship (after a seek, or tiles that were slow to come) is skipped.
     if (s < this.lastScan || s - this.lastScan > 400) this.lastScan = s - SCAN;
+    // W252 lights: a light is looked for every LIGHT_STEP of the course (not every SCAN), so its call lands within a step of its
+    // lead; in the order of the course with the scans, so the events are the same whatever the step
+    if (s < this.lightAt || s - this.lightAt > 400) this.lightAt = Math.min(s, this.lastScan + SCAN) - LIGHT_STEP;
+    const lightsTo = (x) => { while (this.lightAt + LIGHT_STEP <= x && this.scanLights(this.lightAt + LIGHT_STEP)) this.lightAt += LIGHT_STEP; };
     while (this.lastScan + SCAN <= s) {
       const x = this.lastScan + SCAN, here = c.at(x);
       if (this.world.ready && !this.world.ready(here.lonlat)) break;
@@ -344,6 +355,7 @@ export class EventEngine {
       const passed = x < s - 3 * SCAN; // W228 backfill: a step the ship is well past (a jump: back from another app, a GPS gap, tiles that came late; fixes up to 60 m apart scan as before): where it is (a town, a path, a bridge, a hill ahead) is judged at the ship, and each call ahead skips what is behind it
       if (!passed) this.scanWormhole(here, x); // W228 backfill: !passed
       if (!passed) this.scanSystems(here, x); // W228 backfill: !passed
+      lightsTo(x); // W252 lights
       this.scanAhead(here, x);
       this.scanStops(x); // W86 stops
       this.scanBusStops(here, x); // W93 busstop
@@ -352,6 +364,7 @@ export class EventEngine {
       if (!passed) this.scanGwell(x); // W228 backfill: !passed
       if (this.priming && this.system) this.priming = false;
     }
+    if (this.lastScan + SCAN > s) lightsTo(s); // W252 lights: and on to the ship, unless the scans wait for tiles
     if (s >= PAD_QUIET) for (const slot of ["system", "quadrant"]) { // W21 flight: the launchpad's, once it has been flown from
       const f = this.atPad[slot];
       this.atPad[slot] = null;
@@ -436,14 +449,14 @@ export class EventEngine {
 
   scanAhead(here, s) {
     const c = this.course;
-    const s1 = Math.min(c.length, s + AHEAD_M), lead = Math.min(AHEAD_M, this.lead("pulsar") ?? AHEAD_M), light = Math.min(c.length, s + lead); // W196 voice4: a light by the speed
-    const near = this.world.features("pois", ["black_hole", "pulsar"], here.lonlat, 450)
+    const s1 = Math.min(c.length, s + AHEAD_M); // W252 lights: a light's lead is scanLights'
+    const near = this.world.features("pois", ["black_hole"], here.lonlat, 450) // W252 lights: the lights are scanLights'
       .concat(this.world.features("places", ["constellation"], here.lonlat, 450));
     for (const f of near) {
       const p = f.geometry.coordinates;
       const kind = f.properties.kind;
-      const reach = kind === "black_hole" ? 25 + (f.properties.radius_m || 10) : kind === "pulsar" ? 14 : 90;
-      const { d, s: at } = c.distanceTo(p, s + (kind === "pulsar" ? 30 : 20), kind === "constellation" ? Math.min(c.length, s + 300) : kind === "pulsar" ? light : s1); // W196 voice4: light
+      const reach = kind === "black_hole" ? 25 + (f.properties.radius_m || 10) : 90; // W252 lights: no pulsar
+      const { d, s: at } = c.distanceTo(p, s + 20, kind === "constellation" ? Math.min(c.length, s + 300) : s1); // W252 lights: no pulsar
       if (d > reach || at < this.s) continue; // W228 backfill: one the ship is already past (after a jump) is never called
       const key = kind + ":" + p.map((x) => x.toFixed(4)).join(",");
       const props = f.properties;
@@ -453,21 +466,39 @@ export class EventEngine {
           this.say("black_hole_ahead", this.labelFor("black_hole", props), this.voiceFor("black_hole", props.base ? 1 : 0, props), // the fact, then stop: no advice on every rotary
             { ...props, ahead_m, lonlat: p });
         }
-      } else if (kind === "pulsar") {
-        // one announcement per intersection (pulsars within 60 m count as one), and at most one per 150 m;
-        // a light held back by the 150 m rule is still announced at the next scan (events-2). W21 flight: on a run of
-        // lights, each within RUN_M of the one announced before it, only the first is said (arclight's pick, 2a)
-        const cell = "pulsar:" + (p[0] * 1500).toFixed(0) + "," + (p[1] * 2000).toFixed(0);
-        if (this.fresh("pulsar-any", s, Math.min(150, lead)) && this.once(cell, s, AGAIN)) { // W196 voice4: at most one per 150 m, or per the lead, so the next light in its nearer window is still called
-          this.announced.set("pulsar-any", s);
-          const run = !!this.lastPulsar && metres(this.lastPulsar, p) < RUN_M;
-          this.lastPulsar = p;
-          this.say("pulsar_ahead", "Pulsar ahead", run ? "" : this.voiceFor("pulsar", 0, props), { ahead_m, lonlat: p, run });
-        }
       } else if (kind === "constellation" && (props.rank || 1) < 4 && this.once(key, s, 1e9)) {
         this.say("constellation", this.labelFor("constellation", props), this.voiceFor("constellation", 0, props), { ...props, lonlat: p });
       }
     }
+  }
+
+  /** W252 lights (SPEC §519): a light ahead, looked for every LIGHT_STEP of the course (update): on a planned course the ones it meets
+   *  (Course.signals, the router's), else the tiles' within LIGHT_M of the line (a free ride, or a route kept from before), from the
+   *  lead (by her speed, the app's: app/course-logic.js lightLead) down to LIGHT_NEAR_M before it. One announcement per
+   *  intersection (lights within about 50 m count as one) and again after AGAIN, at most one per 150 m, or per the lead, so the next
+   *  light in its nearer window is still called (W196 voice4); a light held back is announced at the next step (events-2). W21
+   *  flight: on a run of lights, each within RUN_M of the one announced before it, only the first is said (arclight's pick, 2a). */
+  scanLights(s) {
+    if (this.quiet()) return true; // on board: no look. A silent engine (the free ride's beside a route's) still looks, so a light its route called isn't said again once the route clears
+    const c = this.course, lead = Math.min(AHEAD_M, this.lead("pulsar") ?? AHEAD_M), s0 = s + LIGHT_NEAR_M, s1 = Math.min(c.length, s + lead);
+    if (s1 < s0) return true;
+    let ahead;
+    if (c.signals) ahead = c.signals.filter((g) => g.at >= s0 && g.at <= s1);
+    else {
+      const here = c.at(s).lonlat;
+      if (this.world.ready && !this.world.ready(here)) return false; // the tiles first
+      ahead = this.world.features("pois", ["pulsar"], here, lead + 30).map((f) => ({ p: f.geometry.coordinates, ...c.distanceTo(f.geometry.coordinates, s0 - LIGHT_M, Math.min(c.length, s1 + LIGHT_M)) }))
+        .filter((g) => g.d <= LIGHT_M && g.s >= s0 && g.s <= s1).map((g) => ({ p: g.p, at: g.s })); // its own nearest point in the window, not the window's end
+    }
+    for (const { p, at } of ahead.filter((g) => g.at >= this.s + LIGHT_NEAR_M).sort((a, b) => a.at - b.at)) { // W228 backfill: one the ship is already past (or nearly) is never called
+      const cell = "pulsar:" + (p[0] * 1500).toFixed(0) + "," + (p[1] * 2000).toFixed(0);
+      if (!this.fresh("pulsar-any", s, Math.min(150, lead)) || !this.once(cell, s, AGAIN)) continue;
+      this.announced.set("pulsar-any", s);
+      const run = !!this.lastPulsar && metres(this.lastPulsar, p) < RUN_M;
+      this.lastPulsar = p;
+      this.say("pulsar_ahead", "Pulsar ahead", run ? "" : this.voiceFor("pulsar", 0, {}), { ahead_m: Math.round(at - this.s), lonlat: p, run });
+    }
+    return true;
   }
 
   /** W86 stops: the course's stop signs, each only from the approach it faces (the router's), called as pulsars are: 30–160 m

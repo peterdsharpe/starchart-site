@@ -729,8 +729,10 @@ export const REACHED_M = 30;
 
 /** W196 voice4 (SPEC §344), her row 2: "Traffic light ahead." nearer the light, by the speed, as the turns' calls are: LIGHT_S
  *  seconds out, at least LIGHT_MIN_M, at most the 160 m it was (the engine looks every 20 m, so it was said 140 to 160 m out: 28
- *  to 33 s at 11 mph). `v`: the fix's speed in m/s (none: the least). The engine says it in the 20 m after this. */
-export const LIGHT_S = 10, LIGHT_MIN_M = 60, LIGHT_MAX_M = 160;
+ *  to 33 s at 11 mph). `v`: the fix's speed in m/s (none: the least). W252 lights (SPEC §519), her row 3 ("a few seconds before I
+ *  reach it at my current speed, with a short minimum distance (about 25–30 m)"): 5 s, at least 25 m (was 10 s and 60 m), by bike
+ *  and on foot; the engine looks every 2 m, so it says it in the 2 m after this. */
+export const LIGHT_S = 5, LIGHT_MIN_M = 25, LIGHT_MAX_M = 160; // W252 lights: 5, 25 (were 10, 60)
 export const lightLead = (v) => Math.min(LIGHT_MAX_M, Math.max(LIGHT_MIN_M, LIGHT_S * (Number.isFinite(v) ? v : 0)));
 /** W196 voice4 (SPEC §344), her row 2: a bus stop beside the bike lane is called only when a bus is due there: one in the
  *  walker's timetable on the phone (walktransit.js stopTimes `rows`, asked from BUS_LATE_S back) from BUS_LATE_S before `now`

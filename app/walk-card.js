@@ -198,16 +198,21 @@ export const walkLegs = (p) => ({ type: "FeatureCollection", features: (p?.legs 
  *  known. 50 rows, two stops' worth (19 at one stop was the most at 8 am, the Orange Line's): a last stop's predictions have no
  *  departure and sort first: at 7:47 am, Downtown Crossing to Braintree, 17 rows came before any departure, so 16 would hold none. */
 export const predictionsUrl = (l) => `https://api-v3.mbta.com/predictions?filter[stop]=${encodeURIComponent(l.from)},${encodeURIComponent(l.to)}&filter[route]=${encodeURIComponent(l.route)}` // R1 plans: her two stops
-  + `&filter[direction_id]=${l.dir}&include=stop&fields[stop]=&fields[prediction]=arrival_time,departure_time&sort=departure_time&page[limit]=50`; // R1 plans: each platform's station, and the arrivals
+  + `&filter[direction_id]=${l.dir}&include=stop,trip&fields[stop]=&fields[trip]=headsign&fields[prediction]=arrival_time,departure_time&sort=departure_time&page[limit]=50`; // R1 plans: each platform's station, and the arrivals; W252 transit3: each trip's headsign
 /** W189 transittimes: V3's JSON:API reply's predicted departures (ms) at leg `l`'s boarding stop, soonest first. R1 plans (SPEC §441,
  *  review P09): only the trips predicted at its last stop after it, so not the other branch's trains (the Red Line's to Ashmont for
  *  Quincy Center) nor a trip that turns short; a stop is its platform's station (the reply's `included` stops), else itself. */
-export function liveDeps(json, l) { // R1 plans: l
+export const liveDeps = (json, l) => liveTrips(json, l).map((x) => x.t); // R1 plans: l; W252 transit3: liveTrips()'s times
+/** W252 transit3 (SPEC §518, UX rule 111): liveDeps()'s trips' headsigns, in its order (null where the reply has none), so a live time
+ *  names its own train ("toward Braintree" for a Braintree train due first under a plan toward Ashmont/Braintree). */
+export const liveHeads = (json, l) => liveTrips(json, l).map((x) => x.head); // W252 transit3
+function liveTrips(json, l) { // R1 plans: liveDeps(); W252 transit3: with each trip's headsign
   const station = new Map((json?.included || []).filter((x) => x.type === "stop").map((x) => [x.id, x.relationships?.parent_station?.data?.id || x.id]));
+  const heads = new Map((json?.included || []).filter((x) => x.type === "trip").map((x) => [x.id, x.attributes?.headsign || null])); // W252 transit3
   const at = (p) => station.get(p.relationships?.stop?.data?.id) ?? p.relationships?.stop?.data?.id, trip = (p) => p.relationships?.trip?.data?.id;
   const time = (p) => Date.parse(p.attributes?.departure_time), there = new Map(); // a trip's last time at her stop
   for (const p of json?.data || []) if (at(p) === l.to) { const t = Date.parse(p.attributes?.arrival_time ?? p.attributes?.departure_time); if (t > (there.get(trip(p)) ?? -Infinity)) there.set(trip(p), t); }
-  return (json?.data || []).filter((p) => at(p) === l.from && time(p) < there.get(trip(p))).map(time).sort((a, b) => a - b); // R1 plans
+  return (json?.data || []).filter((p) => at(p) === l.from && time(p) < there.get(trip(p))).map((p) => ({ t: time(p), head: heads.get(trip(p)) ?? null })).sort((a, b) => a.t - b.t); // R1 plans; W252 transit3: { t, head }
 }
 /** The first predicted departure (ms) at or after `ready`, from V3's JSON:API reply, or null (none, or none in reach). */
 export function firstLive(json, ready, l) { // R1 plans: l, the leg
@@ -241,7 +246,8 @@ export function liveStep(step, s) {
   if (step === "repicked") { // clauses 7 and 8
     if (s.touched) return { held: true, asked: [], unasked: [] };
     const live = (s.plans || []).filter((p) => p.legs.find((l) => l.type === "train")?.live && s.seen?.has(askedAs(p))).map(askedAs); // eighth pass (the whole review's P1, its open half): live from the reply asked for its own first boarding; one live from another stop off's reply is asked its own
-    return { held: false, asked: live, unasked: [...(s.asked || [])].filter((id) => !s.answered?.has(id) && !live.includes(id)), docks: (s.plans || []).some((p) => p.bike) }; // clause 8 (seventh pass): asked but its reply not in when the re-pick was asked, nor its plan live: asked again; clause 11: docks, a Bluebike row's counts to refresh
+    const lent = (s.plans || []).filter((p) => p.legs.find((l) => l.type === "train")?.live && !!s.seen && !s.seen.has(askedAs(p))).map(askedAs); // W252 transit3 (W251's note 2): live from another reply, its own failed or not in
+    return { held: false, asked: live, unasked: [...(s.asked || [])].filter((id) => (!s.answered?.has(id) || lent.includes(id)) && !live.includes(id)), docks: (s.plans || []).some((p) => p.bike) }; // clause 8 (seventh pass): asked but its reply not in when the re-pick was asked, nor its plan live: asked again; clause 11: docks, a Bluebike row's counts to refresh // W252 transit3: lent
   }
   throw new Error(`liveStep: ${step}`);
 }

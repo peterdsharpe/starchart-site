@@ -867,6 +867,7 @@ export class Router {
     const dust = []; // W104 oss2: the unpaved stretches, [from_m, to_m]
     const junk = [], tracks = []; // W67 graph3: the Space Junk and the track crossings ridden through, at the leg's end junction
     const stops = []; // W86 stops: the stop signs met, at the junction the approach's sign faces [at_m, lon, lat]
+    const signals = []; let inZone = -1; // W252 lights (SPEC §519): the lights met, where the course enters each intersection with signals (enters(), the time model's rule), [at_m, lon, lat]; on foot also a signalled crossing walked in one it began in
     const parks = []; // W200 parkwalk (SPEC §357): the stretches walked through an area whose rules ban riding, [from_m, to_m, its name] (the graph's `park`, its header's `parks`); none without the section
     const comfort = []; // W140 dircomfort: the comfort this way (the graph's comfort_dir, 0 to 7), [at_m, level] in runs; null where unknown (a pack built before it); none without the section
     for (const [i, [d, f0, f1]] of legs.entries()) {
@@ -894,6 +895,7 @@ export class Router {
         if (nf & N_JUNK) junk.push(Math.round(dist));
         if (nf & N_TRACKS) tracks.push([Math.round(dist), this.trackAngle(d, v)]);
         if (this.wait[d] === W_STOP) stops.push([Math.round(dist), +(s.lon[v] * 1e-6).toFixed(6), +(s.lat[v] * 1e-6).toFixed(6)]); // W86 stops
+        if (this.enters(d) || (foot && nf & N_SIGNAL && s.flags[d >> 1] & F.CROSSING && this.zone[v] !== inZone)) { inZone = this.zone[v]; signals.push([Math.round(dist), +(s.lon[v] * 1e-6).toFixed(6), +(s.lat[v] * 1e-6).toFixed(6)]); } // W252 lights
       }
       if (m > 0) prof.push([Math.round(dist), +elev.at(-1).toFixed(1)]); // W53 turns
       junctionAt.push(dist);
@@ -920,7 +922,7 @@ export class Router {
     // W200 parkwalk (SPEC §357): `walk_s`, the seconds of `time_s` on foot (the walks, the steps, the wrong way, the walks to and
     // from the course), which her pace never scales (app/course-logic.js routeSeconds)
     return { geometry, distance_m: Math.round(dist), climb_m: Math.round(climb), time_s: Math.round(time), walk_s: Math.round(footT), maneuvers, bike_m, cost: Math.round(cost),
-      walk_m: Math.round(walked), walk: { start: r6(walk.start), end: r6(walk.end) }, elev: prof, ways, steps, bare, junk, tracks, stops, walks, oneway, parks, dust, comfort }; // W201 routelook: oneway; W200 parkwalk: parks; W140 dircomfort: comfort; W104 oss2: dust; W53 turns: elev, ways; W54 flight: steps; W59 routes: bare; W67 graph3: junk, tracks; W86 stops; W86 ride: walks
+      walk_m: Math.round(walked), walk: { start: r6(walk.start), end: r6(walk.end) }, elev: prof, ways, steps, bare, junk, tracks, stops, signals, walks, oneway, parks, dust, comfort }; // W201 routelook: oneway; W200 parkwalk: parks; W140 dircomfort: comfort; W104 oss2: dust; W53 turns: elev, ways; W54 flight: steps; W59 routes: bare; W67 graph3: junk, tracks; W86 stops; W86 ride: walks
   }
 
   /** W201 routelook (SPEC §359): does directed edge d ride a one-way street its traffic's way: a named street a bike may ride only

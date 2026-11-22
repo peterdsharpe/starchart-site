@@ -1455,6 +1455,7 @@ function launch(t, k = null) { // W28 resume: k, a kept flight to carry on
   unstick();
   course = new LiveCourse({ from: k?.metres || 0 }); // W28 resume
   engine = new EventEngine(course, lingo, world, (e) => { if (!((afoot || plain()) && e.kind === "light_year") && e.kind !== "quadrant_enter") dispatchEvent(new CustomEvent("starchart:event", { detail: e })); }, { mode: () => mode, lead: (k) => (k === "pulsar" ? lightLead(lastFix?.speed_mps) : null) }); // W196 voice4 (SPEC §344): no neighbourhood calls, a light nearer by the speed; W60 d: the lingo mode, read at every line; W79 walkgo: light years are a ship's, none on a walk; her note 2026-10-23 ("the milestone sound for each mile is distracting and unnecessary"): none in Plain either, an ordinary bike map's ride; SCUL keeps its light years
+  engine.quiet = () => aboard() && !nav.onBike; // W252 lights (SPEC §519): nothing on a train or bus, or waiting at its stop (it still follows her); a Bluebike's leg is a ride
   if (k) engine.resume(k.metres); // W28 resume: where it was, said once already
   lastS = -1;
   away = k ? keptAway(k) : null; // W228 backfill: a ride carried on may fill the stretch since its last fix, from the first good fix after

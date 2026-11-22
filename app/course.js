@@ -545,7 +545,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     arrow: (m, c) => { ui.lit = m !== undefined; if (ui.lit) map.getSource("course-turn")?.setData(turnArrow(c, m)); else { turnAt = undefined; markTurn(lastS); } } }); // W53 turns
   /** W53 turns: a route's rows for the list: its turns in the card's words, then the landing pad on its side. */
   const rowsOf = (r, place, side, step = null) => { const list = toCourse(lingo, r).properties.instructions; // W53 turns; W215 journey: step, a stop on the way (stopStep), the last row
-    const rows = turnRows(list, { name: (i) => (i.road ? roadName(lingo, i.road, lingoMode()) : null), pulsar: pulsarAt, stop: (i) => stopAt(i, r), side, // W53 turns; W56 parking: rows; W60 b: roadName, in the mode; W86 stops: stop
+    const rows = turnRows(list, { name: (i) => (i.road ? roadName(lingo, i.road, lingoMode()) : null), pulsar: (i) => pulsarAt(i, r), /* W252 lights */ stop: (i) => stopAt(i, r), side, // W53 turns; W56 parking: rows; W60 b: roadName, in the mode; W86 stops: stop
       pad: step ? step.text : `${list.at(-1)?.walk_m >= WALK_SAY_M ? "Walk across" : pickWords("Landing pad", "Destination")}: ${writtenName(lingo, place.kind, placeName(place))}` }); // W53 turns; W60 b; W215 journey: step // R2 cardfoot: writtenName, as the foot
     if (step && rows.at(-1)?.pad) rows.at(-1).src = step.glyph; // W215 journey: its own picture, no racks
     else if (rows.at(-1)?.pad) rows.at(-1).text += padAnchors(place); // W56 parking: "Landing pad: Western, to starboard · 7 anchorages"
@@ -2796,7 +2796,8 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
   /** W31 navvoice (the nav audit's #3): a pulsar within 40 m of a turn is said in the turn's call ("At the pulsar, turn to
    *  port."), and its own "Pulsar ahead." is not said, so it never cuts the call short. Pulsars elsewhere are said first, as ever. */
   const PULSAR_M = 40;
-  const pulsarAt = (ins) => !!ins.at && ins.turn !== "arrive" && world.features("pois", ["pulsar"], ins.at, PULSAR_M).length > 0;
+  const pulsarAt = (ins, r = nav.route) => !!ins.at && ins.turn !== "arrive" && (r?.signals ? r.signals.some(([, lon, lat]) => metres([lon, lat], ins.at) <= PULSAR_M) // W252 lights (SPEC §519): the route's own lights (router.js signals), so a light folded into a turn's call is the one it says
+    : world.features("pois", ["pulsar"], ins.at, PULSAR_M).length > 0);
   const turnNear = (ll) => !!nav.cf && !!ll && nav.cf.feature.properties.instructions.some((i) => i.turn !== "arrive" && i.at
     && i.along_m > nav.cf.s - 10 && i.along_m < nav.cf.s + 400 && metres(i.at, ll) <= PULSAR_M);
   /** W196 voice4 (SPEC §344), her row 2: a bus stop's call (W93 busstop) waits for the walker's timetable on the phone (app/walk.js
@@ -3335,6 +3336,7 @@ export function mountCourse({ map, maplibregl, lingo, world, data, at, flight, p
     get arrived() { return !!landing && !landing.gone && !landing.away; }, // W212 walkend
     /** W211 walkride: on board a walk's ride, its leg (main.js: no GPS lost, the line that says the timetable is followed), else null. */
     get riding() { const leg = nav.leg; return leg?.n === 0 && leg.ride?.phase === "ride" && !leg.aboard ? trainOn(leg) : null; }, // W212 bikeride: a bike + T course's train too; W222 ontrain: past her stop or off her line, the GPS's place
+    get onBike() { return onBike(); }, // W252 lights: a Bluebike's leg (main.js: out of the walk's Log, yet she rides, so not aboard)
     /** W215 journey (SPEC §412): in a trip, its arrival, minutes left and (on its last leg) distance (trip.js tripEta), for main.js's readout; else null. */
     get trip() { return tripNow(); }, // W215 journey
     /** W215 journey: in a trip, its own place (the Log's "To Davis") and the points of its legs still ahead (main.js's whole-route view); else null. */

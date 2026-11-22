@@ -31,7 +31,7 @@
 //   own, tips her cards (walktransit.js RANGES.sky): rain or snow makes a minute outside weigh more, a dry radar a little less.
 import { canStore, storedTiles, paused } from "./offline.js"; // W226 cardfirst: paused
 import { timetableBytes, askWorker } from "./timetable.js"; // W152 app-rest J1
-import { predictionsUrl, firstLive, withLive, liveDeps } from "./walk-card.js"; // W189 transittimes: liveDeps
+import { predictionsUrl, firstLive, withLive, liveDeps, liveHeads } from "./walk-card.js"; // W189 transittimes: liveDeps; W252 transit3: liveHeads
 import { boston } from "./comet-bikes.js";
 import { ALERTS, MASSPORT } from "../chart/routing/transit.js"; // W78 walkalerts; W192 sltimes: MASSPORT
 import { AHEAD_MIN } from "./weather-logic.js"; // W198 walkcards: the nowcast's reach
@@ -163,8 +163,8 @@ export function mountWalk({ data, at, router, fetchFn = (...a) => fetch(...a), w
       try {
         const r = await fetchFn(predictionsUrl(l), { cache: "no-cache", credentials: "omit", referrerPolicy: "no-referrer" });
         const json = r.ok ? await r.json() : null; // W189 transittimes
-        const deps = json ? liveDeps(json, l) : null, q = json ? withLive(plan, firstLive(json, ready, l), deps) : plan; // W251 arrival
-        return q === plan ? plan : { ...q, seen: { route: l.route, dir: l.dir, from: l.from, ids: l.ids, deps } }; // W189 transittimes: and its next ones; R1 plans (SPEC §441): of the trips that reach her stop; W251 arrival (SPEC §517): `seen`, the reply's departures, for a re-pick with them (plan()'s `live`)
+        const deps = json ? liveDeps(json, l) : null, heads = json ? liveHeads(json, l) : null, q = json ? withLive(plan, firstLive(json, ready, l), deps, undefined, heads) : plan; // W251 arrival; W252 transit3: heads, each trip's own name
+        return q === plan ? plan : { ...q, seen: { route: l.route, dir: l.dir, from: l.from, ids: l.ids, deps, heads } }; // W252 transit3: heads; W189 transittimes: and its next ones; R1 plans (SPEC §441): of the trips that reach her stop; W251 arrival (SPEC §517): `seen`, the reply's departures, for a re-pick with them (plan()'s `live`)
       } catch { return plan; }
     },
   };

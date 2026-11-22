@@ -834,7 +834,7 @@ const SAFETY = new Set(["black_hole_ahead", "pulsar_ahead", "negi_g_well", "stop
  *  that come with the launch's "you have the conn"; a bus stop for 4 s, still before it. */
 const wait = (e) => e.kind === "course_turn" ? (e.stage === "prepare" ? 6000 : 3000)
   : e.kind === "system_enter" || e.kind === "quadrant_enter" || e.kind === "radiation" || e.kind === "steps_ahead" || e.kind === "space_junk" || e.kind === "tracks_ahead" || e.kind === "walk_ahead" ? 10000 // W196 voice4: walk_ahead
-  : e.kind === "bus_stop_ahead" || e.kind === "crossing_ahead" ? 4000 : 0; // W54 flight: the rain and the steps wait too; W67 graph3: the junk and the tracks; W93 busstop: 4 s of a 60 m lead; W128 crashes: a crossing too
+  : e.kind === "bus_stop_ahead" || e.kind === "crossing_ahead" ? 4000 : e.kind === "pulsar_ahead" ? 2000 : 0; // W252 lights: a light behind a turn's call, 2 s of its 5 s lead; W54 flight: the rain and the steps wait too; W67 graph3: the junk and the tracks; W93 busstop: 4 s of a 60 m lead; W128 crashes: a crossing too
 const UNINTERRUPTED = new Set([...SAFETY, "course_turn", "launch", "walk_ahead"]); // W196 voice4: a turn waits behind "Walk your bike ahead." rather than cut it, and it behind a turn
 /** W128 navcalls: a turn's reminder and a steady ("Still on course.") play only into silence, and any other line cuts them short. */
 const soft = (e) => e.kind === "on_course" || (e.kind === "course_turn" && e.stage === "remind");
@@ -865,7 +865,7 @@ export class VoiceQueue {
     }
     if (soft(e) && (t < this.busyUntil || this.waiting.length)) return Promise.resolve(0); // W128 navcalls: only into silence
     if (t >= this.busyUntil) return this.start(e);
-    if (SAFETY.has(e.kind)) { this.stop(); return this.start(e); } // W21 flight: never two voices at once
+    if (SAFETY.has(e.kind) && !(e.kind === "pulsar_ahead" && this.playing === "course_turn")) { this.stop(); return this.start(e); } // W21 flight: never two voices at once; W252 lights (SPEC §519): a light never cuts a turn's call short: it waits behind it (wait)
     if (e.kind === "course_turn" && !UNINTERRUPTED.has(this.playing)) {
       this.stop();
       return this.start(e);

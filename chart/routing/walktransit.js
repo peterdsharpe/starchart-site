@@ -31,12 +31,13 @@
 // - **Her rule** (W72 walktransit §2.3) ranks them: the minutes to the door; each change after the first boarding costs
 //   half the next vehicle's headway at that stop, at most `cap_s` (the expected wait when the connection is missed half
 //   the time); walking past `free_m` costs half again; each dollar of fare two minutes. Up to three cards: her best, the
-//   quickest, the one with least walking, each once.
+//   quickest, the one with least walking, each once. W252 transit3 (SPEC §518): that risk is the next vehicle's whole headway
+//   onto a bus and a quarter of it onto a train (HER.bus, HER.train), and a change between two trains pays no penalty_s.
 // - **W198 walkcards** (SPEC §351): a card only for a plan some reasonable walker would take under today's sky (reasonable()):
 //   none another beats or ties on every measure (its minutes to the door and outside, changes, fare, a missed change's risk),
 //   and each near the best under some weighting of RANGES, her rule in their middle. The third card is the least outside.
 import { boston } from "../../app/comet-bikes.js";
-import { alerted, dayNo, entrances, minHeap, tripsOn, nextDepartures, MASSPORT, withLive } from "./transit.js"; // W78 walkalerts; W189 transittimes: nextDepartures; W192 sltimes: MASSPORT; W251 arrival: withLive
+import { alerted, dayNo, entrances, minHeap, tripsOn, nextDepartures, MASSPORT, withLive, towards } from "./transit.js"; // W78 walkalerts; W189 transittimes: nextDepartures; W192 sltimes: MASSPORT; W251 arrival: withLive; W252 transit3: towards
 import { lean, CHANGE_S, step, walkLean, SOONER } from "./tradeoffs.js"; // W199 prefs; W203 tradeoffs2: CHANGE_S; W211 walkmore: step, walkLean; W212 walkfirst: SOONER
 import { BIKE, fareOf as bikeFare, stressM } from "./bikeshare.js"; // W204 bikeshare; 0.1.94's merge: as bikeFare, beside W203 walkcards2's fareOf (the T's)
 
@@ -58,8 +59,15 @@ export const WALK = {
 };
 /** Her rule (W72 walktransit §2.3). W198 walkcards: no flat slack_s (15 min of her best) any more: RANGES' `near`.
  *  W203 tradeoffs2 (SPEC §365, her row 11d: two buses and a subway ranked above one bus and a subway): `penalty_s`, each change's own
- *  cost on top of its walk, its wait and a missed change's risk (the literature's transfer penalty; tradeoffs.js CHANGE_S). */
-export const HER = { half: 0.5, cap_s: 1200, free_m: 1600, extra: 0.5, usd_s: 120, cards: 3, penalty_s: CHANGE_S }; // W203 tradeoffs2: penalty_s
+ *  cost on top of its walk, its wait and a missed change's risk (the literature's transfer penalty; tradeoffs.js CHANGE_S).
+ *  W252 transit3 (SPEC §518, her row of 11-19, UX rule 110: "getting on the bus is the hard part"): a change's risk by the vehicle she
+ *  boards, `bus` × its headway onto a bus (GTFS route type 3: the Silver Line and the shuttles too), `train` × it onto anything else
+ *  (was `half` for both), at most `cap_s`; `penalty_s` only for a change with a bus on either side (pens()): none between two trains. */
+export const HER = { bus: 1, train: 0.25, cap_s: 1200, free_m: 1600, extra: 0.5, usd_s: 120, cards: 3, penalty_s: CHANGE_S }; // W203 tradeoffs2: penalty_s; W252 transit3: bus, train (was half: 0.5)
+/** W252 transit3: a missed change's expected wait boarding route type `type` with headway `h` (s); with no other trip that day, the cap. */
+const miss = (type, h) => Math.min(HER.cap_s, (type === 3 ? HER.bus : HER.train) * h); // W252 transit3
+/** W252 transit3: a change between route types `a` and `b` pays penalty_s only with a bus on either side. */
+const paid = (a, b) => (a === 3 || b === 3 ? 1 : 0); // W252 transit3
 /**
  * W211 walkmore (SPEC §395, her row 23, UX rule 44: "a walker walks"): how far she walks at each step of the walker's beam (tradeoffs.js
  * `walk`, -2 T and bus … +2 Walking), level WALK's and HER's: `alone_m`, the longest walk the whole way, which then always has a card
@@ -264,12 +272,12 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
   }
   const best = new Array(S), dest = [];
   if (alone) dest.push({ t: t0 + alone.s, m: alone.m, n: 0, label: null, e: null, alone });
-  const may = (d, x) => d.n < x.n || (d.label?.rk || 0) <= (x.rk || 0); // W251 arrival (SPEC §517): an end's label prunes one of its own round only with no more of a missed change's risk (`rk`, reasonable()'s change_s), so a plan dropped later for its risk never takes out a trip she'd reach sooner (Bus 1 > 83 took out Orange > Red)
+  const may = (d, x) => d.n < x.n || ((d.label?.rk || 0) <= (x.rk || 0) && (d.label?.pk || 0) <= (x.pk || 0)); // W252 transit3: and no more changes with a bus (`pk`, pens()); W251 arrival (SPEC §517): an end's label prunes one of its own round only with no more of a missed change's risk (`rk`, reasonable()'s change_s), so a plan dropped later for its risk never takes out a trip she'd reach sooner (Bus 1 > 83 took out Orange > Red)
   const pruned = (t, m, x) => m > most_m || dest.some((d) => d.t <= t && bucket(d.m) <= bucket(m) && may(d, x)); // W211 walkmore: most_m; W251 arrival: may()
   const add = (s, x) => !pruned(x.t, x.m, x) && insert((best[s] ||= []), x);
   let marked = new Map(); // stop -> labels new in the last round
   for (const [s, a] of access) {
-    const x = { t: t0 + a.s, m: a.m, n: 0, s, how: { k: "access", a }, rk: 0 }; // W251 arrival: rk
+    const x = { t: t0 + a.s, m: a.m, n: 0, s, how: { k: "access", a }, rk: 0, pk: 0, lt: null }; // W251 arrival: rk; W252 transit3: pk, lt (the last vehicle's route type)
     if (add(s, x)) (marked.get(s) || marked.set(s, []).get(s)).push(x);
   }
   let scanned = 0;
@@ -286,7 +294,7 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
         const s = p.st[i];
         if (rb.length && !p.noOff[i]) for (const b of rb) {
           const tr = list[b.ti], t = (T[tr * n + i] + shift) * 60;
-          const x = { t, m: b.label.m, n: r, s, prev: b.label, how: { k: "ride", p: pi, trip: tr, ti: b.ti, i: b.i, j: i, shift }, rk: b.rk }; // W251 arrival: rk
+          const x = { t, m: b.label.m, n: r, s, prev: b.label, how: { k: "ride", p: pi, trip: tr, ti: b.ti, i: b.i, j: i, shift }, rk: b.rk, pk: b.pk, lt: tt.routes[p.routeIx].type }; // W251 arrival: rk; W252 transit3: pk, lt
           if (add(s, x)) mark(s, x);
         }
         const here = marked.get(s);
@@ -299,13 +307,14 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
           const bm = bucket(lab.m);
           if (rb.some((b) => b.ti <= lo && bucket(b.label.m) <= bm)) continue;
           for (let q = rb.length - 1; q >= 0; q--) if (lo <= rb[q].ti && bm <= bucket(rb[q].label.m)) rb.splice(q, 1);
-          rb.push({ ti: lo, label: lab, i, rk: lab.rk + (r > 1 ? Math.min(HER.cap_s, HER.half * headway(tt, list, pi, lo, i, shift)) : 0) }); // W251 arrival: a change's risk as describe() counts it
+          const ty = tt.routes[p.routeIx].type; // W252 transit3
+          rb.push({ ti: lo, label: lab, i, rk: lab.rk + (r > 1 ? miss(ty, headway(tt, list, pi, lo, i, shift)) : 0), pk: lab.pk + (r > 1 ? paid(lab.lt, ty) : 0) }); // W251 arrival: a change's risk as describe() counts it; W252 transit3: by the vehicle boarded, and pk
         }
       }
     }
     // changes on foot, from the stops a vehicle reached this round
     for (const [s, labs] of [...fresh]) for (const lab of labs) for (const [v, fs, fm, sib] of foot[s]) {
-      const x = { t: lab.t + (sib ? Math.max(fs / pace, WALK.change_s - WALK.board_s) : fs / pace), m: lab.m + fm, n: r, s: v, prev: lab, how: { k: "foot", from: s }, rk: lab.rk }; // W211 walkmore: at her pace; W222 integration: between two places of one station never under a change at one place, however fast she walks
+      const x = { t: lab.t + (sib ? Math.max(fs / pace, WALK.change_s - WALK.board_s) : fs / pace), m: lab.m + fm, n: r, s: v, prev: lab, how: { k: "foot", from: s }, rk: lab.rk, pk: lab.pk, lt: lab.lt }; // W252 transit3: pk, lt; W211 walkmore: at her pace; W222 integration: between two places of one station never under a change at one place, however fast she walks
       if (add(v, x)) mark(v, x);
     }
     for (const [s, labs] of fresh) {
@@ -315,7 +324,7 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
         if (lab.how.k === "foot" && lab.prev && egress.has(lab.prev.s)) continue; // walk on from the vehicle's own stop instead
         const t = lab.t + e.s, m = lab.m + e.m;
         if (m > most_m || dest.some((d) => d.t <= t && bucket(d.m) <= bucket(m) && may(d, lab))) continue; // W211 walkmore: most_m; W251 arrival: may()
-        for (let q = dest.length - 1; q >= 0; q--) if (dest[q].n === r && t <= dest[q].t && bucket(m) <= bucket(dest[q].m) && lab.rk <= dest[q].label.rk) dest.splice(q, 1); // W251 arrival: and no more risk
+        for (let q = dest.length - 1; q >= 0; q--) if (dest[q].n === r && t <= dest[q].t && bucket(m) <= bucket(dest[q].m) && lab.rk <= dest[q].label.rk && lab.pk <= dest[q].label.pk) dest.splice(q, 1); // W251 arrival: and no more risk; W252 transit3: nor changes with a bus
         dest.push({ t, m, n: r, label: lab, e });
       }
     }
@@ -330,14 +339,14 @@ export function search(tt, k, t0, access, egress, alone = null, { prev = false, 
 /** The next trip's departure at stop i after trip index ti of the day's list, minus this one's: the headway (s). */
 function headway(tt, list, pi, ti, i, shift) {
   const p = tt.patterns[pi], n = p.st.length, at = (x) => (p.times[list[x] * n + i] + shift) * 60;
-  return ti + 1 < list.length ? at(ti + 1) - at(ti) : ti > 0 ? at(ti) - at(ti - 1) : HER.cap_s / HER.half;
+  return ti + 1 < list.length ? at(ti + 1) - at(ti) : ti > 0 ? at(ti) - at(ti - 1) : Infinity; // W252 transit3: none, so miss()'s cap (was cap_s / half)
 }
 
 /** Her score (s): minutes to the door, the changes' expected waits, the walking past `free_m`, the fare; W203 tradeoffs2: each
  *  change's own penalty_s. */
 export function herScore(plan) {
   const extra = Math.max(0, plan.walk_m - HER.free_m) / WALK.speed * HER.extra;
-  return door(plan) + plan.change_s + extra + plan.fare * HER.usd_s + changes(plan) * HER.penalty_s // W203 walkcards2: door; W203 tradeoffs2: penalty_s
+  return door(plan) + plan.change_s + extra + plan.fare * HER.usd_s + pens(plan) * HER.penalty_s // W203 walkcards2: door; W203 tradeoffs2: penalty_s; W252 transit3: pens (was changes)
     + RANGES.bike[1] * (plan.stress_s || 0); // W204 bikeshare: a Bluebike's ride on busy streets
 }
 
@@ -415,7 +424,9 @@ export function lived(p, live) { // W251 arrival (seventh pass): exported for it
     const e = live.find((x) => at(x) && x.ids?.at(-1) === l.to) ?? live.find((x) => at(x) && x.ids?.includes(l.to)) ?? live.find((x) => at(x) && l.ids?.includes(x.ids?.at(-1))); // W251 arrival (seventh pass, SPEC §517 clause 5): first the reply asked to her own stop off (all its trips are hers), then one whose ride passes it (a farther stop's: a subset of hers, which may lack her first: the Red Line to Ashmont for a ride to JFK/UMass), only then one asked short of it (second fix pass)
     if (!e) continue;
     const w = p.legs[i - 1], ready = l.dep - (w?.type === "wait" ? w.time_s * 1000 : 0);
-    p = withLive(p, e.deps.find((t) => t >= ready) ?? null, e.deps, i); // the first it can make
+    p = withLive(p, e.deps.find((t) => t >= ready) ?? null, e.deps, i, e.ids?.includes(l.to) ? e.heads : null); // the first it can make; W252 transit3: e.heads, its own name (walk.js live()'s `seen`), only from a reply whose trains all reach her stop off (one asked short of it lists the other branch's too)
+    const by = p.legs[i].dep - l.dep; // W252 transit3 (W251's note 1, w251-arrival-whole-review3.md): another stop's reply's delay, lent, so her own reply can take it back (transit.js withLive())
+    if (by > 0 && e.ids?.at(-1) !== l.to) p.legs[i] = { ...p.legs[i], lent: by }; // W252 transit3
   }
   return p;
 }
@@ -459,12 +470,14 @@ function latest(tt, days, x, T) { // W203 walkcards2
 // W198 walkcards (SPEC §351): the measures a walker weighs, each lower being better
 const door = (p) => p.total_s + (p.spare_s || 0); // W203 walkcards2: arriving by a time, her minutes from setting off to it, the time to spare at the door too: the latest to set off is the best
 const under = (p) => door(p) - p.out_s, changes = (p) => Math.max(0, p.vehicles - 1); // W203 walkcards2: door
+/** W252 transit3 (SPEC §518): the changes that pay penalty_s, those with a bus on either side (describe()'s `pen`); a plan without it, changes(). */
+const pens = (p) => p.pen ?? changes(p); // W252 transit3
 /** W198 walkcards: plan a beats or ties plan b on every measure: the minutes to the door and outside, changes, fare, risk. */
 const beats = (a, b) => door(a) <= door(b) && a.out_s <= b.out_s && changes(a) <= changes(b) && a.fare <= b.fare && a.change_s <= b.change_s // W203 walkcards2: door
   && (a.stress_s || 0) <= (b.stress_s || 0) && (a.ride_s || 0) <= (b.ride_s || 0); // W204 bikeshare: a Bluebike's ride on busy streets, and its seconds ridden (in the rain)
 /** W198 walkcards: a plan's cost (s) under weights { out, change, risk, usd } (RANGES); her rule's are herScore(). */
 export function weigh(p, w) {
-  return under(p) + w.out * p.out_s + w.change * changes(p) + w.risk * p.change_s + w.usd * p.fare + Math.max(0, p.walk_m - (w.free_m ?? HER.free_m)) / WALK.speed * HER.extra // W211 walkmore: w.free_m, her lean's
+  return under(p) + w.out * p.out_s + w.change * pens(p) + w.risk * p.change_s + w.usd * p.fare + Math.max(0, p.walk_m - (w.free_m ?? HER.free_m)) / WALK.speed * HER.extra // W252 transit3: pens (was changes); W211 walkmore: w.free_m, her lean's
     + (w.bike || 0) * (p.stress_s || 0) + (w.wet || 0) * (p.ride_s || 0); // W204 bikeshare: { bike, wet }, a Bluebike's ride on busy streets and in the rain
 }
 /**
@@ -636,7 +649,7 @@ export function stopTimes(tt, ll, name, at, { n = 3, ref = "", station = "" } = 
 function describe(router, tt, { x, F, R, from, to, at, t0, days, k, pace = 1 }) { // W189 transittimes: k; W211 walkmore: pace
   const ms = (s) => at + (s - t0) * 1000, legs = [];
   const st = (s) => tt.stations[s];
-  let walk_m = x.m, change_s = 0, fare = 0, vehicles = 0, first = true, held = null; // W222 stationwalk: held, a change inside one station's seconds outside, its wait's
+  let walk_m = x.m, change_s = 0, fare = 0, vehicles = 0, first = true, held = null, pen = 0, was = null; // W252 transit3: pen, the changes with a bus, and the last vehicle's route type; W222 stationwalk: held, a change inside one station's seconds outside, its wait's
   const rides = []; // W203 walkcards2: for fareOf()
   if (!x.label) { // walking the whole way
     const pts = pathTo(router, F, x.alone.end);
@@ -665,25 +678,26 @@ function describe(router, tt, { x, F, R, from, to, at, t0, days, k, pace = 1 }) 
     }
     const h = l.how, p = tt.patterns[h.p], n = p.st.length, route = tt.routes[p.routeIx], from_s = st(p.st[h.i]), to_s = st(p.st[h.j]);
     const dep = (p.times[h.trip * n + h.i] + h.shift) * 60, arr = (p.times[h.trip * n + h.j] + h.shift) * 60;
-    if (!first) change_s += Math.min(HER.cap_s, HER.half * headway(tt, days(h.shift)[h.p], h.p, h.ti, h.i, h.shift));
+    if (!first) { change_s += miss(route.type, headway(tt, days(h.shift)[h.p], h.p, h.ti, h.i, h.shift)); pen += paid(was, route.type); } // W252 transit3: by the vehicle boarded (was half its headway), and pen
     const wait = Math.round(dep - ready), kerb = first && wait > WALK.early_s ? WALK.before_s : wait; // W198 walkcards: the first one mostly indoors, by its Leave by
     legs.push({ type: "wait", station: from_s.id, time_s: wait, out_s: roofed(from_s, route) ? held ?? 0 : kerb, ...(roofed(from_s, route) ? { roof: true } : {}) }); // W198 walkcards: out_s; W222 stationwalk: held, a change inside its walk's; W251 arrival (seventh pass): roof, for transit.js withLive()'s count
     held = null; // W222 stationwalk
     legs.push({ type: "train", mode: route.type === 3 ? "bus" : "rail", route: p.route, line: route.name, short: route.short || "", rtype: route.type, color: route.color || "8a8f98",
-      dir: p.dir, head: p.head, from: from_s.id, from_name: from_s.name, to: to_s.id, to_name: to_s.name, dep: ms(dep), arr: ms(arr), stops: h.j - h.i, time_s: arr - dep,
+      dir: p.dir, head: towards(tt, k, { route: p.route, dir: p.dir, from: p.st[h.i], to: p.st[h.j], dep, head: p.head }), from: from_s.id, // W252 transit3: the direction as the platform names it (was p.head)
+      from_name: from_s.name, to: to_s.id, to_name: to_s.name, dep: ms(dep), arr: ms(arr), stops: h.j - h.i, time_s: arr - dep,
       path: p.st.slice(h.i, h.j + 1).map((q) => st(q).ll), ids: p.st.slice(h.i, h.j + 1).map((q) => st(q).id), ...(from_s.ent.length ? {} : { kerb: true }), // W78 walkalerts: ids, its stops', for alerted()
       at: p.st.slice(h.i, h.j + 1).map((_, q) => ms((p.times[h.trip * n + h.i + q] + h.shift) * 60)), names: p.st.slice(h.i, h.j + 1).map((q) => st(q).name), // W211 walkride: each stop's time and name, for the ride followed by its timetable (app/walk-ride.js)
       ...(first ? { next: nextDepartures(tt, k, { route: p.route, dir: p.dir, from: p.st[h.i], to: p.st[h.j], after: dep }).map(ms) } : {}) }); // W189 transittimes: the next two at her stop
     fare = Math.max(fare, route.id.startsWith(MASSPORT) ? 0 : FARE[route.type] ?? 2.4); // W192 sltimes: Massport's shuttles are free
     rides.push({ net: route.net, from: from_s, to: to_s, dep, arr, free: route.id.startsWith(MASSPORT) }); // W203 walkcards2
-    vehicles++; first = false; ready = arr;
+    vehicles++; first = false; ready = arr; was = route.type; // W252 transit3: was
   }
   const last = chain.at(-1), e = x.e, sl = st(last.s);
   legs.push({ type: "walk", time_s: Math.round(e.s), m: Math.round(e.m), from: sl.id, geometry: e.here ? [e.ent.ll] : [e.ent.ll, ...pathTo(router, R, e.ent.j).reverse()], out_s: Math.round(e.s - inside(sl, ride(last), e.ent.in)), ...(e.here ? { here: true } : {}) }); // W198 walkcards: out_s; W222 stationwalk: its door's seconds; W248 stationdoor: here, it ends at the door she leaves by
   const lines = legs.filter((l) => l.type === "train").map((l) => l.route);
   const out_s = legs.reduce((s, l) => s + (l.out_s || 0), 0); // W198 walkcards: the minutes outside, walking and waiting
   const price = fareOf(tt, rides); // W203 walkcards2 (SPEC §366): the GTFS's fare, shown; else null, and her weighing keeps the estimate
-  return { legs, key: lines.join(">"), total_s: Math.round(x.t - t0), arrive: ms(x.t), walk_m: Math.round(walk_m), change_s: Math.round(change_s), fare: price ?? fare, price, vehicles, lines, out_s }; // W198 walkcards: out_s; W203 walkcards2: price
+  return { legs, key: lines.join(">"), total_s: Math.round(x.t - t0), arrive: ms(x.t), walk_m: Math.round(walk_m), change_s: Math.round(change_s), fare: price ?? fare, price, vehicles, lines, out_s, pen }; // W198 walkcards: out_s; W203 walkcards2: price; W252 transit3: pen
 }
 
 // ---- a Bluebike leg (W204 bikeshare) ---------------------------------------------------------------------------------

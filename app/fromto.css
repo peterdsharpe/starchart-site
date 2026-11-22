@@ -6,6 +6,7 @@
 
 /* the editor: the fields at the top, the picks or results for the focused one under them */
 .cfromto { z-index: 7; padding-top: var(--top); }
+.cfromto.idle { background: var(--peek-ground); } /* W252 lights (SPEC §26, her row 4: "give this panel a fully solid background … so nothing behind it shows through"): before two letters, on today's solid ground, as a pop-up's (app/hints.css), not .cresults.idle's glass; the map still in view below it; the desktop's column below keeps --void */
 body[data-open~="fromto"] .csearch, body[data-open~="fromto"] #stack { visibility: hidden; }
 .ft-head { display: flex; align-items: center; gap: 6px; padding: 0 var(--mr) 10px calc(var(--ml) - 6px); }
 .ft-back, .ft-swap { flex: none; width: 48px; height: 48px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--starlight); }

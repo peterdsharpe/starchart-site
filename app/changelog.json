@@ -2,6 +2,29 @@
   "next": [],
   "versions": [
     {
+      "version": "0.1.139",
+      "release": "Rasalhague",
+      "date": "2026-11-22",
+      "notes": [
+        {
+          "scul": "On foot, a change between two comets now counts for less than one with a sandworm, so fewer courses hang on catching a sandworm.",
+          "plain": "On foot, a change between two trains now counts for less than one with a bus, so fewer routes hang on catching a bus."
+        },
+        {
+          "scul": "Directions like \"Board the Red Line comet at Porter\" now say toward Ashmont/Braintree when any comet that way takes you to your stop, and your comet's own destination when live times have it.",
+          "plain": "Directions like \"Board the Red Line at Porter\" now say toward Ashmont/Braintree when any train that way takes you to your stop, and your train's own destination when live times have it."
+        },
+        {
+          "scul": "On a course, \"Pulsar ahead.\" now comes closer to the pulsar and only for pulsars the course flies through, never on a comet or sandworm or while you wait for one.",
+          "plain": "On a route, \"Traffic light ahead.\" now comes closer to the light and only for lights the route goes through, never on a train or bus or while you wait for one."
+        },
+        {
+          "scul": "When you edit From or To, the panel at the top is solid now, so the chart no longer shows through behind its fields and hint.",
+          "plain": "When you edit From or To, the panel at the top is solid now, so the map no longer shows through behind its fields and hint."
+        }
+      ]
+    },
+    {
       "version": "0.1.138",
       "release": "Procyon",
       "date": "2026-11-19",
